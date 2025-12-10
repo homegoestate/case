@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v16.0</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v13.0</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,10 +90,12 @@
             body { background: white; font-size: 9pt; line-height: 1.15; }
             .no-print { display: none !important; }
             
+            /* Header 壓縮 */
             header { margin-bottom: 4px !important; padding-bottom: 2px !important; border-bottom: 1.5px solid #000 !important; }
             header h1 { font-size: 1.1rem !important; color: #000 !important; }
             header .w-10 { width: 1.5rem; height: 1.5rem; font-size: 0.9rem; }
             
+            /* 通用卡片轉表格 */
             .card { 
                 box-shadow: none !important; border: 1px solid #000 !important; 
                 margin-bottom: 3px !important; padding: 3px !important; break-inside: avoid; 
@@ -101,6 +103,7 @@
                 border-radius: 2px !important;
             }
             
+            /* 輸入框隱形與縮小 */
             input, textarea, select { 
                 border: none !important; background: transparent !important; padding: 0 !important; 
                 font-size: 9pt !important; color: #000 !important; height: auto !important; min-height: 0 !important;
@@ -109,16 +112,25 @@
             textarea { resize: none; overflow: hidden; }
             .unit-tag { display: none; } 
 
+            /* 顏色轉黑白 */
             .bg-navy { background-color: #eee !important; color: #000 !important; border: 1px solid #000; }
             .bg-gold { border-left: 2px solid #000 !important; color: #000 !important; }
             .step-date { border: 1px solid #000; background: white !important; color: #000; padding: 0; }
             .step-item.active .step-icon { border-color: #000; background-color: #000; color: #fff; }
             
+            /* --- 關鍵：高密度網格佈局 --- */
             .print-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+            /* 財務行 (合併並排) */
             .print-finance-row { display: grid; grid-template-columns: 2fr 1fr; gap: 4px; }
+            /* 人員區塊 (左右並排) */
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+            /* 行政細節 (三欄位並排) */
             .print-admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
             
+            /* 文字大小微調 */
+            label { font-size: 7pt !important; margin-bottom: 0 !important; }
+            .nexus-input { font-weight: bold; }
+
             /* 隱藏黑色小背表 */
             .preview-card { display: none !important; }
             
@@ -135,7 +147,7 @@
             <div class="w-10 h-10 bg-navy text-white rounded flex items-center justify-center text-xl font-bold">宏</div>
             <div>
                 <h1 class="text-xl font-bold text-navy tracking-wide leading-tight">宏國 x 易丞地政</h1>
-                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v16.0</p>
+                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v13.0</p>
             </div>
         </div>
         <div class="flex gap-2 no-print">
@@ -422,14 +434,14 @@
             });
 
             onMounted(() => {
-                const saved = localStorage.getItem('nexus_staff_v16');
+                const saved = localStorage.getItem('nexus_staff_v13');
                 staffList.value = saved ? JSON.parse(saved) : defaultStaff;
             });
 
             const addStaff = () => {
                 if(newStaff.value.name){
                     staffList.value.push({...newStaff.value});
-                    localStorage.setItem('nexus_staff_v16', JSON.stringify(staffList.value));
+                    localStorage.setItem('nexus_staff_v13', JSON.stringify(staffList.value));
                     newStaff.value = {name:'', phone:''};
                 }
             };
