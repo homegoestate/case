@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v17.0 (全能兼容版)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v18.0</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -96,7 +96,7 @@
             
             .card { 
                 box-shadow: none !important; border: 1px solid #000 !important; 
-                margin-bottom: 3px !important; padding: 3px !important; break-inside: avoid; 
+                margin-bottom: 2px !important; padding: 3px !important; break-inside: avoid; 
                 background: white !important;
                 border-radius: 2px !important;
             }
@@ -135,7 +135,7 @@
             <div class="w-10 h-10 bg-navy text-white rounded flex items-center justify-center text-xl font-bold">宏</div>
             <div>
                 <h1 class="text-xl font-bold text-navy tracking-wide leading-tight">宏國 x 易丞地政</h1>
-                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v17.0</p>
+                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v18.0</p>
             </div>
         </div>
         <div class="flex gap-2 no-print">
@@ -265,26 +265,32 @@
             </div>
             
             <div class="card bg-white border border-gray-200 rounded p-2 flex-1">
-                <div class="flex justify-between"><h3 class="text-[10px] font-bold text-navy">銷售/開發 (智慧連動)</h3><span v-if="contactsLoaded" class="text-[9px] text-green-600 no-print">{{contactsCount}}筆</span></div>
+                <div class="flex justify-between"><h3 class="text-[10px] font-bold text-navy">銷售/開發 (多人+店長)</h3><span v-if="contactsLoaded" class="text-[9px] text-green-600 no-print">{{contactsCount}}筆</span></div>
                 <div class="grid grid-cols-2 gap-2 mt-1">
                     
                     <div class="relative group">
                         <label class="text-[9px] text-gray-400 block font-bold">銷售 Sales</label>
                         <div class="flex items-center">
-                            <input type="text" v-model="form.salesAgent" @input="searchContacts($event,'sales')" class="nexus-input font-bold text-[10px] mb-1 p-0 flex-1" placeholder="業務姓名">
-                            <button @click="appendAgent('sales')" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二人">+</button>
+                            <input type="text" v-model="form.salesAgent" @input="searchContacts($event,'sales')" class="nexus-input font-bold text-[10px] mb-1 p-0 flex-1" placeholder="業務1">
+                            <button @click="toggleSales2" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二人">+</button>
                         </div>
                         <div v-if="suggestions.target==='sales' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
-                        <div class="flex gap-1 mb-1">
-                            <input v-model="form.salesStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店 (自動帶入)">
-                            <input v-model="form.salesPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話 (自動帶入)">
+                        <input v-model="form.salesStore" class="nexus-input text-[9px] p-0 block w-full mb-1" placeholder="分店 (自動)">
+                        <input v-model="form.salesPhone" class="nexus-input text-[9px] p-0 block w-full mb-1" placeholder="電話1 (自動)">
+                        
+                        <div v-if="showSales2" class="border-t border-dotted pt-1 mb-1">
+                            <div class="flex gap-1">
+                                <div class="relative flex-1">
+                                    <input v-model="form.salesAgent2" @input="searchContacts($event,'sales2')" class="nexus-input font-bold text-[10px] p-0 w-full" placeholder="業務2">
+                                    <div v-if="suggestions.target==='sales2' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales2',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
+                                </div>
+                                <input v-model="form.salesPhone2" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話2">
+                            </div>
                         </div>
+
                         <div class="flex gap-1 border-t border-dotted pt-1">
                             <div class="relative flex-1">
-                                <div class="flex items-center">
-                                    <input v-model="form.salesManager" @input="searchContacts($event,'salesMgr')" class="nexus-input text-[9px] p-0 bg-yellow-50 flex-1" placeholder="店長姓名">
-                                    <button @click="appendManager('sales')" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二店長">+</button>
-                                </div>
+                                <input v-model="form.salesManager" @input="searchContacts($event,'salesMgr')" class="nexus-input text-[9px] p-0 bg-yellow-50 w-full" placeholder="店長姓名">
                                 <div v-if="suggestions.target==='salesMgr' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectManager('sales',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
                             </div>
                             <input v-model="form.salesManagerPhone" class="nexus-input text-[9px] p-0 w-1/2 bg-yellow-50" placeholder="店長電話">
@@ -294,20 +300,26 @@
                     <div class="relative group">
                         <label class="text-[9px] text-gray-400 block font-bold">開發 Dev</label>
                         <div class="flex items-center">
-                            <input type="text" v-model="form.devAgent" @input="searchContacts($event,'dev')" class="nexus-input font-bold text-[10px] mb-1 p-0 flex-1" placeholder="業務姓名">
-                            <button @click="appendAgent('dev')" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二人">+</button>
+                            <input type="text" v-model="form.devAgent" @input="searchContacts($event,'dev')" class="nexus-input font-bold text-[10px] mb-1 p-0 flex-1" placeholder="業務1">
+                            <button @click="toggleDev2" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二人">+</button>
                         </div>
                         <div v-if="suggestions.target==='dev' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('dev',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
-                        <div class="flex gap-1 mb-1">
-                            <input v-model="form.devStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店 (自動帶入)">
-                            <input v-model="form.devPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話 (自動帶入)">
+                        <input v-model="form.devStore" class="nexus-input text-[9px] p-0 block w-full mb-1" placeholder="分店 (自動)">
+                        <input v-model="form.devPhone" class="nexus-input text-[9px] p-0 block w-full mb-1" placeholder="電話1 (自動)">
+
+                        <div v-if="showDev2" class="border-t border-dotted pt-1 mb-1">
+                            <div class="flex gap-1">
+                                <div class="relative flex-1">
+                                    <input v-model="form.devAgent2" @input="searchContacts($event,'dev2')" class="nexus-input font-bold text-[10px] p-0 w-full" placeholder="業務2">
+                                    <div v-if="suggestions.target==='dev2' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('dev2',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
+                                </div>
+                                <input v-model="form.devPhone2" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話2">
+                            </div>
                         </div>
+
                         <div class="flex gap-1 border-t border-dotted pt-1">
                             <div class="relative flex-1">
-                                <div class="flex items-center">
-                                    <input v-model="form.devManager" @input="searchContacts($event,'devMgr')" class="nexus-input text-[9px] p-0 bg-yellow-50 flex-1" placeholder="店長姓名">
-                                    <button @click="appendManager('dev')" class="no-print text-[9px] bg-gray-200 px-1 ml-1 rounded h-4" title="加第二店長">+</button>
-                                </div>
+                                <input v-model="form.devManager" @input="searchContacts($event,'devMgr')" class="nexus-input text-[9px] p-0 bg-yellow-50 w-full" placeholder="店長姓名">
                                 <div v-if="suggestions.target==='devMgr' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectManager('dev',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
                             </div>
                             <input v-model="form.devManagerPhone" class="nexus-input text-[9px] p-0 w-1/2 bg-yellow-50" placeholder="店長電話">
@@ -400,6 +412,8 @@
             const staffList = ref([]);
             const selectedStaff = ref([]);
             const newStaff = ref({name:'', phone:''});
+            const showSales2 = ref(false);
+            const showDev2 = ref(false);
 
             // Form
             const form = ref({
@@ -412,9 +426,11 @@
                 sellerName: '', sellerPhone: '', buyerName: '', buyerPhone: '',
                 // Sales
                 salesAgent: '', salesPhone: '', salesStore: '', 
+                salesAgent2: '', salesPhone2: '', // Second Agent
                 salesManager: '', salesManagerPhone: '',
                 // Dev
                 devAgent: '', devPhone: '', devStore: '', 
+                devAgent2: '', devPhone2: '', // Second Agent
                 devManager: '', devManagerPhone: '',
                 
                 buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '',
@@ -423,17 +439,20 @@
             });
 
             onMounted(() => {
-                const saved = localStorage.getItem('nexus_staff_v17');
+                const saved = localStorage.getItem('nexus_staff_v18');
                 staffList.value = saved ? JSON.parse(saved) : defaultStaff;
             });
 
             const addStaff = () => {
                 if(newStaff.value.name){
                     staffList.value.push({...newStaff.value});
-                    localStorage.setItem('nexus_staff_v17', JSON.stringify(staffList.value));
+                    localStorage.setItem('nexus_staff_v18', JSON.stringify(staffList.value));
                     newStaff.value = {name:'', phone:''};
                 }
             };
+
+            const toggleSales2 = () => showSales2.value = !showSales2.value;
+            const toggleDev2 = () => showDev2.value = !showDev2.value;
 
             // CSV Logic - Universal Parser
             const contactsDB = ref([]);
@@ -441,7 +460,6 @@
             const contactsCount = ref(0);
             const suggestions = ref({ target: null, list: [] });
 
-            // Helper to find key fuzzily
             const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
 
             const handleFileUpload = (e) => {
@@ -452,21 +470,15 @@
                     header: true, skipEmptyLines: true,
                     complete: (res) => {
                         contactsDB.value = res.data.map(row => {
-                            // Smart Name Parsing
                             const fName = row['First Name'] || '';
                             const lName = row['Last Name'] || '';
-                            const name = (lName + fName).trim() || row['Name'] || Object.values(row)[0] || ''; // Fallback to first column
-
-                            // Smart Phone Parsing
+                            const name = (lName + fName).trim() || row['Name'] || Object.values(row)[0] || '';
                             const phoneKey = findKey(row, ['phone', 'mobile', 'cell', 'tel']);
                             const phone = phoneKey ? row[phoneKey].replace(/[^0-9-]/g,'') : '';
-
-                            // Smart Org Parsing
                             const orgKey = findKey(row, ['organization', 'company', 'department', 'office', 'store', 'job']);
                             const org = orgKey ? row[orgKey] : '';
-
                             return {name, phone, org, id: Math.random().toString(36).substr(2,9)};
-                        }).filter(c => c.name && c.name.length > 1); // Filter empty or garbage
+                        }).filter(c => c.name && c.name.length > 1);
                         
                         contactsLoaded.value = true;
                         contactsCount.value = contactsDB.value.length;
@@ -478,31 +490,37 @@
                 const q = e.target.value.toLowerCase();
                 suggestions.value.target = target;
                 if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
-                // Fuzzy search name or phone
                 suggestions.value.list = contactsDB.value.filter(c => 
                     (c.name && c.name.toLowerCase().includes(q)) || 
                     (c.phone && c.phone.includes(q))
                 ).slice(0,5);
             };
 
-            // Force Sync Selection
+            // Force Sync Selection (Updated for Agent 2)
             const selectContact = (target, c) => {
                 if(target==='sales') { 
                     form.value.salesAgent = c.name; 
                     form.value.salesPhone = c.phone; 
                     form.value.salesStore = c.org; 
                 }
+                else if(target==='sales2') { 
+                    form.value.salesAgent2 = c.name; 
+                    form.value.salesPhone2 = c.phone; 
+                }
                 else if(target==='dev') { 
                     form.value.devAgent = c.name; 
                     form.value.devPhone = c.phone; 
                     form.value.devStore = c.org; 
+                }
+                else if(target==='dev2') { 
+                    form.value.devAgent2 = c.name; 
+                    form.value.devPhone2 = c.phone; 
                 }
                 else if(target==='seller') { form.value.sellerName=c.name; form.value.sellerPhone=c.phone; }
                 else if(target==='buyer') { form.value.buyerName=c.name; form.value.buyerPhone=c.phone; }
                 suggestions.value.list = [];
             };
 
-            // Manager Sync
             const selectManager = (target, c) => {
                 if(target==='sales') { 
                     form.value.salesManager = c.name; 
@@ -515,22 +533,12 @@
                 suggestions.value.list = [];
             };
 
-            // Append Logic
-            const appendAgent = (target) => {
-                if(target === 'sales') form.value.salesAgent += "、";
-                if(target === 'dev') form.value.devAgent += "、";
-            }
-            const appendManager = (target) => {
-                if(target === 'sales') form.value.salesManager += "、";
-                if(target === 'dev') form.value.devManager += "、";
-            }
-
             document.addEventListener('click', (e) => { if(!e.target.closest('.relative')) suggestions.value.list=[]; });
 
             const formatDate = (d) => d ? (new Date(d).getMonth()+1)+'/'+new Date(d).getDate() : '____/____';
             const printPage = () => window.print();
 
-            // Preview Text
+            // Preview Text (Enhanced for multiple agents)
             const previewText = computed(() => {
                 let staffTxt = "";
                 selectedStaff.value.forEach(s => staffTxt += `☎️${s.name} ${s.phone}\n`);
@@ -538,8 +546,15 @@
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
 
-                const salesMgrTxt = form.value.salesManager ? `(店長:${form.value.salesManager} ${form.value.salesManagerPhone})` : '';
-                const devMgrTxt = form.value.devManager ? `(店長:${form.value.devManager} ${form.value.devManagerPhone})` : '';
+                // Build Sales Text
+                let salesTxt = `${form.value.salesStore} ${form.value.salesAgent} ${form.value.salesPhone}`;
+                if(form.value.salesAgent2) salesTxt += ` / ${form.value.salesAgent2} ${form.value.salesPhone2}`;
+                if(form.value.salesManager) salesTxt += ` (店長:${form.value.salesManager} ${form.value.salesManagerPhone})`;
+
+                // Build Dev Text
+                let devTxt = `${form.value.devStore} ${form.value.devAgent} ${form.value.devPhone}`;
+                if(form.value.devAgent2) devTxt += ` / ${form.value.devAgent2} ${form.value.devPhone2}`;
+                if(form.value.devManager) devTxt += ` (店長:${form.value.devManager} ${form.value.devManagerPhone})`;
 
                 return `簽約案件：${d}
 案名：${form.value.propertyName}
@@ -548,8 +563,8 @@
 
 👤 買方：${form.value.buyerName} ${form.value.buyerPhone}
 👤 賣方：${form.value.sellerName} ${form.value.sellerPhone}
-銷售：${form.value.salesStore} ${form.value.salesAgent} ${salesMgrTxt}
-開發：${form.value.devStore} ${form.value.devAgent} ${devMgrTxt}
+銷售：${salesTxt}
+開發：${devTxt}
 
 ⚠️ 特殊事項 ：
 ${form.value.notes}
@@ -577,7 +592,7 @@ ${staffTxt}`;
             return {
                 staffList, selectedStaff, newStaff, addStaff, form,
                 handleFileUpload, contactsLoaded, contactsCount,
-                searchContacts, suggestions, selectContact, selectManager, appendAgent, appendManager,
+                searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
                 formatDate, printPage, previewText, copyToClipboard
             };
         }
