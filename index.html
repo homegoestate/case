@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v13.0</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v17.0 (全能兼容版)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,12 +90,10 @@
             body { background: white; font-size: 9pt; line-height: 1.15; }
             .no-print { display: none !important; }
             
-            /* Header 壓縮 */
             header { margin-bottom: 4px !important; padding-bottom: 2px !important; border-bottom: 1.5px solid #000 !important; }
             header h1 { font-size: 1.1rem !important; color: #000 !important; }
             header .w-10 { width: 1.5rem; height: 1.5rem; font-size: 0.9rem; }
             
-            /* 通用卡片轉表格 */
             .card { 
                 box-shadow: none !important; border: 1px solid #000 !important; 
                 margin-bottom: 3px !important; padding: 3px !important; break-inside: avoid; 
@@ -103,7 +101,6 @@
                 border-radius: 2px !important;
             }
             
-            /* 輸入框隱形與縮小 */
             input, textarea, select { 
                 border: none !important; background: transparent !important; padding: 0 !important; 
                 font-size: 9pt !important; color: #000 !important; height: auto !important; min-height: 0 !important;
@@ -112,25 +109,16 @@
             textarea { resize: none; overflow: hidden; }
             .unit-tag { display: none; } 
 
-            /* 顏色轉黑白 */
             .bg-navy { background-color: #eee !important; color: #000 !important; border: 1px solid #000; }
             .bg-gold { border-left: 2px solid #000 !important; color: #000 !important; }
             .step-date { border: 1px solid #000; background: white !important; color: #000; padding: 0; }
             .step-item.active .step-icon { border-color: #000; background-color: #000; color: #fff; }
             
-            /* --- 關鍵：高密度網格佈局 --- */
             .print-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-            /* 財務行 (合併並排) */
             .print-finance-row { display: grid; grid-template-columns: 2fr 1fr; gap: 4px; }
-            /* 人員區塊 (左右並排) */
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-            /* 行政細節 (三欄位並排) */
             .print-admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
             
-            /* 文字大小微調 */
-            label { font-size: 7pt !important; margin-bottom: 0 !important; }
-            .nexus-input { font-weight: bold; }
-
             /* 隱藏黑色小背表 */
             .preview-card { display: none !important; }
             
@@ -147,13 +135,14 @@
             <div class="w-10 h-10 bg-navy text-white rounded flex items-center justify-center text-xl font-bold">宏</div>
             <div>
                 <h1 class="text-xl font-bold text-navy tracking-wide leading-tight">宏國 x 易丞地政</h1>
-                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v13.0</p>
+                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v17.0</p>
             </div>
         </div>
         <div class="flex gap-2 no-print">
             <label class="flex items-center px-2 py-1 bg-gray-100 border rounded cursor-pointer hover:bg-gray-200 text-xs">
                 <i class="fas fa-file-import text-green-600 mr-1"></i>
-                <span v-if="contactsLoaded">已載入{{contactsCount}}</span><span v-else>CSV</span>
+                <span v-if="contactsLoaded" class="font-bold text-green-700">OK! {{contactsCount}}筆</span>
+                <span v-else>CSV</span>
                 <input type="file" class="hidden" accept=".csv" @change="handleFileUpload">
             </label>
             <button @click="printPage" class="px-3 py-1 bg-navy text-white rounded text-xs hover:bg-black">
@@ -276,7 +265,7 @@
             </div>
             
             <div class="card bg-white border border-gray-200 rounded p-2 flex-1">
-                <div class="flex justify-between"><h3 class="text-[10px] font-bold text-navy">銷售/開發 (店長+)</h3><span v-if="contactsLoaded" class="text-[9px] text-green-600 no-print">OK</span></div>
+                <div class="flex justify-between"><h3 class="text-[10px] font-bold text-navy">銷售/開發 (智慧連動)</h3><span v-if="contactsLoaded" class="text-[9px] text-green-600 no-print">{{contactsCount}}筆</span></div>
                 <div class="grid grid-cols-2 gap-2 mt-1">
                     
                     <div class="relative group">
@@ -287,8 +276,8 @@
                         </div>
                         <div v-if="suggestions.target==='sales' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                         <div class="flex gap-1 mb-1">
-                            <input v-model="form.salesStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店">
-                            <input v-model="form.salesPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話">
+                            <input v-model="form.salesStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店 (自動帶入)">
+                            <input v-model="form.salesPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話 (自動帶入)">
                         </div>
                         <div class="flex gap-1 border-t border-dotted pt-1">
                             <div class="relative flex-1">
@@ -310,8 +299,8 @@
                         </div>
                         <div v-if="suggestions.target==='dev' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('dev',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                         <div class="flex gap-1 mb-1">
-                            <input v-model="form.devStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店">
-                            <input v-model="form.devPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話">
+                            <input v-model="form.devStore" class="nexus-input text-[9px] p-0 w-1/2" placeholder="分店 (自動帶入)">
+                            <input v-model="form.devPhone" class="nexus-input text-[9px] p-0 w-1/2" placeholder="電話 (自動帶入)">
                         </div>
                         <div class="flex gap-1 border-t border-dotted pt-1">
                             <div class="relative flex-1">
@@ -434,36 +423,51 @@
             });
 
             onMounted(() => {
-                const saved = localStorage.getItem('nexus_staff_v13');
+                const saved = localStorage.getItem('nexus_staff_v17');
                 staffList.value = saved ? JSON.parse(saved) : defaultStaff;
             });
 
             const addStaff = () => {
                 if(newStaff.value.name){
                     staffList.value.push({...newStaff.value});
-                    localStorage.setItem('nexus_staff_v13', JSON.stringify(staffList.value));
+                    localStorage.setItem('nexus_staff_v17', JSON.stringify(staffList.value));
                     newStaff.value = {name:'', phone:''};
                 }
             };
 
-            // CSV Logic
+            // CSV Logic - Universal Parser
             const contactsDB = ref([]);
             const contactsLoaded = ref(false);
             const contactsCount = ref(0);
             const suggestions = ref({ target: null, list: [] });
 
+            // Helper to find key fuzzily
+            const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+
             const handleFileUpload = (e) => {
                 const file = e.target.files[0];
                 if(!file) return;
+                
                 Papa.parse(file, {
                     header: true, skipEmptyLines: true,
                     complete: (res) => {
                         contactsDB.value = res.data.map(row => {
-                            const name = ((row['Last Name']||'') + (row['First Name']||'')).trim() || row['Name'] || '';
-                            const phone = (row['Phone 1 - Value']||row['Mobile Phone']||row['Phone']||'').replace(/[^0-9-]/g,'');
-                            const org = row['Organization Name'] || row['Company'] || row['Department'] || '';
+                            // Smart Name Parsing
+                            const fName = row['First Name'] || '';
+                            const lName = row['Last Name'] || '';
+                            const name = (lName + fName).trim() || row['Name'] || Object.values(row)[0] || ''; // Fallback to first column
+
+                            // Smart Phone Parsing
+                            const phoneKey = findKey(row, ['phone', 'mobile', 'cell', 'tel']);
+                            const phone = phoneKey ? row[phoneKey].replace(/[^0-9-]/g,'') : '';
+
+                            // Smart Org Parsing
+                            const orgKey = findKey(row, ['organization', 'company', 'department', 'office', 'store', 'job']);
+                            const org = orgKey ? row[orgKey] : '';
+
                             return {name, phone, org, id: Math.random().toString(36).substr(2,9)};
-                        }).filter(c => c.name);
+                        }).filter(c => c.name && c.name.length > 1); // Filter empty or garbage
+                        
                         contactsLoaded.value = true;
                         contactsCount.value = contactsDB.value.length;
                     }
@@ -474,10 +478,14 @@
                 const q = e.target.value.toLowerCase();
                 suggestions.value.target = target;
                 if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
-                suggestions.value.list = contactsDB.value.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q)).slice(0,5);
+                // Fuzzy search name or phone
+                suggestions.value.list = contactsDB.value.filter(c => 
+                    (c.name && c.name.toLowerCase().includes(q)) || 
+                    (c.phone && c.phone.includes(q))
+                ).slice(0,5);
             };
 
-            // AGENT SELECT (Forces Phone & Org)
+            // Force Sync Selection
             const selectContact = (target, c) => {
                 if(target==='sales') { 
                     form.value.salesAgent = c.name; 
@@ -494,7 +502,7 @@
                 suggestions.value.list = [];
             };
 
-            // MANAGER SELECT (Forces Phone)
+            // Manager Sync
             const selectManager = (target, c) => {
                 if(target==='sales') { 
                     form.value.salesManager = c.name; 
@@ -507,7 +515,7 @@
                 suggestions.value.list = [];
             };
 
-            // APPEND LOGIC (For Multiple People)
+            // Append Logic
             const appendAgent = (target) => {
                 if(target === 'sales') form.value.salesAgent += "、";
                 if(target === 'dev') form.value.devAgent += "、";
@@ -530,7 +538,6 @@
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
 
-                // Manager Text Generator
                 const salesMgrTxt = form.value.salesManager ? `(店長:${form.value.salesManager} ${form.value.salesManagerPhone})` : '';
                 const devMgrTxt = form.value.devManager ? `(店長:${form.value.devManager} ${form.value.devManagerPhone})` : '';
 
