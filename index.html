@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v15.0</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v16.0</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -135,7 +135,7 @@
             <div class="w-10 h-10 bg-navy text-white rounded flex items-center justify-center text-xl font-bold">宏</div>
             <div>
                 <h1 class="text-xl font-bold text-navy tracking-wide leading-tight">宏國 x 易丞地政</h1>
-                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v15.0</p>
+                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v16.0</p>
             </div>
         </div>
         <div class="flex gap-2 no-print">
@@ -327,6 +327,7 @@
                     <div class="detail-label"><i class="fas fa-file-contract mr-1"></i> 申請</div>
                     <div class="flex flex-wrap gap-2 text-[9px]">
                         <label><input type="checkbox"> 稅籍</label><label><input type="checkbox"> 分區</label><label><input type="checkbox"> 農證</label>
+                        <label><input type="checkbox"> 鑑界</label><label><input type="checkbox"> 農勘</label><label><input type="checkbox"> 無套繪</label>
                     </div>
                 </div>
                 <div class="detail-grid">
@@ -421,14 +422,14 @@
             });
 
             onMounted(() => {
-                const saved = localStorage.getItem('nexus_staff_v15');
+                const saved = localStorage.getItem('nexus_staff_v16');
                 staffList.value = saved ? JSON.parse(saved) : defaultStaff;
             });
 
             const addStaff = () => {
                 if(newStaff.value.name){
                     staffList.value.push({...newStaff.value});
-                    localStorage.setItem('nexus_staff_v15', JSON.stringify(staffList.value));
+                    localStorage.setItem('nexus_staff_v16', JSON.stringify(staffList.value));
                     newStaff.value = {name:'', phone:''};
                 }
             };
