@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v24.0</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v27.0</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -85,7 +85,7 @@
         .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.7rem; }
         .check-group { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; white-space: nowrap; }
 
-        /* 行事曆樣式 (螢幕與列印通用) */
+        /* 行事曆樣式 */
         .calendar-section { margin-top: 20px; break-before: page; }
         .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .calendar-month { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -93,8 +93,8 @@
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center; }
         .cal-day-header { font-size: 0.7rem; color: #666; font-weight: bold; padding: 2px 0; }
         .cal-cell { position: relative; height: 40px; border: 1px solid #f3f4f6; font-size: 0.8rem; display: flex; justify-content: center; padding-top: 2px; }
-        .cal-cell.holiday { background-color: #fee2e2; color: #dc2626; font-weight: bold; } /* 紅色背景 */
-        .cal-cell.weekend { color: #dc2626; } /* 週末紅字 */
+        .cal-cell.holiday { background-color: #fee2e2; color: #dc2626; font-weight: bold; }
+        .cal-cell.weekend { color: #dc2626; }
         .cal-marker { position: absolute; bottom: 2px; left: 1px; right: 1px; font-size: 0.6rem; color: white; border-radius: 2px; padding: 1px 0; font-weight: bold; }
         .marker-sign { background-color: #2563eb; }
         .marker-seal { background-color: #ca8a04; }
@@ -116,6 +116,7 @@
                 margin-bottom: 2px !important; padding: 2px !important; break-inside: avoid; 
                 background: white !important;
                 border-radius: 2px !important;
+                z-index: auto !important; /* Reset z-index */
             }
             
             input, textarea, select { 
@@ -147,7 +148,7 @@
             .preview-card { display: none !important; }
             footer { margin-top: 2px !important; border-top: 1px solid #000 !important; padding-top: 1px; font-size: 6pt !important; }
 
-            /* 行事曆列印優化 */
+            /* 行事曆列印 */
             .page-break-before { page-break-before: always; margin-top: 0; padding-top: 10px; }
             .calendar-month { border: 1px solid #000 !important; box-shadow: none !important; }
             .cal-cell { border: 1px solid #ccc !important; }
@@ -165,10 +166,13 @@
             <div class="w-10 h-10 bg-navy text-white rounded flex items-center justify-center text-xl font-bold">宏</div>
             <div>
                 <h1 class="text-xl font-bold text-navy tracking-wide leading-tight">宏國 x 易丞地政</h1>
-                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v24.0</p>
+                <p class="text-[10px] text-gold font-bold tracking-widest">SMART COMMAND v27.0</p>
             </div>
         </div>
         <div class="flex gap-2 no-print">
+            <button @click="saveData" class="flex items-center px-2 py-1 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-xs shadow-sm">
+                <i class="fas fa-save mr-1"></i> 儲存
+            </button>
             <label class="flex items-center px-2 py-1 bg-gray-100 border rounded cursor-pointer hover:bg-gray-200 text-xs">
                 <i class="fas fa-file-import text-green-600 mr-1"></i>
                 <span v-if="contactsLoaded" class="font-bold text-green-700">OK! {{contactsCount}}筆</span>
@@ -203,20 +207,18 @@
         <div class="card bg-white border border-gray-200 rounded p-2">
             <h3 class="text-[10px] font-bold text-navy mb-1 border-l-4 border-gold pl-2">款項與時程 (金額:萬 | 日期)</h3>
             <div class="grid grid-cols-2 gap-2 print-finance-grid">
-                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">1. 簽約</label><div class="flex items-center gap-1"><div class="relative flex-1"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.contractDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
-                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">2. 用印</label><div class="flex items-center gap-1"><div class="relative flex-1"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.sealDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
-                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">3. 完稅</label><div class="flex items-center gap-1"><div class="relative flex-1"><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.taxDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
-                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">4. 尾款</label><div class="flex items-center gap-1"><div class="relative flex-1"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.closingDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
+                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">1. 簽約</label><div class="flex items-center gap-1"><div class="relative w-20"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.contractDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
+                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">2. 用印</label><div class="flex items-center gap-1"><div class="relative w-20"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.sealDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
+                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">3. 完稅</label><div class="flex items-center gap-1"><div class="relative w-20"><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.taxDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
+                <div class="relative border border-gray-100 rounded px-1 bg-gray-50"><label class="text-[9px] text-gray-400 font-bold block">4. 尾款</label><div class="flex items-center gap-1"><div class="relative w-20"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-0 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.closingDate" class="nexus-input text-[9px] bg-transparent w-24 p-0 font-bold text-blue-800"></div></div>
             </div>
         </div>
         <div class="card bg-white border border-gray-200 rounded p-2 mt-2 md:mt-0">
             <h3 class="text-[10px] font-bold text-navy mb-1 border-l-4 border-gold pl-2">履約保證</h3>
-            <div class="grid grid-cols-1 gap-1">
-                <input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-xs" placeholder="編號">
-                <div class="grid grid-cols-2 gap-1">
-                    <input v-model="form.escrowName" class="nexus-input text-xs" placeholder="銀行戶名">
-                    <input v-model="form.escrowBranch" class="nexus-input text-xs" placeholder="分行">
-                </div>
+            <div class="flex flex-col justify-between h-full gap-1">
+                <div><label class="text-[9px] text-gray-400 block">編號</label><input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-xs w-full" placeholder="編號"></div>
+                <div><label class="text-[9px] text-gray-400 block">銀行/戶名</label><input v-model="form.escrowName" class="nexus-input text-xs w-full" placeholder="銀行戶名"></div>
+                <div><label class="text-[9px] text-gray-400 block">分行</label><input v-model="form.escrowBranch" class="nexus-input text-xs w-full" placeholder="分行"></div>
             </div>
         </div>
     </div>
@@ -225,13 +227,13 @@
         <div class="card bg-blue-50 border border-blue-200 rounded p-2">
             <h3 class="text-[10px] font-bold text-navy mb-1">買賣雙方</h3>
             <div class="grid grid-cols-2 gap-2">
-                <div class="relative">
+                <div class="relative group">
                     <label class="text-[9px] font-bold text-gray-500 block">賣方 Seller</label>
                     <input type="text" v-model="form.sellerName" @input="searchContacts($event,'seller')" class="nexus-input font-bold mb-1 p-0" placeholder="姓名">
                     <div v-if="suggestions.target==='seller' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('seller',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
                     <input type="text" v-model="form.sellerPhone" class="nexus-input font-mono text-[9px] p-0" placeholder="電話">
                 </div>
-                <div class="relative">
+                <div class="relative group">
                     <label class="text-[9px] font-bold text-gray-500 block">買方 Buyer</label>
                     <input type="text" v-model="form.buyerName" @input="searchContacts($event,'buyer')" class="nexus-input font-bold mb-1 p-0" placeholder="姓名">
                     <div v-if="suggestions.target==='buyer' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('buyer',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
@@ -242,7 +244,12 @@
         <div class="flex flex-col gap-2">
             <div class="card bg-white border border-gray-200 rounded p-2">
                 <div class="flex justify-between items-center mb-1"><h3 class="text-[10px] font-bold text-navy">承辦團隊</h3><div class="no-print text-[9px] flex gap-1"><input v-model="newStaff.name" class="border w-8" placeholder="名"><input v-model="newStaff.phone" class="border w-12" placeholder="電"><button @click="addStaff" class="bg-gray-200 px-1 rounded">+</button></div></div>
-                <div class="flex flex-wrap gap-2"><label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-1 rounded border hover:bg-gray-100"><input type="checkbox" :value="staff" v-model="selectedStaff" class="w-3 h-3 text-navy mr-1 rounded-sm"><span class="text-[9px] font-bold">{{staff.name}}</span></label></div>
+                <div class="flex flex-wrap gap-2 relative z-0">
+                    <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-1 rounded border hover:bg-gray-100 select-none">
+                        <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-3 h-3 text-navy mr-1 rounded-sm cursor-pointer">
+                        <span class="text-[9px] font-bold">{{staff.name}}</span>
+                    </label>
+                </div>
             </div>
             <div class="card bg-white border border-gray-200 rounded p-2 flex-1">
                 <div class="flex justify-between"><h3 class="text-[10px] font-bold text-navy">銷售/開發</h3><span v-if="contactsLoaded" class="text-[9px] text-green-600 no-print">OK</span></div>
@@ -268,7 +275,6 @@
 
     <div class="card bg-white border border-gray-200 rounded p-2 mt-2">
         <h3 class="text-[10px] font-bold text-navy mb-2 border-l-4 border-gold pl-2">行政與過戶細節 (文件/稅務/預收)</h3>
-        
         <div class="print-admin-row">
             <div>
                 <div class="mb-2">
@@ -285,7 +291,6 @@
                     <div class="check-row"><input type="checkbox" v-model="form.docBuyerID"><span class="check-label">身分證</span> <input type="date" v-model="form.docBuyerIDDate" class="border-b w-20 p-0 text-[8px]"></div>
                 </div>
             </div>
-            
             <div>
                 <div class="detail-grid">
                     <div class="detail-label">申請</div>
@@ -304,7 +309,6 @@
                     <div class="grid grid-cols-1 gap-1"><input v-model="form.sellerBank" class="nexus-input text-[8px] p-0" placeholder="銀行"><input v-model="form.sellerMortgage" class="nexus-input text-[8px] p-0" placeholder="金額"></div>
                 </div>
             </div>
-            
             <div>
                 <div class="detail-grid">
                     <div class="detail-label">查欠</div>
@@ -326,10 +330,17 @@
                 </div>
             </div>
         </div>
-
         <div class="mt-1 border-t border-gray-100 pt-1">
             <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-[9px]" placeholder="備註：交屋細節、特殊約定..."></textarea>
         </div>
+    </div>
+
+    <div class="preview-card card bg-navy text-white rounded p-3 mt-2 no-print">
+        <div class="flex justify-between items-center mb-1 border-b border-gray-600 pb-1">
+            <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
+            <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600">複製</button>
+        </div>
+        <div class="text-[10px] font-mono whitespace-pre-wrap h-48 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
     </div>
 
     <div class="calendar-section page-break-before">
@@ -348,12 +359,10 @@
                     <div class="cal-day-header">四</div>
                     <div class="cal-day-header">五</div>
                     <div class="cal-day-header text-red-600">六</div>
-                    
                     <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50"></div>
-                    
                     <div v-for="day in month.days" :key="day.dateStr" 
                          class="cal-cell" 
-                         :class="{ 'holiday': day.isHoliday, 'weekend': day.isWeekend && !day.isHoliday }">
+                         :class="{ 'holiday': day.isHoliday || day.isWeekend }">
                         <span>{{ day.dayNum }}</span>
                         <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
                         <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
@@ -365,34 +374,19 @@
         </div>
     </div>
 
-    <div class="preview-card card bg-navy text-white rounded p-3 mt-2 no-print">
-        <div class="flex justify-between items-center mb-1 border-b border-gray-600 pb-1">
-            <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
-            <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600">複製</button>
-        </div>
-        <div class="text-[10px] font-mono whitespace-pre-wrap h-48 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
-    </div>
-
     <footer class="mt-2 text-center text-[9px] text-gray-400 font-bold tracking-[0.2em] pt-2 border-t no-print">
         宏國地政 | 易丞地政
     </footer>
 </div>
 
 <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, watch, onMounted } = Vue;
 
-    // Taiwan Holidays 2025-2026 (Detailed)
     const holidays = [
-        '2025-01-01', // New Year
-        '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', // CNY
-        '2025-02-28', '2025-03-01', '2025-03-02', // 228
-        '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', // Tomb Sweeping
-        '2025-05-30', '2025-05-31', '2025-06-01', // Dragon Boat
-        '2025-10-04', '2025-10-05', '2025-10-06', // Moon Festival
-        '2025-10-10', '2025-10-11', '2025-10-12', // National Day
-        // 2026 (Estimates)
-        '2026-01-01',
-        '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22',
+        '2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', 
+        '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01', 
+        '2025-10-04', '2025-10-05', '2025-10-06', '2025-10-10', '2025-10-11', '2025-10-12',
+        '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22',
         '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06',
         '2026-06-19', '2026-06-20', '2026-06-21',
         '2026-09-25', '2026-09-26', '2026-09-27'
@@ -400,20 +394,18 @@
 
     createApp({
         setup() {
-            // Staff
-            const defaultStaff = [
+            const staffList = [
                 { name: "宜婷", phone: "0910-854-444" },
                 { name: "淑玲", phone: "0910-111-088" },
                 { name: "蕙蓁", phone: "0911-905-270" },
                 { name: "美汎", phone: "0927-055-226" }
             ];
-            const staffList = ref([]);
-            const selectedStaff = ref([]);
+            
+            const selectedStaff = ref([]); 
             const newStaff = ref({name:'', phone:''});
             const showSales2 = ref(false);
             const showDev2 = ref(false);
 
-            // Form
             const form = ref({
                 contractDate: new Date().toISOString().split('T')[0],
                 sealDate: '', taxDate: '', closingDate: '',
@@ -437,15 +429,25 @@
             });
 
             onMounted(() => {
-                const saved = localStorage.getItem('nexus_staff_v24');
-                staffList.value = saved ? JSON.parse(saved) : defaultStaff;
+                const savedForm = localStorage.getItem('nexus_form_v27');
+                if (savedForm) form.value = JSON.parse(savedForm);
+                
+                const savedStaff = localStorage.getItem('nexus_selected_staff_v27');
+                if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
             });
 
+            const saveData = () => {
+                localStorage.setItem('nexus_form_v27', JSON.stringify(form.value));
+                localStorage.setItem('nexus_selected_staff_v27', JSON.stringify(selectedStaff.value));
+                alert('資料已儲存！');
+            };
+
+            watch(form, (newVal) => localStorage.setItem('nexus_form_v27', JSON.stringify(newVal)), { deep: true });
+            watch(selectedStaff, (newVal) => localStorage.setItem('nexus_selected_staff_v27', JSON.stringify(newVal)), { deep: true });
+
             const addStaff = () => {
-                if(newStaff.value.name){
-                    staffList.value.push({...newStaff.value});
-                    localStorage.setItem('nexus_staff_v24', JSON.stringify(staffList.value));
-                    newStaff.value = {name:'', phone:''};
+                if(newStaff.value.name) {
+                    // Logic to add to internal list if needed, currently static list
                 }
             };
 
@@ -518,37 +520,29 @@
             const formatDate = (d) => d ? (new Date(d).getMonth()+1)+'/'+new Date(d).getDate() : '____/____';
             const printPage = () => window.print();
 
-            // Calendar Generator
             const generatedCalendar = computed(() => {
                 if (!form.value.contractDate) return [];
                 const start = new Date(form.value.contractDate);
                 const end = form.value.closingDate ? new Date(form.value.closingDate) : new Date(start.getFullYear(), start.getMonth() + 3, 1);
-                
                 const startDate = new Date(start.getFullYear(), start.getMonth(), 1);
                 const endDate = new Date(end.getFullYear(), end.getMonth() + 1, 0);
-
                 const months = [];
                 let current = new Date(startDate);
-
                 while (current <= endDate) {
                     const year = current.getFullYear();
                     const month = current.getMonth();
                     const monthTitle = `${year}年 ${month + 1}月`;
-                    
                     const daysInMonth = new Date(year, month + 1, 0).getDate();
-                    const startDay = new Date(year, month, 1).getDay(); // 0 is Sunday
-                    
+                    const startDay = new Date(year, month, 1).getDay(); 
                     const days = [];
                     for (let i = 1; i <= daysInMonth; i++) {
                         const dateObj = new Date(year, month, i);
                         const mStr = (month + 1).toString().padStart(2, '0');
                         const dStr = i.toString().padStart(2, '0');
                         const dateStr = `${year}-${mStr}-${dStr}`;
-                        
                         const dayOfWeek = dateObj.getDay();
                         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                         const isHoliday = holidays.includes(dateStr);
-
                         days.push({ dayNum: i, dateStr, isWeekend, isHoliday });
                     }
                     months.push({ id: `${year}-${month}`, title: monthTitle, startDay, days });
@@ -557,14 +551,21 @@
                 return months;
             });
 
-            // Preview Text
+            // Preview Text (Privacy Mode)
             const previewText = computed(() => {
                 let staffTxt = "";
-                selectedStaff.value.forEach(s => staffTxt += `☎️${s.name} ${s.phone}\n`);
+                selectedStaff.value.forEach(name => {
+                    const s = staffList.find(staff => staff.name === name);
+                    if (s) staffTxt += `☎️${s.name} ${s.phone}\n`;
+                });
+                
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
-                const salesMgrTxt = form.value.salesManager ? `(店長:${form.value.salesManager} ${form.value.salesManagerPhone})` : '';
-                const devMgrTxt = form.value.devManager ? `(店長:${form.value.devManager} ${form.value.devManagerPhone})` : '';
+
+                // Manager Text
+                const salesMgrTxt = form.value.salesManager ? `(店長:${form.value.salesManager})` : ''; // Hidden phone
+                const devMgrTxt = form.value.devManager ? `(店長:${form.value.devManager})` : ''; // Hidden phone
+
                 const prepayTxt = form.value.buyerPrePay ? `\n買方預收: ${form.value.buyerPrePay} (匯款:${form.value.buyerPrePayRemit?'是':'否'} ${form.value.buyerPrePayDate})` : '';
 
                 return `簽約案件：${d}
@@ -572,10 +573,10 @@
 🏠 住址: ${form.value.address}
 (${form.value.landBuildNo})
 
-👤 買方：${form.value.buyerName} ${form.value.buyerPhone}
-👤 賣方：${form.value.sellerName} ${form.value.sellerPhone}
-銷售：${form.value.salesStore} ${form.value.salesAgent} ${salesMgrTxt}
-開發：${form.value.devStore} ${form.value.devAgent} ${devMgrTxt}
+👤 買方：${form.value.buyerName}
+👤 賣方：${form.value.sellerName}
+銷售：${form.value.salesStore}
+開發：${form.value.devStore}
 
 ⚠️ 特殊事項 ：
 ${form.value.notes}
@@ -605,7 +606,7 @@ ${staffTxt}`;
                 staffList, selectedStaff, newStaff, addStaff, form,
                 handleFileUpload, contactsLoaded, contactsCount,
                 searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
-                formatDate, printPage, previewText, copyToClipboard, appendAgent, appendManager, generatedCalendar
+                formatDate, printPage, previewText, copyToClipboard, appendAgent, appendManager, generatedCalendar, saveData
             };
         }
     }).mount('#app');
