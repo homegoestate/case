@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.0 (Perfect Print)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.1 (Security Edition)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,6 +24,8 @@
             background-color: var(--nexus-bg);
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact;
+            user-select: none; /* CSS 層級防止選取 */
+            -webkit-user-select: none;
         }
 
         /* 品牌色 */
@@ -111,53 +113,53 @@
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
-            @page { margin: 5mm 8mm; size: A4 portrait; } /* 縮減上下邊界，爭取空間 */
+            @page { margin: 5mm 8mm; size: A4 portrait; }
             
             body { 
                 background: white; 
-                font-size: 10.5pt; /* 微調字體大小，平衡空間與清晰度 */
+                font-size: 10.5pt; 
                 line-height: 1.2; 
                 color: #000; 
+                user-select: auto; /* 列印時允許選取以免影響渲染 */
             }
             .no-print { display: none !important; }
 
-            /* 第一頁容器：強制不分頁，填滿高度 */
+            /* 第一頁容器 */
             .page-one-container { 
                 display: flex;
                 flex-direction: column;
-                height: 98vh; /* 確保佔滿一頁 */
+                height: 98vh; 
                 justify-content: flex-start;
                 page-break-after: always;
-                gap: 2px; /* 元素間距緊湊 */
+                gap: 2px;
             }
 
-            /* 1. Header 壓縮高度 */
+            /* 1. Header */
             header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 2px solid #000 !important; }
             header h1 { font-size: 1.6rem !important; margin-bottom: 0; }
             header .text-xs { font-size: 9pt !important; }
             
-            /* 2. Timeline 壓縮高度 */
+            /* 2. Timeline */
             .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; }
             .step-icon { width: 32px !important; height: 32px !important; border-width: 2px !important; font-size: 12pt !important; }
             .step-title { font-size: 10pt !important; color: #000 !important; margin-bottom: 0; }
             .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 9pt !important; padding: 1px 3px; font-weight: bold; }
 
-            /* 3. Card & Input 優化 */
+            /* 3. Card & Input */
             .card { 
                 box-shadow: none !important; 
                 border: 2px solid #555 !important; 
-                margin-bottom: 4px !important; /* 減少卡片間距 */
+                margin-bottom: 4px !important; 
                 padding: 6px !important; 
                 break-inside: avoid;
             }
             
-            /* 輸入框：字體大，但高度收斂 */
             input, textarea, select { 
                 font-size: 11.5pt !important; 
                 font-weight: 600 !important;
                 color: #000 !important;
                 margin-bottom: 1px !important; 
-                height: 1.4em !important; /* 控制高度 */
+                height: 1.4em !important;
             }
             .nexus-input { 
                 border: none !important;
@@ -171,27 +173,25 @@
             label { font-size: 9.5pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
             .unit-tag { color: #000; font-size: 9pt; right: 0; }
 
-            /* 4. Layout Grids (確保橫向排列，節省縱向空間) */
+            /* 4. Layout Grids */
             .print-grid-4 { display: grid; grid-template-columns: 1.5fr 2fr 1.2fr 1fr; gap: 8px; }
             .print-finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
             
-            /* 強制左右並排 */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
             
-            /* 5. Admin Section (最大挑戰：塞進去) */
+            /* 5. Admin Section */
             .admin-card { 
-                flex-grow: 1; /* 自動填滿剩餘空間 */
+                flex-grow: 1; 
                 margin-bottom: 0 !important;
             }
             .print-admin-row { 
                 display: grid; 
-                grid-template-columns: 1.2fr 0.9fr 1.1fr; /* 調整比例 */
+                grid-template-columns: 1.2fr 0.9fr 1.1fr; 
                 gap: 8px; 
                 font-size: 10.5pt; 
             }
             
-            /* 文件清單：極度緊湊 */
             .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
             .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 1px 0; margin-bottom: 1px; }
             .doc-checkbox { appearance: auto; width: 14px; height: 14px; margin-right: 3px; border: 1px solid #000; }
@@ -204,7 +204,7 @@
             /* Footer */
             footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
 
-            /* Calendar Page 2 (絕對分頁) */
+            /* Calendar Page 2 */
             .calendar-section { 
                 break-before: page; 
                 page-break-before: always; 
@@ -236,7 +236,7 @@
                 <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-10 print:h-10 print:text-xl print:border print:border-black print:text-black print:bg-white">宏</div>
                 <div>
                     <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
-                    <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.0</p>
+                    <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.1</p>
                 </div>
             </div>
             <div class="flex gap-2 no-print">
@@ -894,6 +894,41 @@ ${staffTxt}`;
             };
         }
     }).mount('#app');
+</script>
+
+<script>
+    // Nexus Security Protocol v1.0
+    document.addEventListener('contextmenu', event => event.preventDefault()); // 禁止右鍵
+
+    document.onkeydown = function(e) {
+        // 禁止 F12
+        if(e.keyCode == 123) {
+            return false;
+        }
+        // 禁止 Ctrl+I (開發者工具)
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+            return false;
+        }
+        // 禁止 Ctrl+J (開發者工具)
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+            return false;
+        }
+        // 禁止 Ctrl+U (檢視原始碼)
+        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+            return false;
+        }
+        // 禁止 Ctrl+S (存檔)
+        if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) {
+            e.preventDefault();
+            alert('此系統內容受智慧財產權保護，禁止存檔。');
+            return false;
+        }
+    }
+
+    // 禁止選取文字 (防止複製)
+    document.onselectstart = function() {
+        return false;
+    }
 </script>
 </body>
 </html>
