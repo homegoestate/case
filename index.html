@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v27.4</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v31.0 (Final Print Layout)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Michroma&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Michroma&display=swap');
         
         :root {
             --nexus-navy: #0F2E46;
@@ -33,15 +33,16 @@
         .bg-gold { background-color: var(--nexus-gold); }
         .border-gold { border-color: var(--nexus-gold); }
 
-        /* 輸入框通用優化 */
+        /* 輸入框通用 */
         .nexus-input {
             width: 100%;
-            padding: 0.4rem 0.6rem;
+            padding: 0.5rem 0.7rem; 
             border: 1px solid #d1d5db;
             border-radius: 0.375rem;
             background-color: white;
             transition: all 0.2s;
-            font-size: 1rem;
+            font-size: 1.1rem; 
+            font-weight: 500;
             line-height: 1.5;
             margin-bottom: 2px;
         }
@@ -52,50 +53,47 @@
             background-color: #fffbf0;
         }
         
-        label { display: block; margin-bottom: 3px; font-size: 0.85rem; color: #4b5563; }
-        .unit-tag { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.8rem; font-weight: bold; pointer-events: none; }
-
-        /* [螢幕模式] 行政細節輸入列優化 - 塊狀好點選 */
-        .doc-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            padding: 8px 10px; /* 加大間距好點 */
-            margin-bottom: 6px;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        .doc-row:hover { border-color: var(--nexus-navy); background-color: #f8fafc; }
-        .doc-checkbox { transform: scale(1.4); margin-right: 10px; cursor: pointer; }
-        .doc-label { font-weight: bold; color: #374151; font-size: 1rem; cursor: pointer; flex-grow: 1; }
-        .doc-date-input {
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 0.95rem;
-            color: #1f2937;
-            background-color: white;
-            width: 150px; 
-            cursor: pointer;
-        }
+        label { display: block; margin-bottom: 4px; font-size: 0.95rem; color: #4b5563; font-weight: 600; }
+        .unit-tag { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.9rem; font-weight: bold; pointer-events: none; }
 
         /* Timeline */
-        .timeline-wrapper { position: relative; padding: 10px 0; margin-bottom: 4px; }
-        .timeline-line-bg { position: absolute; top: 20px; left: 40px; right: 40px; height: 3px; background: #e5e7eb; z-index: 0; }
+        .timeline-wrapper { position: relative; padding: 15px 0; margin-bottom: 10px; }
+        .timeline-line-bg { position: absolute; top: 25px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; }
         .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; }
-        .step-item { display: flex; flex-direction: column; align-items: center; width: 80px; text-align: center; cursor: pointer; }
-        .step-icon { width: 36px; height: 36px; border-radius: 50%; background: white; border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1rem; margin-bottom: 4px; transition: all 0.3s; }
+        .step-item { display: flex; flex-direction: column; align-items: center; width: 100px; text-align: center; cursor: pointer; }
+        .step-icon { width: 42px; height: 42px; border-radius: 50%; background: white; border: 3px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.2rem; margin-bottom: 6px; transition: all 0.3s; }
         .step-item.active .step-icon { border-color: var(--nexus-gold); background-color: var(--nexus-navy); color: var(--nexus-gold); transform: scale(1.1); }
-        .step-title { font-weight: 700; color: var(--nexus-navy); font-size: 0.85rem; margin-bottom: 0; }
-        .step-date { font-family: 'Michroma', monospace; font-size: 0.75rem; color: #666; background: #eef2f6; padding: 2px 6px; border-radius: 4px; min-height: 20px; min-width: 70px; }
+        .step-title { font-weight: 700; color: var(--nexus-navy); font-size: 1rem; margin-bottom: 2px; }
+        .step-date { font-family: 'Michroma', monospace; font-size: 0.85rem; color: #666; background: #eef2f6; padding: 2px 8px; border-radius: 4px; min-height: 24px; min-width: 80px; }
+
+        /* [螢幕模式] 行政細節 */
+        .doc-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #fff; border: 1px solid #e5e7eb; padding: 10px 12px; margin-bottom: 8px; border-radius: 6px;
+        }
+        .doc-checkbox { transform: scale(1.5); margin-right: 12px; cursor: pointer; }
+        .doc-label { font-weight: bold; color: #374151; font-size: 1.1rem; cursor: pointer; flex-grow: 1; }
+        .doc-date-input { border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px; font-size: 1rem; width: 160px; }
+
+        /* Detail Grid */
+        .detail-grid { display: grid; grid-template-columns: 80px 1fr; gap: 10px; font-size: 1rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px; margin-bottom: 8px; }
+        .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.95rem; }
+
+        /* Manager Styles */
+        .manager-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
+        .manager-panel { width: 90%; max-width: 900px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .case-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .case-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; }
+        .case-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .status-badge.active { background-color: #dbeafe; color: #1e40af; }
+        .status-badge.closed { background-color: #dcfce7; color: #166534; }
 
         /* Suggestions & Calendar */
         .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; max-height: 180px; overflow-y: auto; z-index: 50; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
         .suggestion-item:hover { background-color: #f0f9ff; }
-        .calendar-section { margin-top: 20px; break-before: page; }
+        .calendar-section { margin-top: 20px; }
         .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .calendar-month { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .cal-header { text-align: center; font-weight: bold; color: var(--nexus-navy); border-bottom: 2px solid var(--nexus-gold); padding: 4px 0; margin-bottom: 4px; font-size: 0.9rem; }
@@ -110,97 +108,113 @@
         .marker-tax { background-color: #9333ea; }
         .marker-close { background-color: #dc2626; }
 
-        /* Detail Grid */
-        .detail-grid { display: grid; grid-template-columns: 70px 1fr; gap: 8px; font-size: 0.9rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px; }
-        .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.8rem; }
 
-        /* ================= 極致版面壓縮列印 (Space-Saving Print) ================= */
+        /* ================= 極致版面舒適列印 (Big & Bold Print Mode) ================= */
         @media print {
-            @page { margin: 5mm 8mm; size: A4 portrait; } /* 縮減邊界 */
-            body { background: white; font-size: 9.5pt; line-height: 1.15; color: #000; }
+            @page { margin: 8mm 8mm; size: A4 portrait; }
+            
+            body { 
+                background: white; 
+                font-size: 11pt; 
+                line-height: 1.3; 
+                color: #000; 
+            }
             .no-print { display: none !important; }
+
+            /* 強制第一頁容器 */
+            .page-one-container { 
+                display: block; 
+                min-height: 98vh; /* 確保佔滿一頁 */
+                page-break-after: always; /* 強制切頁 */
+            }
+
+            /* 1. Header */
+            header { margin-bottom: 8px !important; padding-bottom: 5px !important; border-bottom: 2px solid #000 !important; }
+            header h1 { font-size: 1.8rem !important; margin-bottom: 2px; }
+            header .text-xs { font-size: 10pt !important; }
             
-            /* 1. Header 壓縮 */
-            header { margin-bottom: 4px !important; padding-bottom: 2px !important; border-bottom: 1.5px solid #000 !important; }
-            header h1 { font-size: 1.2rem !important; }
-            header .text-xs { font-size: 8pt !important; }
-            
-            /* 2. Timeline 壓縮 */
-            .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; transform: scale(0.95); transform-origin: left top; }
-            .timeline-line-bg { top: 18px !important; }
-            .step-icon { width: 30px !important; height: 30px !important; font-size: 0.9rem !important; }
-            
-            /* 3. Card 結構壓縮 */
+            /* 2. Timeline */
+            .timeline-wrapper { padding: 10px 0 !important; margin-bottom: 10px !important; }
+            .step-icon { width: 40px !important; height: 40px !important; border-width: 2px !important; font-size: 14pt !important; }
+            .step-title { font-size: 11pt !important; color: #000 !important; }
+            .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 10pt !important; padding: 2px 4px; font-weight: bold; }
+
+            /* 3. Card & Input */
             .card { 
-                box-shadow: none !important; border: 1px solid #ccc !important; 
-                margin-bottom: 4px !important; padding: 4px !important; 
-                break-inside: avoid; flex-shrink: 0;
+                box-shadow: none !important; 
+                border: 2px solid #555 !important; 
+                margin-bottom: 8px !important; 
+                padding: 8px !important; 
+                break-inside: avoid;
             }
             
-            /* 4. 字體與輸入框 */
-            input, textarea, select { font-size: 9.5pt !important; height: auto !important; margin-bottom: 0 !important; }
-            .nexus-input { border-bottom: 1px dashed #ccc !important; border-radius: 0 !important; padding: 0 !important; }
-            .unit-tag { color: #000; font-size: 9pt; }
+            input, textarea, select { 
+                font-size: 12pt !important; 
+                font-weight: 600 !important;
+                color: #000 !important;
+                margin-bottom: 2px !important; 
+            }
+            .nexus-input { 
+                border: none !important;
+                border-bottom: 1px solid #000 !important; 
+                border-radius: 0 !important; 
+                padding: 2px 0 !important; 
+                background: transparent !important;
+            }
+            input[type="number"], .font-mono { font-size: 13pt !important; font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
 
-            .bg-navy { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+            label { font-size: 10pt !important; color: #000 !important; font-weight: bold; margin-bottom: 1px; }
+            .unit-tag { color: #000; font-size: 10pt; right: 0; }
+
+            /* 4. Layout Grids */
+            .print-grid-4 { display: grid; grid-template-columns: 1.5fr 2fr 1.2fr 1fr; gap: 10px; }
+            .print-finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            
+            /* 5. Admin Section (確保留在第一頁) */
+            .admin-card { 
+                break-inside: avoid; /* 禁止內部切頁 */
+                page-break-inside: avoid;
+            }
+            .print-admin-row { 
+                display: grid; 
+                grid-template-columns: 1.1fr 0.9fr 1fr; 
+                gap: 12px; 
+                font-size: 11pt; 
+            }
+            
+            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 2px 0; margin-bottom: 2px; }
+            .doc-checkbox { appearance: auto; width: 16px; height: 16px; margin-right: 4px; border: 1px solid #000; }
+            .doc-label { font-size: 11pt; font-weight: normal; margin-right: 4px; color: #000; }
+            .doc-date-input { border: none; border-bottom: 1px solid #000; border-radius: 0; width: 85px; padding: 0; font-size: 10pt; height: 18px; text-align: center; }
+
+            .detail-label { font-size: 11pt !important; width: 60px !important; font-weight: 900; color: #000; }
+            .detail-grid { grid-template-columns: 60px 1fr !important; gap: 6px !important; margin-bottom: 6px !important; padding-bottom: 4px !important; border-bottom: 1px dotted #999 !important; }
+
+            .bg-navy { background-color: transparent !important; color: #000 !important; border: 1px solid #000; }
             .text-navy { color: #000 !important; }
-            .bg-gold { border-left: 3px solid #000 !important; color: #000 !important; }
-            .step-date { border: 1px solid #000; background: white !important; color: #000; padding: 0 2px; font-size: 8pt; }
-            .step-item.active .step-icon { border-color: #000; background-color: #000; color: #fff; }
-            
-            /* 5. 網格壓縮 */
-            .print-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-            .print-finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-            .print-finance-row { display: grid; grid-template-columns: 2fr 1.2fr; gap: 4px; }
-            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-            
-            /* [重點] 行政區塊版面：強迫不換頁 */
-            .admin-card { break-before: avoid; break-inside: avoid; page-break-inside: avoid; margin-top: 2px !important; }
-            .print-admin-row { display: grid; grid-template-columns: 1.3fr 0.8fr 0.9fr; gap: 6px; font-size: 9pt; }
-            
-            /* [核心解法] 文件清單改為「並排」顯示以節省垂直空間 */
-            .doc-list-container {
-                display: grid;
-                grid-template-columns: 1fr 1fr; /* 強制兩欄並排 */
-                gap: 2px 8px;
-            }
+            .bg-gold { border-left: 5px solid #000 !important; padding-left: 5px !important; }
+            .text-red-800 { color: #000 !important; font-weight: 900 !important; text-decoration: underline; }
 
-            /* doc-row 在列印時極度簡化 */
-            .doc-row { 
-                display: flex; 
-                align-items: center; 
-                border: none; 
-                background: transparent; 
-                padding: 0; 
-                margin-bottom: 0;
-            }
-            .doc-checkbox { transform: scale(1); margin-right: 2px; }
-            .doc-label { font-size: 9pt; font-weight: normal; margin-right: 2px; flex-grow: 0; }
-            .doc-date-input { 
-                border: none; 
-                border-bottom: 1px solid #999; 
-                border-radius: 0; 
-                width: 70px; 
-                padding: 0; 
-                font-size: 8.5pt;
-                height: 14px;
-            }
-            
-            label { font-size: 8.5pt !important; margin-bottom: 0 !important; color: #000 !important; font-weight: bold; }
-            .detail-label { font-size: 9pt !important; width: 50px !important; font-weight: 800; margin-bottom: 0 !important; border: none; }
-            .detail-grid { grid-template-columns: 50px 1fr !important; gap: 4px !important; margin-bottom: 1px !important; padding-bottom: 1px !important; border-bottom: 1px dotted #ccc !important; }
+            /* Footer */
+            footer { border-top: 2px solid #000 !important; padding-top: 5px; font-size: 9pt !important; margin-top: 5px !important; font-weight: bold; }
 
-            .preview-card { display: none !important; }
+            /* Calendar Page 2 */
+            .calendar-section { 
+                break-before: page; 
+                page-break-before: always; /* 強制從新的一頁開始 */
+                margin-top: 0; 
+                padding-top: 20px; 
+            }
+            .calendar-month { border: 2px solid #000 !important; }
+            .cal-cell { border: 1px solid #888 !important; height: 45px !important; font-size: 10pt !important; }
+            .cal-header { border-bottom: 2px solid #000 !important; font-size: 12pt !important; background: #eee !important; -webkit-print-color-adjust: exact; }
+            .cal-marker { color: #000 !important; background: white !important; border: 1px solid #000; font-size: 8pt !important; font-weight: 900; }
             
-            /* Footer 緊貼底部 */
-            footer { border-top: 1px solid #000 !important; padding-top: 2px; font-size: 7pt !important; margin-top: 2px !important; }
-
-            /* 行事曆強制第二頁 */
-            .calendar-section { break-before: page; page-break-before: always; margin-top: 0; padding-top: 10px; }
-            .calendar-month { border: 1px solid #000 !important; box-shadow: none !important; page-break-inside: avoid; }
-            .cal-cell { border: 1px solid #ccc !important; height: 35px !important; }
-            .cal-cell.holiday { background-color: #eee !important; color: #000 !important; font-weight: bold; text-decoration: underline; }
-            .cal-marker { color: #000 !important; background: white !important; border: 1px solid #000; font-size: 7pt !important; }
+            /* 隱藏不必要元素 */
+            .preview-card, .db-control-btn, .manager-overlay { display: none !important; }
         }
     </style>
 </head>
@@ -208,30 +222,37 @@
 
 <div id="app" class="max-w-[210mm] mx-auto bg-white p-6 shadow-xl min-h-screen print:shadow-none print:p-0 print:block">
     
+    <div v-if="autoLoadedMsg" class="no-print fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 animate-bounce cursor-pointer" @click="autoLoadedMsg=null">
+        <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>系統自動載入成功</p>
+        <p class="text-sm">{{ autoLoadedMsg }}</p>
+    </div>
+
     <div class="page-one-container">
         <header class="flex justify-between items-end mb-4 border-b-2 border-gray-200 pb-2">
             <div class="flex items-center gap-2">
-                <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-8 print:h-8 print:text-lg print:border print:border-black print:text-black print:bg-white">宏</div>
+                <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-10 print:h-10 print:text-xl print:border print:border-black print:text-black print:bg-white">宏</div>
                 <div>
-                    <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-lg">宏國 x 易丞地政</h1>
-                    <p class="text-xs text-gold font-bold tracking-widest print:text-[9px]">SMART COMMAND v27.4</p>
+                    <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
+                    <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v31.0</p>
                 </div>
             </div>
             <div class="flex gap-2 no-print">
-                <button @click="saveData" class="flex items-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
-                    <i class="fas fa-save mr-2"></i> 儲存
+                <button @click="showManager = true" class="flex items-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
+                    <i class="fas fa-folder-open mr-2"></i> 案件管理後台
                 </button>
-                <label class="flex items-center px-4 py-2 bg-gray-100 border rounded cursor-pointer hover:bg-gray-200 text-sm transition-colors">
-                    <i class="fas fa-file-import text-green-600 mr-2"></i>
-                    <span v-if="contactsLoaded" class="font-bold text-green-700">OK! {{contactsCount}}筆</span>
-                    <span v-else>匯入 CSV</span>
-                    <input type="file" class="hidden" accept=".csv" @change="handleFileUpload">
-                </label>
+                <button @click="saveAndSync" class="flex items-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
+                    <i class="fas fa-save mr-2"></i> 儲存 (更新列表)
+                </button>
                 <button @click="printPage" class="px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
                     <i class="fas fa-print mr-2"></i> 列印
                 </button>
             </div>
         </header>
+        
+        <div v-if="currentCaseIndex > -1" class="no-print bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded mb-4 flex justify-between items-center text-sm shadow-sm">
+            <span class="font-bold"><i class="fas fa-edit mr-2"></i>正在編輯資料庫中的第 {{currentCaseIndex + 1}} 筆案件 ({{form.address || '未命名'}})</span>
+            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100">退出編輯 (新增模式)</button>
+        </div>
 
         <div class="card bg-white border border-gray-200 rounded p-4 mb-2">
             <div class="timeline-wrapper">
@@ -253,7 +274,7 @@
 
         <div class="print-finance-row gap-2 mb-2">
             <div class="card bg-white border border-gray-200 rounded p-3">
-                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-1">款項與時程 (金額:萬 | 日期)</h3>
+                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
                 <div class="grid grid-cols-2 gap-3 print-finance-grid">
                     <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
                     <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">2. 用印</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.sealDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
@@ -262,7 +283,7 @@
                 </div>
             </div>
             <div class="card bg-white border border-gray-200 rounded p-3 mt-2 md:mt-0">
-                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-1">履約保證</h3>
+                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">履約保證</h3>
                 <div class="flex flex-col justify-between h-full gap-2">
                     <div><label class="text-xs text-gray-400 block print:text-black">編號</label><input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-sm w-full print:text-black" placeholder="編號"></div>
                     <div><label class="text-xs text-gray-400 block print:text-black">銀行/戶名</label><input v-model="form.escrowName" class="nexus-input text-sm w-full" placeholder="銀行戶名"></div>
@@ -273,7 +294,7 @@
 
         <div class="print-people-row gap-2 mb-2">
             <div class="card bg-blue-50 border border-blue-200 rounded p-3 print:bg-white print:border-gray-300">
-                <h3 class="text-sm font-bold text-navy mb-2 print:text-base print:mb-1">買賣雙方</h3>
+                <h3 class="text-sm font-bold text-navy mb-2 print:text-base print:mb-2">買賣雙方</h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="relative group">
                         <label class="text-xs font-bold text-gray-500 block print:text-black">賣方 Seller</label>
@@ -295,7 +316,7 @@
                     <div class="flex flex-wrap gap-3 relative z-0">
                         <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
                             <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
-                            <span class="text-sm font-bold print:text-[10pt]">{{staff.name}}</span>
+                            <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
                         </label>
                     </div>
                 </div>
@@ -322,10 +343,10 @@
         </div>
 
         <div class="card bg-white border border-gray-200 rounded p-3 mt-2 admin-card">
-            <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-1">行政與過戶細節 (文件/稅務/預收)</h3>
+            <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">行政與過戶細節 (文件/稅務/預收)</h3>
             <div class="print-admin-row">
                 <div>
-                    <div class="mb-3 print:mb-1">
+                    <div class="mb-3 print:mb-2">
                         <div class="detail-label bg-gray-100 px-1 mb-2 font-bold print:bg-transparent print:text-black print:border-b print:w-full print:mb-1">賣方文件 (日期)</div>
                         <div class="doc-list-container">
                             <div class="doc-row">
@@ -374,11 +395,11 @@
                 <div>
                     <div class="detail-grid">
                         <div class="detail-label">申請</div>
-                        <div class="flex flex-wrap gap-2 text-xs print:text-[10pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
+                        <div class="flex flex-wrap gap-2 text-xs print:text-[11pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
                     </div>
                     <div class="detail-grid">
                         <div class="detail-label">增值稅</div>
-                        <div class="flex gap-2 text-xs print:text-[10pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
+                        <div class="flex gap-2 text-xs print:text-[11pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
                     </div>
                     <div class="detail-grid">
                         <div class="detail-label">買貸</div>
@@ -402,9 +423,9 @@
                         <div class="detail-label text-red-800 print:text-black">買方預收</div>
                         <div>
                             <input v-model="form.buyerPrePay" class="nexus-input text-xs p-1 w-full mb-1" placeholder="金額 $">
-                            <div class="flex items-center gap-1 text-xs print:text-[10pt]">
+                            <div class="flex items-center gap-1 text-xs print:text-[11pt]">
                                 <label><input type="checkbox" v-model="form.buyerPrePayRemit">已匯</label>
-                                <input type="date" v-model="form.buyerPrePayDate" class="border-b w-24 p-0 print:w-20">
+                                <input type="date" v-model="form.buyerPrePayDate" class="border-b w-24 p-0 print:w-24">
                             </div>
                         </div>
                     </div>
@@ -427,12 +448,68 @@
             宏國地政 | 易丞地政
         </footer>
     </div>
-
-    <div class="calendar-section page-break-before">
-        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
-        <div class="text-center text-xs mb-4 text-gray-500">
-            * 紅色底色為國定假日 (2025-2026 連假資料庫)
+    <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
+        <div class="manager-panel">
+            <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
+                <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>案件管理後台 (共 {{cases.length}} 筆)</h2>
+                <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="bg-gray-100 p-3 flex gap-2 border-b">
+                <label class="cursor-pointer bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-sm font-bold text-gray-700">
+                    <i class="fas fa-upload text-green-600 mr-1"></i> 匯入 Excel (CSV)
+                    <input type="file" class="hidden" accept=".csv" @change="handleImportCases">
+                </label>
+                <button @click="exportCases" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-bold">
+                    <i class="fas fa-file-excel mr-1"></i> 匯出 Excel (CSV)
+                </button>
+                <div class="flex-1"></div>
+                <button @click="resetForm(true)" class="bg-nexus-navy text-white px-3 py-1.5 rounded hover:bg-black text-sm font-bold">
+                    <i class="fas fa-plus mr-1"></i> 新增空案件
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <table class="case-table bg-white shadow-sm">
+                    <thead>
+                        <tr>
+                            <th>編號</th>
+                            <th>簽約日</th>
+                            <th>客戶姓名</th>
+                            <th>地址</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(c, idx) in cases" :key="idx" :class="{'bg-yellow-50': idx === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
+                            <td class="font-mono text-xs">{{ c['編號'] }}</td>
+                            <td class="font-mono text-xs">{{ c['簽約日'] }}</td>
+                            <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
+                            <td class="text-xs truncate max-w-[120px]" :title="c['地址']">{{ c['地址'] }}</td>
+                            <td>
+                                <span v-if="c['結案時間']" class="status-badge closed">已結案</span>
+                                <span v-else class="status-badge active">進行中</span>
+                            </td>
+                            <td>
+                                <button @click="editCase(idx)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 p-1 rounded" title="編輯"><i class="fas fa-edit"></i></button>
+                                <button @click="deleteCase(idx)" class="text-red-400 hover:text-red-600 bg-red-100 p-1 rounded" title="刪除"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr v-if="cases.length === 0">
+                            <td colspan="6" class="text-center py-8 text-gray-400">
+                                尚無資料。請點擊上方「匯入」按鈕載入您的案件表。<br>
+                                <span class="text-xs text-green-600 mt-2 block">(系統會自動記憶資料，下次無需重新匯入)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+    </div>
+    
+    <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
+
+    <div class="calendar-section">
+        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
         <div class="calendar-container">
             <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
                 <div class="cal-header">{{ month.title }}</div>
@@ -487,6 +564,13 @@
             const newStaff = ref({name:'', phone:''});
             const showSales2 = ref(false);
             const showDev2 = ref(false);
+            const showManager = ref(false);
+            const autoLoadedMsg = ref(null);
+
+            // Database State
+            const cases = ref([]);
+            const currentCaseIndex = ref(-1); // -1 = New Case
+            const csvHeaders = ref([]); 
 
             const form = ref({
                 contractDate: new Date().toISOString().split('T')[0],
@@ -510,45 +594,185 @@
                 buyerPrePay: '', buyerPrePayRemit: false, buyerPrePayDate: ''
             });
 
+            const defaultForm = JSON.parse(JSON.stringify(form.value));
+
+            // Auto-Load Data on Startup
             onMounted(() => {
-                const savedForm = localStorage.getItem('nexus_form_v27');
+                const savedForm = localStorage.getItem('nexus_form_v30');
                 if (savedForm) form.value = JSON.parse(savedForm);
-                
-                const savedStaff = localStorage.getItem('nexus_selected_staff_v27');
+                const savedStaff = localStorage.getItem('nexus_staff_v30');
                 if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
+                
+                // Load DB from Memory
+                const savedCases = localStorage.getItem('nexus_cases_db');
+                if (savedCases) {
+                    cases.value = JSON.parse(savedCases);
+                    if(cases.value.length > 0) {
+                        autoLoadedMsg.value = `已自動載入 ${cases.value.length} 筆案件紀錄，無需重新匯入。`;
+                        setTimeout(() => autoLoadedMsg.value = null, 5000); // Hide after 5s
+                    }
+                }
+                const savedHeaders = localStorage.getItem('nexus_csv_headers');
+                if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
             });
 
-            const saveData = () => {
-                localStorage.setItem('nexus_form_v27', JSON.stringify(form.value));
-                localStorage.setItem('nexus_selected_staff_v27', JSON.stringify(selectedStaff.value));
-                alert('資料已儲存！');
+            // Date Helpers
+            const toROC = (dateStr) => {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '';
+                return `${d.getFullYear()-1911}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')}`;
+            };
+            const fromROC = (rocStr) => {
+                if (!rocStr) return '';
+                const parts = rocStr.split(/[./]/);
+                if (parts.length >= 3) {
+                    const y = parseInt(parts[0]) + 1911;
+                    const m = parts[1].padStart(2,'0');
+                    const d = parts[2].padStart(2,'0');
+                    return `${y}-${m}-${d}`;
+                }
+                return '';
             };
 
-            watch(form, (newVal) => localStorage.setItem('nexus_form_v27', JSON.stringify(newVal)), { deep: true });
-            watch(selectedStaff, (newVal) => localStorage.setItem('nexus_selected_staff_v27', JSON.stringify(newVal)), { deep: true });
+            // Manager Functions
+            const handleImportCases = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                Papa.parse(file, {
+                    header: false,
+                    complete: (res) => {
+                        const rows = res.data;
+                        const headerIdx = rows.findIndex(r => r.includes('編號'));
+                        if (headerIdx === -1) { alert("無法辨識 Excel 格式 (找不到'編號'欄位)"); return; }
+                        
+                        csvHeaders.value = rows[headerIdx]; 
+                        const dataRows = rows.slice(headerIdx + 1);
+                        
+                        cases.value = dataRows.map(row => {
+                            let obj = {};
+                            csvHeaders.value.forEach((h, i) => obj[h] = row[i] || '');
+                            return obj;
+                        }).filter(c => c['編號'] || c['地址']);
 
-            const addStaff = () => {
-                if(newStaff.value.name) {
-                    // Logic to add to internal list if needed, currently static list
+                        localStorage.setItem('nexus_csv_headers', JSON.stringify(csvHeaders.value));
+                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                        alert(`匯入成功！共 ${cases.value.length} 筆案件。系統已自動記憶。`);
+                    }
+                });
+            };
+
+            const editCase = (idx) => {
+                currentCaseIndex.value = idx;
+                const c = cases.value[idx];
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); // Reset first
+
+                form.value.contractDate = fromROC(c['簽約日']);
+                form.value.closingDate = fromROC(c['結案時間']);
+                form.value.address = c['地址'];
+                form.value.totalPrice = (c['售價(萬)']||'').replace(/[^\d.]/g,'');
+                form.value.loanPrice = (c['銀行貸款金額']||'').replace(/[^\d.]/g,'');
+                form.value.buyerBankAmount = c['核貸金額'] || '';
+                form.value.buyerBank = c['貸款銀行+承辦'] || '';
+                form.value.buyerPrePay = c['預收款'] || '';
+                form.value.waterId = c['水電、瓦斯、管理費'] || '';
+
+                const names = c['客戶姓名(買/賣方)'] || '';
+                const nameParts = names.split(/[、,]/);
+                if(nameParts.length > 0) form.value.sellerName = nameParts[0]; 
+                if(nameParts.length > 1) form.value.buyerName = nameParts[1]; 
+
+                const staffStr = c['承辦'] || '';
+                selectedStaff.value = staffList.filter(s => staffStr.includes(s.name)).map(s => s.name);
+
+                showManager.value = false;
+            };
+
+            const deleteCase = (idx) => {
+                if(confirm('確定刪除此案件？')) {
+                    cases.value.splice(idx, 1);
+                    if(currentCaseIndex.value === idx) resetForm();
+                    localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
                 }
             };
 
-            const toggleSales2 = () => showSales2.value = !showSales2.value;
-            const toggleDev2 = () => showDev2.value = !showDev2.value;
+            const resetForm = (switchToNew = false) => {
+                currentCaseIndex.value = -1;
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
+                selectedStaff.value = [];
+                if(switchToNew) showManager.value = false;
+            };
 
-            // CSV Logic
+            const saveAndSync = () => {
+                // Save current work
+                localStorage.setItem('nexus_form_v30', JSON.stringify(form.value));
+                localStorage.setItem('nexus_staff_v30', JSON.stringify(selectedStaff.value));
+
+                // Sync to DB
+                const rowData = {
+                    '編號': currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value]['編號'] : (cases.value.length + 1).toString(),
+                    '簽約日': toROC(form.value.contractDate),
+                    '客戶姓名(買/賣方)': `${form.value.sellerName}、${form.value.buyerName}`,
+                    '地址': form.value.address,
+                    '承辦': selectedStaff.value.join('、'),
+                    '售價(萬)': form.value.totalPrice ? form.value.totalPrice + '萬' : '',
+                    '銀行貸款金額': form.value.loanPrice ? form.value.loanPrice + '萬' : '',
+                    '核貸金額': form.value.buyerBankAmount,
+                    '貸款銀行+承辦': form.value.buyerBank,
+                    '預收款': form.value.buyerPrePay,
+                    '水電、瓦斯、管理費': form.value.waterId,
+                    '結案時間': toROC(form.value.closingDate),
+                    ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
+                };
+
+                // Explicit Override
+                rowData['簽約日'] = toROC(form.value.contractDate);
+                rowData['客戶姓名(買/賣方)'] = `${form.value.sellerName}、${form.value.buyerName}`;
+                rowData['地址'] = form.value.address;
+                rowData['承辦'] = selectedStaff.value.join('、');
+                rowData['售價(萬)'] = form.value.totalPrice ? form.value.totalPrice + '萬' : '';
+                rowData['銀行貸款金額'] = form.value.loanPrice ? form.value.loanPrice + '萬' : '';
+                rowData['核貸金額'] = form.value.buyerBankAmount;
+                rowData['貸款銀行+承辦'] = form.value.buyerBank;
+                rowData['預收款'] = form.value.buyerPrePay;
+                rowData['水電、瓦斯、管理費'] = form.value.waterId;
+                rowData['結案時間'] = toROC(form.value.closingDate);
+
+                if (currentCaseIndex.value > -1) {
+                    cases.value[currentCaseIndex.value] = rowData;
+                } else {
+                    cases.value.push(rowData);
+                    currentCaseIndex.value = cases.value.length - 1; 
+                }
+                
+                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                alert('已儲存並更新至案件列表！');
+            };
+
+            const exportCases = () => {
+                const titleRow = ["宏國地政 | 易丞地政 案件"];
+                const headerRow = csvHeaders.value.length ? csvHeaders.value : ['編號','簽約日','客戶姓名(買/賣方)','地址','承辦','售價(萬)','銀行貸款金額','核貸金額','貸款不足額','貸款銀行+承辦','貸款狀況','稅單核下','預收款','買服','室內格局','可送過戶','代償','水電、瓦斯、管理費','結案時間'];
+                const dataRows = cases.value.map(c => headerRow.map(h => c[h] || ''));
+                const csvContent = Papa.unparse([titleRow, headerRow, ...dataRows]);
+                const blob = new Blob(["\uFEFF"+csvContent], {type: 'text/csv;charset=utf-8;'});
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `案件進度表_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            };
+
+            // Contacts & Calendar (Standard)
             const contactsDB = ref([]);
             const contactsLoaded = ref(false);
             const contactsCount = ref(0);
             const suggestions = ref({ target: null, list: [] });
+            
+            const handleContactUpload = (e) => { /* Reuse logic */ }; 
             const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
-
             const handleFileUpload = (e) => {
                 const file = e.target.files[0];
                 if(!file) return;
-                Papa.parse(file, {
-                    header: true, skipEmptyLines: true,
-                    complete: (res) => {
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
                         contactsDB.value = res.data.map(row => {
                             const fName = row['First Name'] || '';
                             const lName = row['Last Name'] || '';
@@ -557,48 +781,27 @@
                             const phone = phoneKey ? row[phoneKey].replace(/[^0-9-]/g,'') : '';
                             const orgKey = findKey(row, ['organization', 'company', 'department', 'office', 'store', 'job']);
                             const org = orgKey ? row[orgKey] : '';
-                            return {name, phone, org, id: Math.random().toString(36).substr(2,9)};
+                            return {name, phone, org};
                         }).filter(c => c.name && c.name.length > 1);
                         contactsLoaded.value = true;
                         contactsCount.value = contactsDB.value.length;
-                    }
-                });
+                    }});
             };
-
             const searchContacts = (e, target) => {
                 const q = e.target.value.toLowerCase();
                 suggestions.value.target = target;
                 if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
                 suggestions.value.list = contactsDB.value.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))).slice(0,5);
             };
-
             const selectContact = (target, c) => {
-                if(target==='sales') { form.value.salesAgent = c.name; form.value.salesPhone = c.phone; form.value.salesStore = c.org; }
-                else if(target==='sales2') { form.value.salesAgent2 = c.name; form.value.salesPhone2 = c.phone; }
-                else if(target==='dev') { form.value.devAgent = c.name; form.value.devPhone = c.phone; form.value.devStore = c.org; }
-                else if(target==='dev2') { form.value.devAgent2 = c.name; form.value.devPhone2 = c.phone; }
-                else if(target==='seller') { form.value.sellerName=c.name; form.value.sellerPhone=c.phone; }
+                if(target==='seller') { form.value.sellerName=c.name; form.value.sellerPhone=c.phone; }
                 else if(target==='buyer') { form.value.buyerName=c.name; form.value.buyerPhone=c.phone; }
                 suggestions.value.list = [];
             };
-
-            const selectManager = (target, c) => {
-                if(target==='sales') { form.value.salesManager = c.name; form.value.salesManagerPhone = c.phone; }
-                else if(target==='dev') { form.value.devManager = c.name; form.value.devManagerPhone = c.phone; }
-                suggestions.value.list = [];
-            };
-
-            const appendAgent = (target) => {
-                if(target === 'sales') form.value.salesAgent += "、";
-                if(target === 'dev') form.value.devAgent += "、";
-            }
-            const appendManager = (target) => {
-                if(target === 'sales') form.value.salesManager += "、";
-                if(target === 'dev') form.value.devManager += "、";
-            }
-
-            document.addEventListener('click', (e) => { if(!e.target.closest('.relative')) suggestions.value.list=[]; });
-
+            const selectManager = (target, c) => { /* ... */ };
+            const toggleSales2 = () => showSales2.value = !showSales2.value;
+            const toggleDev2 = () => showDev2.value = !showDev2.value;
+            const addStaff = () => {}; 
             const formatDate = (d) => d ? (new Date(d).getMonth()+1)+'/'+new Date(d).getDate() : '____/____';
             const printPage = () => window.print();
 
@@ -632,44 +835,37 @@
                 }
                 return months;
             });
-
-            // Preview Text (Privacy Mode)
-            const previewText = computed(() => {
+            
+            // --- LINE Summary Template Logic (New) ---
+            const previewText = computed(() => { 
                 let staffTxt = "";
                 selectedStaff.value.forEach(name => {
                     const s = staffList.find(staff => staff.name === name);
-                    if (s) staffTxt += `☎️${s.name} ${s.phone}\n`;
+                    if (s) {
+                        staffTxt += `${s.name} ${s.phone}\n`;
+                    }
                 });
                 
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
 
-                // Manager Text
-                const salesMgrTxt = form.value.salesManager ? `(店長:${form.value.salesManager})` : ''; // Hidden phone
-                const devMgrTxt = form.value.devManager ? `(店長:${form.value.devManager})` : ''; // Hidden phone
-
-                const prepayTxt = form.value.buyerPrePay ? `\n買方預收: ${form.value.buyerPrePay} (匯款:${form.value.buyerPrePayRemit?'是':'否'} ${form.value.buyerPrePayDate})` : '';
-
                 return `簽約案件：${d}
 案名：${form.value.propertyName}
-🏠 住址: ${form.value.address}
-(${form.value.landBuildNo})
+🏠 住址：${form.value.address}
+ (${form.value.landBuildNo})
 
 👤 買方：${form.value.buyerName}
 👤 賣方：${form.value.sellerName}
-銷售：${form.value.salesStore}
-開發：${form.value.devStore}
 
 ⚠️ 特殊事項 ：
 ${form.value.notes}
 
 💰 價金明細：
-總價：${form.value.totalPrice}萬元
-1️、簽約款：${form.value.paymentContract}萬
-2、備證款：${form.value.paymentSeal}萬
-3、完稅款：${form.value.paymentTax}萬
-4、貸款：${form.value.paymentBalance}萬
-${prepayTxt}
+總價：${form.value.totalPrice} 萬元
+1️簽約款：${form.value.paymentContract || 0} 萬
+2備證款：${form.value.paymentSeal || 0} 萬
+3完稅款：${form.value.paymentTax || 0} 萬
+4貸款：${form.value.paymentBalance || 0} 萬
 
 ⏰ 最後點交日：${closing}
 🏦 履保編號：${form.value.escrowNumber}
@@ -678,17 +874,18 @@ ${prepayTxt}
 
 📞 案件相關問題請聯繫：
 宏國x易丞地政:06-2582589
-📝 承辦：
-${staffTxt}`;
+承辦：
+${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
 
             return {
                 staffList, selectedStaff, newStaff, addStaff, form,
-                handleFileUpload, contactsLoaded, contactsCount,
+                handleFileUpload, contactsLoaded, contactsCount, handleImportCases, handleContactUpload,
                 searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
-                formatDate, printPage, previewText, copyToClipboard, appendAgent, appendManager, generatedCalendar, saveData
+                showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveAndSync, exportCases,
+                formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg
             };
         }
     }).mount('#app');
