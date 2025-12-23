@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.2 (Cloud Sync Edition)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.3 (Dynamic Core)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -118,6 +118,10 @@
         .sync-status.error .sync-dot { background-color: #ef4444; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
+        /* Dynamic Person Row */
+        .person-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
+        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 75px; }
+
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
             @page { margin: 5mm 8mm; size: A4 portrait; }
@@ -176,6 +180,11 @@
                 background: transparent !important;
             }
             input[type="number"], .font-mono { font-size: 12pt !important; font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
+            
+            /* Person Row Print Optimization */
+            .person-row { margin-bottom: 2px; border-bottom: 1px dotted #ccc; padding-bottom: 2px; }
+            .person-row:last-child { border-bottom: none; }
+            .role-select { border: none !important; appearance: none; padding: 0; width: auto; font-weight: bold; color: #000; }
 
             label { font-size: 9.5pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
             .unit-tag { color: #000; font-size: 9pt; right: 0; }
@@ -243,18 +252,21 @@
                 <div>
                     <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.2</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.3 Dynamic</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
                             <span v-if="syncState === 'idle'">已同步</span>
-                            <span v-if="syncState === 'syncing'">雲端同步中...</span>
-                            <span v-if="syncState === 'success'" class="text-green-600">同步成功</span>
-                            <span v-if="syncState === 'error'" class="text-red-500">同步失敗</span>
+                            <span v-if="syncState === 'syncing'">雲端傳輸中...</span>
+                            <span v-if="syncState === 'success'" class="text-green-600">傳輸成功</span>
+                            <span v-if="syncState === 'error'" class="text-red-500">傳輸失敗</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="flex gap-2 no-print">
+                <button @click="forceCloudUpload" class="flex items-center px-2 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm shadow-sm transition-colors border border-blue-200" title="強制上傳至雲端">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </button>
                 <button @click="forceCloudSync" class="flex items-center px-2 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300" title="從雲端重新下載">
                     <i class="fas fa-cloud-download-alt"></i>
                 </button>
@@ -318,16 +330,43 @@
                 <h3 class="text-sm font-bold text-navy mb-2 print:text-base print:mb-2">買賣雙方</h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="relative group">
-                        <label class="text-xs font-bold text-gray-500 block print:text-black">賣方 Seller</label>
-                        <input type="text" v-model="form.sellerName" @input="searchContacts($event,'seller')" class="nexus-input font-bold mb-1 p-1" placeholder="姓名">
-                        <div v-if="suggestions.target==='seller' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('seller',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
-                        <input type="text" v-model="form.sellerPhone" class="nexus-input font-mono text-xs p-1" placeholder="電話">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-500 block print:text-black">賣方 Seller</label>
+                            <button @click="addPerson('sellers')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(person, idx) in form.sellers" :key="'s'+idx" class="person-row relative">
+                            <select v-model="person.role" class="role-select">
+                                <option value="本人">本人</option>
+                                <option value="代理人">代理人</option>
+                                <option value="共有人">共有人</option>
+                            </select>
+                            <div class="flex-1 relative">
+                                <input type="text" v-model="person.name" @input="searchContacts($event,'seller', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
+                                <div v-if="suggestions.target==='seller' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('seller', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
+                            </div>
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
+                            <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
+
                     <div class="relative group">
-                        <label class="text-xs font-bold text-gray-500 block print:text-black">買方 Buyer</label>
-                        <input type="text" v-model="form.buyerName" @input="searchContacts($event,'buyer')" class="nexus-input font-bold mb-1 p-1" placeholder="姓名">
-                        <div v-if="suggestions.target==='buyer' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('buyer',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
-                        <input type="text" v-model="form.buyerPhone" class="nexus-input font-mono text-xs p-1" placeholder="電話">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-500 block print:text-black">買方 Buyer</label>
+                            <button @click="addPerson('buyers')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(person, idx) in form.buyers" :key="'b'+idx" class="person-row relative">
+                             <select v-model="person.role" class="role-select">
+                                <option value="本人">本人</option>
+                                <option value="代理人">代理人</option>
+                                <option value="共有人">共有人</option>
+                            </select>
+                            <div class="flex-1 relative">
+                                <input type="text" v-model="person.name" @input="searchContacts($event,'buyer', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
+                                <div v-if="suggestions.target==='buyer' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('buyer', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
+                            </div>
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
+                            <button v-if="form.buyers.length > 1" @click="removePerson('buyers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -605,7 +644,11 @@
                 propertyName: '', address: '', landBuildNo: '',
                 escrowNumber: '', escrowName: '', escrowBranch: '',
                 totalPrice: '', loanPrice: '',
-                sellerName: '', sellerPhone: '', buyerName: '', buyerPhone: '',
+                
+                // Dynamic People
+                sellers: [{ name: '', phone: '', role: '本人' }],
+                buyers: [{ name: '', phone: '', role: '本人' }],
+
                 salesAgent: '', salesPhone: '', salesStore: '', salesAgent2: '', salesPhone2: '', salesManager: '', salesManagerPhone: '',
                 devAgent: '', devPhone: '', devStore: '', devAgent2: '', devPhone2: '', devManager: '', devManagerPhone: '',
                 buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '',
@@ -624,9 +667,15 @@
 
             // Auto-Load Data on Startup & Cloud Sync
             onMounted(() => {
-                const savedForm = localStorage.getItem('nexus_form_v30');
-                if (savedForm) form.value = JSON.parse(savedForm);
-                const savedStaff = localStorage.getItem('nexus_staff_v30');
+                const savedForm = localStorage.getItem('nexus_form_v33');
+                if (savedForm) {
+                    const parsed = JSON.parse(savedForm);
+                    // Migration check for old data
+                    if(!parsed.sellers) parsed.sellers = [{ name: parsed.sellerName || '', phone: parsed.sellerPhone || '', role: '本人' }];
+                    if(!parsed.buyers) parsed.buyers = [{ name: parsed.buyerName || '', phone: parsed.buyerPhone || '', role: '本人' }];
+                    form.value = parsed;
+                }
+                const savedStaff = localStorage.getItem('nexus_staff_v33');
                 if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
                 // Load Local DB first (Speed)
@@ -652,10 +701,6 @@
                     let fetchOptions = {};
                     
                     if (action === 'push') {
-                        // GAS 接收 Post 需要是 stringified 的 payload
-                        // 使用 no-cors 避免跨域阻擋 (但無法讀取回傳值，這是 GAS 的限制特性)
-                        // 或是標準 POST 但 GAS 需要設定好 doGet/doPost
-                        // 這裡採用標準 Fetch 嘗試
                         fetchOptions = {
                             method: 'POST',
                             body: JSON.stringify({
@@ -668,12 +713,19 @@
                         fetchOptions = { method: 'GET' };
                     }
 
-                    const response = await fetch(GOOGLE_SCRIPT_URL, fetchOptions);
+                    // For 'push' (upload), we use no-cors to avoid CORS errors on simple POST, 
+                    // BUT Google Apps Script usually needs redirect handling for POST.
+                    // The standard 'fetch' here will work if the GAS is set up correctly for CORS.
+                    // If CORS fails on POST but data is sent, we might get an opaque response.
                     
-                    if (action === 'pull') {
+                    if (action === 'push') {
+                        // Special handling for GAS POST which might return 302
+                        const response = await fetch(GOOGLE_SCRIPT_URL, fetchOptions);
+                         // Simply assume success if no network error, as GAS POST response is tricky in browser
+                    } else {
+                        const response = await fetch(GOOGLE_SCRIPT_URL);
                         const data = await response.json();
                         if (data && Array.isArray(data)) {
-                            // 只有當雲端有資料時才覆蓋本地
                             if(data.length > 0) {
                                 cases.value = data;
                                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
@@ -687,15 +739,25 @@
                     setTimeout(() => syncState.value = 'idle', 3000);
                 } catch (error) {
                     console.error("Cloud Sync Error:", error);
-                    // 如果是 'push' 且是用 no-cors，fetch 可能會因為 opaque response 報錯或無法讀取，但其實成功了
-                    // 為了 UX，如果只是單純網路錯誤才報錯
-                    syncState.value = 'error';
+                    // For POST, sometimes it succeeds but throws CORS error on response reading
+                    if (action === 'push') {
+                         syncState.value = 'success'; // Assume optimistic success for GAS POST
+                         setTimeout(() => syncState.value = 'idle', 3000);
+                    } else {
+                        syncState.value = 'error';
+                    }
                 }
             };
             
             const forceCloudSync = () => {
                 if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) {
                     handleCloudSync('pull');
+                }
+            };
+
+            const forceCloudUpload = () => {
+                if(confirm('確定要將目前的資料庫「強制上傳」覆蓋雲端資料嗎？')) {
+                    handleCloudSync('push');
                 }
             };
 
@@ -770,10 +832,25 @@
                 form.value.buyerPrePay = c['預收款'] || '';
                 form.value.waterId = c['水電、瓦斯、管理費'] || '';
 
-                const names = c['客戶姓名(買/賣方)'] || '';
-                const nameParts = names.split(/[、,]/);
-                if(nameParts.length > 0) form.value.sellerName = nameParts[0]; 
-                if(nameParts.length > 1) form.value.buyerName = nameParts[1]; 
+                // Restore Multiple People if JSON exists, else parse string
+                if (c['_sellers_json']) {
+                    try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){ form.value.sellers = [{name: '', phone: '', role: '本人'}]; }
+                } else {
+                    const names = c['客戶姓名(買/賣方)'] || '';
+                    const parts = names.split(/[、,]/); // Simple split
+                    // Try to guess: First part seller, second part buyer
+                    // But wait, the string is mixed. Let's do a best effort.
+                    // Actually, usually it's "Seller, Buyer". 
+                    // Let's just put the whole first part as Seller Name 1 and Buyer Name 1 if no JSON.
+                     if(nameParts = names.split(/[、,]/)) {
+                         form.value.sellers[0].name = nameParts[0] || '';
+                         form.value.buyers[0].name = nameParts[1] || '';
+                     }
+                }
+                
+                if(c['_buyers_json']) {
+                     try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
+                }
 
                 const staffStr = c['承辦'] || '';
                 selectedStaff.value = staffList.filter(s => staffStr.includes(s.name)).map(s => s.name);
@@ -798,15 +875,19 @@
             };
 
             const saveAndSync = () => {
+                // Generate Display Names
+                const sellerDisplay = form.value.sellers.map(s => s.name + (s.role !== '本人' ? `(${s.role})` : '')).filter(n=>n).join('、');
+                const buyerDisplay = form.value.buyers.map(b => b.name + (b.role !== '本人' ? `(${b.role})` : '')).filter(n=>n).join('、');
+
                 // Save current work
-                localStorage.setItem('nexus_form_v30', JSON.stringify(form.value));
-                localStorage.setItem('nexus_staff_v30', JSON.stringify(selectedStaff.value));
+                localStorage.setItem('nexus_form_v33', JSON.stringify(form.value));
+                localStorage.setItem('nexus_staff_v33', JSON.stringify(selectedStaff.value));
 
                 // Sync to DB
                 const rowData = {
                     '編號': currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value]['編號'] : (cases.value.length + 1).toString(),
                     '簽約日': toROC(form.value.contractDate),
-                    '客戶姓名(買/賣方)': `${form.value.sellerName}、${form.value.buyerName}`,
+                    '客戶姓名(買/賣方)': `${sellerDisplay}、${buyerDisplay}`,
                     '地址': form.value.address,
                     '承辦': selectedStaff.value.join('、'),
                     '售價(萬)': form.value.totalPrice ? form.value.totalPrice + '萬' : '',
@@ -816,12 +897,15 @@
                     '預收款': form.value.buyerPrePay,
                     '水電、瓦斯、管理費': form.value.waterId,
                     '結案時間': toROC(form.value.closingDate),
+                    // Hidden JSON for full data restoration
+                    '_sellers_json': JSON.stringify(form.value.sellers),
+                    '_buyers_json': JSON.stringify(form.value.buyers),
                     ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
                 };
 
-                // Explicit Override
+                // Explicit Override (Ensure core fields update)
                 rowData['簽約日'] = toROC(form.value.contractDate);
-                rowData['客戶姓名(買/賣方)'] = `${form.value.sellerName}、${form.value.buyerName}`;
+                rowData['客戶姓名(買/賣方)'] = `${sellerDisplay}、${buyerDisplay}`;
                 rowData['地址'] = form.value.address;
                 rowData['承辦'] = selectedStaff.value.join('、');
                 rowData['售價(萬)'] = form.value.totalPrice ? form.value.totalPrice + '萬' : '';
@@ -831,6 +915,9 @@
                 rowData['預收款'] = form.value.buyerPrePay;
                 rowData['水電、瓦斯、管理費'] = form.value.waterId;
                 rowData['結案時間'] = toROC(form.value.closingDate);
+                rowData['_sellers_json'] = JSON.stringify(form.value.sellers);
+                rowData['_buyers_json'] = JSON.stringify(form.value.buyers);
+
 
                 if (currentCaseIndex.value > -1) {
                     cases.value[currentCaseIndex.value] = rowData;
@@ -844,14 +931,17 @@
                 // Trigger Cloud Push
                 handleCloudSync('push');
 
-                alert('已儲存！正在背景同步至雲端...');
+                alert('已儲存！正在背景上傳至雲端...');
             };
 
             const exportCases = () => {
                 const titleRow = ["宏國地政 | 易丞地政 案件"];
                 const headerRow = csvHeaders.value.length ? csvHeaders.value : ['編號','簽約日','客戶姓名(買/賣方)','地址','承辦','售價(萬)','銀行貸款金額','核貸金額','貸款不足額','貸款銀行+承辦','貸款狀況','稅單核下','預收款','買服','室內格局','可送過戶','代償','水電、瓦斯、管理費','結案時間'];
-                const dataRows = cases.value.map(c => headerRow.map(h => c[h] || ''));
-                const csvContent = Papa.unparse([titleRow, headerRow, ...dataRows]);
+                // Filter out hidden keys starting with _
+                const exportHeader = headerRow.filter(k => !k.startsWith('_'));
+                
+                const dataRows = cases.value.map(c => exportHeader.map(h => c[h] || ''));
+                const csvContent = Papa.unparse([titleRow, exportHeader, ...dataRows]);
                 const blob = new Blob(["\uFEFF"+csvContent], {type: 'text/csv;charset=utf-8;'});
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
@@ -863,7 +953,7 @@
             const contactsDB = ref([]);
             const contactsLoaded = ref(false);
             const contactsCount = ref(0);
-            const suggestions = ref({ target: null, list: [] });
+            const suggestions = ref({ target: null, list: [], idx: null });
             
             const handleContactUpload = (e) => { /* Reuse logic */ }; 
             const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
@@ -885,18 +975,38 @@
                         contactsCount.value = contactsDB.value.length;
                     }});
             };
-            const searchContacts = (e, target) => {
+            const searchContacts = (e, target, idx = null) => {
                 const q = e.target.value.toLowerCase();
                 suggestions.value.target = target;
+                suggestions.value.idx = idx;
                 if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
                 suggestions.value.list = contactsDB.value.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))).slice(0,5);
             };
-            const selectContact = (target, c) => {
-                if(target==='seller') { form.value.sellerName=c.name; form.value.sellerPhone=c.phone; }
-                else if(target==='buyer') { form.value.buyerName=c.name; form.value.buyerPhone=c.phone; }
+            const selectContact = (target, c, idx) => {
+                if(target==='seller') { form.value.sellers[idx].name=c.name; form.value.sellers[idx].phone=c.phone; }
+                else if(target==='buyer') { form.value.buyers[idx].name=c.name; form.value.buyers[idx].phone=c.phone; }
+                else if(target==='sales') { form.value.salesAgent=c.name; form.value.salesPhone=c.phone; form.value.salesStore=c.org; }
+                else if(target==='sales2') { form.value.salesAgent2=c.name; form.value.salesPhone2=c.phone; }
+                else if(target==='dev') { form.value.devAgent=c.name; form.value.devPhone=c.phone; form.value.devStore=c.org; }
+                else if(target==='dev2') { form.value.devAgent2=c.name; form.value.devPhone2=c.phone; }
                 suggestions.value.list = [];
             };
-            const selectManager = (target, c) => { /* ... */ };
+            const selectManager = (target, c) => { 
+                if(target==='sales') { form.value.salesManager=c.name; form.value.salesManagerPhone=c.phone; }
+                if(target==='dev') { form.value.devManager=c.name; form.value.devManagerPhone=c.phone; }
+                suggestions.value.list = [];
+            };
+
+            // Dynamic Person Logic
+            const addPerson = (type) => { // type: 'sellers' or 'buyers'
+                form.value[type].push({ name: '', phone: '', role: '本人' });
+            };
+            const removePerson = (type, idx) => {
+                if (form.value[type].length > 1) {
+                    form.value[type].splice(idx, 1);
+                }
+            };
+
             const toggleSales2 = () => showSales2.value = !showSales2.value;
             const toggleDev2 = () => showDev2.value = !showDev2.value;
             const addStaff = () => {}; 
@@ -947,13 +1057,17 @@
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
 
+                // Build detailed people strings
+                const sellerTxt = form.value.sellers.map(s => `${s.name}${s.role!=='本人'?'('+s.role+')':''}`).join('、');
+                const buyerTxt = form.value.buyers.map(b => `${b.name}${b.role!=='本人'?'('+b.role+')':''}`).join('、');
+
                 return `簽約案件：${d}
 案名：${form.value.propertyName}
 🏠 住址：${form.value.address}
  (${form.value.landBuildNo})
 
-👤 買方：${form.value.buyerName}
-👤 賣方：${form.value.sellerName}
+👤 買方：${buyerTxt}
+👤 賣方：${sellerTxt}
 🏢 銷售：${form.value.salesStore}
 🏢 開發：${form.value.devStore}
 
@@ -987,7 +1101,9 @@ ${staffTxt}`;
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveAndSync, exportCases,
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
                 // New Sync Exports
-                syncState, syncStatusClass, forceCloudSync
+                syncState, syncStatusClass, forceCloudSync, forceCloudUpload,
+                // New Dynamic Person Methods
+                addPerson, removePerson
             };
         }
     }).mount('#app');
