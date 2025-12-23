@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.1 (Security Edition)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.2 (Cloud Sync Edition)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,7 +24,7 @@
             background-color: var(--nexus-bg);
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact;
-            user-select: none; /* CSS 層級防止選取 */
+            user-select: none;
             -webkit-user-select: none;
         }
 
@@ -110,6 +110,13 @@
         .marker-tax { background-color: #9333ea; }
         .marker-close { background-color: #dc2626; }
 
+        /* Sync Indicator */
+        .sync-status { display: flex; align-items: center; font-size: 0.8rem; margin-left: 10px; color: #666; }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #ccc; margin-right: 5px; transition: all 0.3s; }
+        .sync-status.syncing .sync-dot { background-color: #fbbf24; box-shadow: 0 0 5px #fbbf24; animation: pulse 1s infinite; }
+        .sync-status.success .sync-dot { background-color: #10b981; }
+        .sync-status.error .sync-dot { background-color: #ef4444; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
@@ -120,7 +127,7 @@
                 font-size: 10.5pt; 
                 line-height: 1.2; 
                 color: #000; 
-                user-select: auto; /* 列印時允許選取以免影響渲染 */
+                user-select: auto; 
             }
             .no-print { display: none !important; }
 
@@ -226,8 +233,7 @@
 <div id="app" class="max-w-[210mm] mx-auto bg-white p-6 shadow-xl min-h-screen print:shadow-none print:p-0 print:block">
     
     <div v-if="autoLoadedMsg" class="no-print fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 animate-bounce cursor-pointer" @click="autoLoadedMsg=null">
-        <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>系統自動載入成功</p>
-        <p class="text-sm">{{ autoLoadedMsg }}</p>
+        <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>{{ autoLoadedMsg }}</p>
     </div>
 
     <div class="page-one-container">
@@ -236,12 +242,24 @@
                 <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-10 print:h-10 print:text-xl print:border print:border-black print:text-black print:bg-white">宏</div>
                 <div>
                     <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
-                    <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.1</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.2</p>
+                        <div class="sync-status no-print" :class="syncStatusClass">
+                            <div class="sync-dot"></div>
+                            <span v-if="syncState === 'idle'">已同步</span>
+                            <span v-if="syncState === 'syncing'">雲端同步中...</span>
+                            <span v-if="syncState === 'success'" class="text-green-600">同步成功</span>
+                            <span v-if="syncState === 'error'" class="text-red-500">同步失敗</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="flex gap-2 no-print">
+                <button @click="forceCloudSync" class="flex items-center px-2 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300" title="從雲端重新下載">
+                    <i class="fas fa-cloud-download-alt"></i>
+                </button>
                 <button @click="showManager = true" class="flex items-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
-                    <i class="fas fa-folder-open mr-2"></i> 案件管理後台
+                    <i class="fas fa-folder-open mr-2"></i> 案件後台
                 </button>
                 <button @click="saveAndSync" class="flex items-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
                     <i class="fas fa-save mr-2"></i> 儲存 (更新列表)
@@ -556,6 +574,8 @@
 
     createApp({
         setup() {
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9Oo2TQVsunq2e6RQW2_r_2ZkVc973J0YpdXm3xHG7T7DebU6t8q3uv7s9vyEqE_Q1/exec';
+
             const staffList = [
                 { name: "宜婷", phone: "0910-854-444" },
                 { name: "淑玲", phone: "0910-111-088" },
@@ -569,6 +589,9 @@
             const showDev2 = ref(false);
             const showManager = ref(false);
             const autoLoadedMsg = ref(null);
+            
+            // Cloud Sync State
+            const syncState = ref('idle'); // idle, syncing, success, error
 
             // Database State
             const cases = ref([]);
@@ -599,25 +622,88 @@
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
 
-            // Auto-Load Data on Startup
+            // Auto-Load Data on Startup & Cloud Sync
             onMounted(() => {
                 const savedForm = localStorage.getItem('nexus_form_v30');
                 if (savedForm) form.value = JSON.parse(savedForm);
                 const savedStaff = localStorage.getItem('nexus_staff_v30');
                 if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
-                // Load DB from Memory
+                // Load Local DB first (Speed)
                 const savedCases = localStorage.getItem('nexus_cases_db');
                 if (savedCases) {
                     cases.value = JSON.parse(savedCases);
                     if(cases.value.length > 0) {
-                        autoLoadedMsg.value = `已自動載入 ${cases.value.length} 筆案件紀錄，無需重新匯入。`;
-                        setTimeout(() => autoLoadedMsg.value = null, 5000); // Hide after 5s
+                        autoLoadedMsg.value = `已載入本地 ${cases.value.length} 筆案件`;
+                        setTimeout(() => autoLoadedMsg.value = null, 3000);
                     }
                 }
                 const savedHeaders = localStorage.getItem('nexus_csv_headers');
                 if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
+
+                // Then Try Cloud Sync (Async)
+                handleCloudSync('pull');
             });
+
+            // --- Nexus Cloud Sync Core ---
+            const handleCloudSync = async (action) => {
+                syncState.value = 'syncing';
+                try {
+                    let fetchOptions = {};
+                    
+                    if (action === 'push') {
+                        // GAS 接收 Post 需要是 stringified 的 payload
+                        // 使用 no-cors 避免跨域阻擋 (但無法讀取回傳值，這是 GAS 的限制特性)
+                        // 或是標準 POST 但 GAS 需要設定好 doGet/doPost
+                        // 這裡採用標準 Fetch 嘗試
+                        fetchOptions = {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                data: cases.value,
+                                updated: new Date().toISOString()
+                            })
+                        };
+                    } else {
+                        // GET (Pull)
+                        fetchOptions = { method: 'GET' };
+                    }
+
+                    const response = await fetch(GOOGLE_SCRIPT_URL, fetchOptions);
+                    
+                    if (action === 'pull') {
+                        const data = await response.json();
+                        if (data && Array.isArray(data)) {
+                            // 只有當雲端有資料時才覆蓋本地
+                            if(data.length > 0) {
+                                cases.value = data;
+                                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                                autoLoadedMsg.value = `雲端同步完成！共 ${cases.value.length} 筆資料。`;
+                                setTimeout(() => autoLoadedMsg.value = null, 3000);
+                            }
+                        }
+                    }
+
+                    syncState.value = 'success';
+                    setTimeout(() => syncState.value = 'idle', 3000);
+                } catch (error) {
+                    console.error("Cloud Sync Error:", error);
+                    // 如果是 'push' 且是用 no-cors，fetch 可能會因為 opaque response 報錯或無法讀取，但其實成功了
+                    // 為了 UX，如果只是單純網路錯誤才報錯
+                    syncState.value = 'error';
+                }
+            };
+            
+            const forceCloudSync = () => {
+                if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) {
+                    handleCloudSync('pull');
+                }
+            };
+
+            const syncStatusClass = computed(() => ({
+                'syncing': syncState.value === 'syncing',
+                'success': syncState.value === 'success',
+                'error': syncState.value === 'error'
+            }));
 
             // Date Helpers
             const toROC = (dateStr) => {
@@ -660,7 +746,11 @@
 
                         localStorage.setItem('nexus_csv_headers', JSON.stringify(csvHeaders.value));
                         localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                        alert(`匯入成功！共 ${cases.value.length} 筆案件。系統已自動記憶。`);
+                        
+                        // Import 後直接 Sync 到雲端
+                        handleCloudSync('push');
+                        
+                        alert(`匯入成功！共 ${cases.value.length} 筆案件。已同步至雲端。`);
                     }
                 });
             };
@@ -696,6 +786,7 @@
                     cases.value.splice(idx, 1);
                     if(currentCaseIndex.value === idx) resetForm();
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    handleCloudSync('push'); // Delete 也要同步
                 }
             };
 
@@ -749,7 +840,11 @@
                 }
                 
                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                alert('已儲存並更新至案件列表！');
+                
+                // Trigger Cloud Push
+                handleCloudSync('push');
+
+                alert('已儲存！正在背景同步至雲端...');
             };
 
             const exportCases = () => {
@@ -890,7 +985,9 @@ ${staffTxt}`;
                 handleFileUpload, contactsLoaded, contactsCount, handleImportCases, handleContactUpload,
                 searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveAndSync, exportCases,
-                formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg
+                formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
+                // New Sync Exports
+                syncState, syncStatusClass, forceCloudSync
             };
         }
     }).mount('#app');
