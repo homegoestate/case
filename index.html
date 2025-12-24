@@ -25,7 +25,9 @@
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact;
             user-select: none;
-            -webkit-user-select: none;
+            -webkit-user-select: none; /* Chrome/Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
         }
 
         /* 品牌色 */
@@ -1110,38 +1112,61 @@ ${staffTxt}`;
 </script>
 
 <script>
-    // Nexus Security Protocol v1.0
-    document.addEventListener('contextmenu', event => event.preventDefault()); // 禁止右鍵
+    // ============================================
+    // Nexus Security Protocol v2.0 (High Alert)
+    // ============================================
+    
+    // 1. Disable Context Menu
+    document.addEventListener('contextmenu', event => event.preventDefault());
 
+    // 2. Advanced Key Blocking
     document.onkeydown = function(e) {
-        // 禁止 F12
-        if(e.keyCode == 123) {
-            return false;
-        }
-        // 禁止 Ctrl+I (開發者工具)
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
-            return false;
-        }
-        // 禁止 Ctrl+J (開發者工具)
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
-            return false;
-        }
-        // 禁止 Ctrl+U (檢視原始碼)
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
-            return false;
-        }
-        // 禁止 Ctrl+S (存檔)
-        if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) {
+        // F12 (DevTools)
+        if(e.keyCode == 123) return false;
+        
+        // Ctrl+Shift+I / J / C (DevTools console/inspector)
+        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) return false;
+        
+        // Ctrl+U (View Source)
+        if(e.ctrlKey && e.keyCode == 85) return false;
+        
+        // Ctrl+S (Save)
+        if(e.ctrlKey && e.keyCode == 83) {
             e.preventDefault();
-            alert('此系統內容受智慧財產權保護，禁止存檔。');
+            alert('系統保護中：禁止未授權的儲存操作。');
             return false;
+        }
+
+        // Ctrl+P (Print - 僅允許透過按鈕列印)
+        // 為了讓用戶只能用按鈕列印，這裡擋掉快捷鍵，除非您確定要完全依賴按鈕
+        if(e.ctrlKey && e.keyCode == 80) {
+            // Optional: e.preventDefault();
+            // alert('請使用頁面上的「列印」按鈕。');
+            // return false;
         }
     }
 
-    // 禁止選取文字 (防止複製)
-    document.onselectstart = function() {
-        return false;
-    }
+    // 3. Selection Blocking
+    document.onselectstart = function() { return false; }
+    document.onbgdrag = function() { return false; }
+
+    // 4. Debugger Trap (Anti-Inspection)
+    // 當開發者工具被開啟時，這段程式碼會造成瀏覽器進入除錯循環，
+    // 讓試圖檢視代碼的人瀏覽器卡頓或無法操作。
+    // *注意*：若您自己要除錯，請暫時移除此段。
+    (function antiDebug() {
+        const _0x = function() {
+            const _start = new Date().getTime();
+            debugger; // The trap
+            const _end = new Date().getTime();
+            if (_end - _start > 100) {
+                // DevTools is likely open and paused execution
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:black;color:red;font-size:2rem;font-weight:bold;">Security Alert: Inspection Detected.</div>';
+            }
+        };
+        // Check every 1 second
+        setInterval(_0x, 1000);
+    })();
 </script>
 </body>
 </html>
