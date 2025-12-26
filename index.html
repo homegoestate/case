@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.3 (Dynamic Core)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.10 (Final Polish)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,9 +25,9 @@
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact;
             user-select: none;
-            -webkit-user-select: none; /* Chrome/Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+ */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         /* 品牌色 */
@@ -120,9 +120,13 @@
         .sync-status.error .sync-dot { background-color: #ef4444; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        /* Dynamic Person Row */
+        /* Dynamic Person Row (Screen Mode) */
         .person-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
-        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 75px; }
+        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 75px; flex-shrink: 0; }
+        .person-name-group { flex: 1; position: relative; min-width: 0; }
+        .person-phone-input { width: 110px; flex-shrink: 0; }
+
+        .print-only { display: none; }
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
@@ -130,12 +134,13 @@
             
             body { 
                 background: white; 
-                font-size: 10.5pt; 
+                font-size: 10pt; 
                 line-height: 1.2; 
                 color: #000; 
                 user-select: auto; 
             }
             .no-print { display: none !important; }
+            .print-only { display: block !important; }
 
             /* 第一頁容器 */
             .page-one-container { 
@@ -163,64 +168,189 @@
                 box-shadow: none !important; 
                 border: 2px solid #555 !important; 
                 margin-bottom: 4px !important; 
-                padding: 6px !important; 
+                padding: 4px 6px !important; 
                 break-inside: avoid;
             }
             
-            input, textarea, select { 
-                font-size: 11.5pt !important; 
+            /* 通用輸入框修正 - 列印時 */
+            input, select, textarea { 
+                font-size: 10pt !important; 
                 font-weight: 600 !important;
                 color: #000 !important;
                 margin-bottom: 1px !important; 
                 height: 1.4em !important;
-            }
-            .nexus-input { 
-                border: none !important;
-                border-bottom: 1px solid #000 !important; 
-                border-radius: 0 !important; 
-                padding: 0 !important; 
+                line-height: 1.4em !important;
+                padding: 0 2px !important;
                 background: transparent !important;
+                border: none !important;
+                border-bottom: 1px solid #555 !important; 
+                border-radius: 0 !important;
             }
-            input[type="number"], .font-mono { font-size: 12pt !important; font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
+            .nexus-input { border: none !important; border-bottom: 1px solid #555 !important; }
             
-            /* Person Row Print Optimization */
-            .person-row { margin-bottom: 2px; border-bottom: 1px dotted #ccc; padding-bottom: 2px; }
-            .person-row:last-child { border-bottom: none; }
-            .role-select { border: none !important; appearance: none; padding: 0; width: auto; font-weight: bold; color: #000; }
+            /* 數字輸入框特別調整 */
+            input[type="number"], .font-mono { 
+                font-family: 'Courier New', monospace !important; 
+                font-weight: 800 !important; 
+            }
 
-            label { font-size: 9.5pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
-            .unit-tag { color: #000; font-size: 9pt; right: 0; }
+            /* ==========================================================================
+               CRITICAL FIX 1: 前面抬頭 (Header Info) 
+               - 黃金比例：地址 44% 空間
+               ========================================================================== */
+            .print-grid-4 { 
+                display: grid; 
+                /* [Name 16%] [Address 44%] [Land 24%] [Price 16%] */
+                grid-template-columns: 1.6fr 4.4fr 2.4fr 1.6fr; 
+                gap: 10px; 
+            }
 
-            /* 4. Layout Grids */
-            .print-grid-4 { display: grid; grid-template-columns: 1.5fr 2fr 1.2fr 1fr; gap: 8px; }
-            .print-finance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-            
-            .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-            
-            /* 5. Admin Section */
-            .admin-card { 
-                flex-grow: 1; 
+            /* ==========================================================================
+               CRITICAL FIX 2: 款項與時程 (Finance) 
+               - 左右分開
+               ========================================================================== */
+            .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .print-finance-grid { 
+                display: grid; 
+                grid-template-columns: 45% 53%; 
+                gap: 12px 2%; 
+                align-items: end;
+            }
+            .print-finance-grid .relative { 
+                display: block; 
+                width: 100%;
+            }
+            /* 金額欄位 */
+            .print-finance-grid input.font-mono { 
+                text-align: right; 
+                width: 100% !important; 
+                padding-right: 20px !important; 
+            }
+            .unit-tag { 
+                color: #000; 
+                font-size: 9pt; 
+                right: 0; 
+                top: 40%; 
+            }
+            /* 日期欄位 */
+            .print-finance-grid input[type="date"] { 
+                width: 100% !important; 
+                text-align: center; 
+                font-size: 9pt !important;
+            }
+            input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+
+            /* ==========================================================================
+               CRITICAL FIX 3: 買賣雙方 (People)
+               - 強力隱藏下拉箭頭
+               ========================================================================== */
+            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .person-row { 
+                display: grid !important; 
+                grid-template-columns: 40px 1fr 90px !important; 
+                gap: 8px;
+                margin-bottom: 4px; 
+                border-bottom: 1px dotted #ccc; 
+                padding-bottom: 2px; 
+                align-items: center;
+            }
+            .role-select { 
+                width: 100% !important; 
+                text-align: left;
+                border: none !important;
+                font-weight: 800;
+                padding: 0 !important;
+                font-size: 9pt !important;
+                /* 強力移除原生樣式 */
+                appearance: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                background-image: none !important;
+                text-indent: 0.01px; 
+                text-overflow: '';
+            }
+            /* Firefox hack */
+            .role-select::-ms-expand { display: none; }
+
+            .person-name-group { width: 100%; overflow: hidden; }
+            .person-name-group input { 
+                width: 100% !important; 
+                min-width: 50px; 
+            }
+            .person-phone-input { 
+                width: 100% !important; 
+                text-align: right; 
+                font-family: 'Courier New', monospace;
+                letter-spacing: -0.5px;
+                font-size: 9pt !important;
+            }
+
+            /* ==========================================================================
+               CRITICAL FIX 4: 履約保證 (Escrow) 跑版修正
+               - 緊湊佈局，防止溢出
+               ========================================================================== */
+            .escrow-section {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start; /* 改為靠上對齊，不要分散撐開 */
+                gap: 4px; /* 縮小垂直間距 */
+                height: 100%;
+            }
+            .escrow-section div {
+                margin-bottom: 6px; /* 手動控制間距 */
+            }
+            .escrow-section input { 
+                width: 100% !important; 
                 margin-bottom: 0 !important;
             }
+            
+            .admin-card { flex-grow: 1; margin-bottom: 0 !important; }
             .print-admin-row { 
                 display: grid; 
-                grid-template-columns: 1.2fr 0.9fr 1.1fr; 
-                gap: 8px; 
-                font-size: 10.5pt; 
+                grid-template-columns: 1.25fr 0.95fr 1.05fr; 
+                gap: 12px; 
+                font-size: 10pt; 
             }
             
-            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
-            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 1px 0; margin-bottom: 1px; }
-            .doc-checkbox { appearance: auto; width: 14px; height: 14px; margin-right: 3px; border: 1px solid #000; }
-            .doc-label { font-size: 10.5pt; font-weight: normal; margin-right: 3px; color: #000; }
-            .doc-date-input { border: none; border-bottom: 1px solid #000; border-radius: 0; width: 75px; padding: 0; font-size: 10pt; height: 16px; text-align: center; }
+            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 2px 0; margin-bottom: 1px; }
+            .doc-checkbox { appearance: auto; width: 14px; height: 14px; margin-right: 4px; border: 1px solid #000; }
+            .doc-label { font-size: 10pt; font-weight: normal; margin-right: 4px; color: #000; white-space: nowrap; }
+            
+            .doc-date-input { 
+                border: none; 
+                border-bottom: 1px solid #555 !important; 
+                border-radius: 0; 
+                flex-grow: 1; 
+                width: auto !important;
+                padding: 0 5px; 
+                font-size: 9pt; 
+                height: 18px; 
+                text-align: left; 
+                color: #000 !important;
+            }
 
-            .detail-label { font-size: 10pt !important; width: 55px !important; font-weight: 900; color: #000; }
-            .detail-grid { grid-template-columns: 55px 1fr !important; gap: 4px !important; margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px dotted #999 !important; }
+            label { font-size: 9pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
+            .unit-tag { color: #000; font-size: 9pt; right: 0; }
+
+            .detail-label { font-size: 9.5pt !important; width: 50px !important; font-weight: 900; color: #000; }
+            .detail-grid { grid-template-columns: 50px 1fr !important; gap: 4px !important; margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px dotted #999 !important; }
 
             /* Footer */
             footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
+
+            /* 解決備註欄被截斷問題 */
+            .print-notes-container textarea { display: none !important; }
+            .print-notes-display { 
+                display: block !important; 
+                white-space: pre-wrap; 
+                font-size: 10pt; 
+                font-weight: 500; 
+                min-height: 50px; 
+                border-bottom: 1px solid #000;
+                line-height: 1.5; 
+                padding-top: 4px;
+            }
 
             /* Calendar Page 2 */
             .calendar-section { 
@@ -254,7 +384,7 @@
                 <div>
                     <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.3 Dynamic</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.10 Final</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
                             <span v-if="syncState === 'idle'">已同步</span>
@@ -303,7 +433,12 @@
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">案件名稱</label><input v-model="form.propertyName" class="nexus-input font-bold text-navy" placeholder="輸入案名"></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">地址</label><input v-model="form.address" class="nexus-input" placeholder="地址"></div>
                 <div class="relative"><label class="text-xs font-bold text-gray-500 uppercase block">地號/建號</label><input v-model="form.landBuildNo" class="nexus-input" placeholder="地號、建號"></div>
-                <div class="relative"><label class="text-xs font-bold text-gray-500 uppercase block">成交總價</label><input type="number" v-model="form.totalPrice" class="nexus-input font-mono font-bold"><span class="unit-tag">萬</span></div>
+                <div class="relative">
+                    <label class="text-xs font-bold text-gray-500 uppercase block">成交總價</label>
+                    <input type="number" v-model="form.totalPrice" class="nexus-input font-mono font-bold" :class="{'bg-red-50 text-red-600': priceMismatch}">
+                    <span class="unit-tag">萬</span>
+                    <div v-if="priceMismatch" class="text-red-600 text-[10px] font-bold absolute bottom-[-16px] left-0 bg-white px-1 border border-red-200 rounded print:border-0 print:bottom-[-14px]">⚠️ 金額不符 (總和:{{priceSum}})</div>
+                </div>
             </div>
         </div>
 
@@ -311,15 +446,22 @@
             <div class="card bg-white border border-gray-200 rounded p-3">
                 <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
                 <div class="grid grid-cols-2 gap-3 print-finance-grid">
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">2. 用印</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.sealDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">3. 完稅</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.taxDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">4. 尾款</label><div class="flex items-center gap-2"><div class="relative w-20 print:w-auto flex-1"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div><input type="date" v-model="form.closingDate" class="nexus-input text-xs bg-transparent w-28 p-1 font-bold text-blue-800 print:text-black"></div></div>
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="relative w-full"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">2. 用印</label><div class="relative w-full"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.sealDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">3. 完稅</label><div class="relative w-full"><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.taxDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">4. 尾款</label><div class="relative w-full"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.closingDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
                 </div>
             </div>
             <div class="card bg-white border border-gray-200 rounded p-3 mt-2 md:mt-0">
                 <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">履約保證</h3>
-                <div class="flex flex-col justify-between h-full gap-2">
+                <div class="escrow-section">
                     <div><label class="text-xs text-gray-400 block print:text-black">編號</label><input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-sm w-full print:text-black" placeholder="編號"></div>
                     <div><label class="text-xs text-gray-400 block print:text-black">銀行/戶名</label><input v-model="form.escrowName" class="nexus-input text-sm w-full" placeholder="銀行戶名"></div>
                     <div><label class="text-xs text-gray-400 block print:text-black">分行</label><input v-model="form.escrowBranch" class="nexus-input text-sm w-full" placeholder="分行"></div>
@@ -342,11 +484,11 @@
                                 <option value="代理人">代理人</option>
                                 <option value="共有人">共有人</option>
                             </select>
-                            <div class="flex-1 relative">
+                            <div class="person-name-group">
                                 <input type="text" v-model="person.name" @input="searchContacts($event,'seller', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
                                 <div v-if="suggestions.target==='seller' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('seller', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
                             </div>
-                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
                             <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
@@ -362,11 +504,11 @@
                                 <option value="代理人">代理人</option>
                                 <option value="共有人">共有人</option>
                             </select>
-                            <div class="flex-1 relative">
+                            <div class="person-name-group">
                                 <input type="text" v-model="person.name" @input="searchContacts($event,'buyer', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
                                 <div v-if="suggestions.target==='buyer' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('buyer', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
                             </div>
-                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
                             <button v-if="form.buyers.length > 1" @click="removePerson('buyers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
@@ -493,8 +635,9 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-1 border-t border-gray-100 pt-1">
-                <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-sm" placeholder="備註：交屋細節、特殊約定..."></textarea>
+            <div class="mt-1 border-t border-gray-100 pt-1 print-notes-container">
+                <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-sm no-print-force" placeholder="備註：交屋細節、特殊約定..."></textarea>
+                <div class="print-notes-display print-only">{{ form.notes }}</div>
             </div>
         </div>
 
@@ -666,6 +809,22 @@
             });
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
+
+            // Price Validation Logic
+            const priceSum = computed(() => {
+                const p1 = parseFloat(form.value.paymentContract) || 0;
+                const p2 = parseFloat(form.value.paymentSeal) || 0;
+                const p3 = parseFloat(form.value.paymentTax) || 0;
+                const p4 = parseFloat(form.value.paymentBalance) || 0;
+                return p1 + p2 + p3 + p4;
+            });
+
+            const priceMismatch = computed(() => {
+                const total = parseFloat(form.value.totalPrice);
+                if (!total) return false;
+                // Allow small floating point error
+                return Math.abs(total - priceSum.value) > 0.01;
+            });
 
             // Auto-Load Data on Startup & Cloud Sync
             onMounted(() => {
@@ -1105,7 +1264,9 @@ ${staffTxt}`;
                 // New Sync Exports
                 syncState, syncStatusClass, forceCloudSync, forceCloudUpload,
                 // New Dynamic Person Methods
-                addPerson, removePerson
+                addPerson, removePerson,
+                // New Price Check
+                priceSum, priceMismatch
             };
         }
     }).mount('#app');
@@ -1138,7 +1299,6 @@ ${staffTxt}`;
         }
 
         // Ctrl+P (Print - 僅允許透過按鈕列印)
-        // 為了讓用戶只能用按鈕列印，這裡擋掉快捷鍵，除非您確定要完全依賴按鈕
         if(e.ctrlKey && e.keyCode == 80) {
             // Optional: e.preventDefault();
             // alert('請使用頁面上的「列印」按鈕。');
@@ -1151,9 +1311,6 @@ ${staffTxt}`;
     document.onbgdrag = function() { return false; }
 
     // 4. Debugger Trap (Anti-Inspection)
-    // 當開發者工具被開啟時，這段程式碼會造成瀏覽器進入除錯循環，
-    // 讓試圖檢視代碼的人瀏覽器卡頓或無法操作。
-    // *注意*：若您自己要除錯，請暫時移除此段。
     (function antiDebug() {
         const _0x = function() {
             const _start = new Date().getTime();
