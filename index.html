@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.10 (Final Polish)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.10 (Secure & Responsive)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,7 +45,7 @@
             border-radius: 0.375rem;
             background-color: white;
             transition: all 0.2s;
-            font-size: 1.1rem; 
+            font-size: 1rem; /* 手機版字體調整 */
             font-weight: 500;
             line-height: 1.5;
             margin-bottom: 2px;
@@ -61,9 +61,9 @@
         .unit-tag { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.9rem; font-weight: bold; pointer-events: none; }
 
         /* Timeline */
-        .timeline-wrapper { position: relative; padding: 15px 0; margin-bottom: 10px; }
-        .timeline-line-bg { position: absolute; top: 25px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; }
-        .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; }
+        .timeline-wrapper { position: relative; padding: 15px 0; margin-bottom: 10px; overflow-x: auto; }
+        .timeline-line-bg { position: absolute; top: 25px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; min-width: 300px; }
+        .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; min-width: 300px; }
         .step-item { display: flex; flex-direction: column; align-items: center; width: 100px; text-align: center; cursor: pointer; }
         .step-icon { width: 42px; height: 42px; border-radius: 50%; background: white; border: 3px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.2rem; margin-bottom: 6px; transition: all 0.3s; }
         .step-item.active .step-icon { border-color: var(--nexus-gold); background-color: var(--nexus-navy); color: var(--nexus-gold); transform: scale(1.1); }
@@ -77,7 +77,7 @@
         }
         .doc-checkbox { transform: scale(1.5); margin-right: 12px; cursor: pointer; }
         .doc-label { font-weight: bold; color: #374151; font-size: 1.1rem; cursor: pointer; flex-grow: 1; }
-        .doc-date-input { border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px; font-size: 1rem; width: 160px; }
+        .doc-date-input { border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px; font-size: 1rem; width: 140px; }
 
         /* Detail Grid */
         .detail-grid { display: grid; grid-template-columns: 80px 1fr; gap: 10px; font-size: 1rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px; margin-bottom: 8px; }
@@ -85,7 +85,7 @@
 
         /* Manager Styles */
         .manager-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
-        .manager-panel { width: 90%; max-width: 900px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .manager-panel { width: 100%; md:width: 90%; max-width: 900px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .case-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .case-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; }
         .case-table td { padding: 10px; border-bottom: 1px solid #eee; }
@@ -98,7 +98,9 @@
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
         .suggestion-item:hover { background-color: #f0f9ff; }
         .calendar-section { margin-top: 20px; }
-        .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .calendar-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 768px) { .calendar-container { grid-template-columns: repeat(2, 1fr); } }
+        
         .calendar-month { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .cal-header { text-align: center; font-weight: bold; color: var(--nexus-navy); border-bottom: 2px solid var(--nexus-gold); padding: 4px 0; margin-bottom: 4px; font-size: 0.9rem; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center; }
@@ -121,12 +123,41 @@
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
         /* Dynamic Person Row (Screen Mode) */
-        .person-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
-        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 75px; flex-shrink: 0; }
-        .person-name-group { flex: 1; position: relative; min-width: 0; }
-        .person-phone-input { width: 110px; flex-shrink: 0; }
+        .person-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }
+        @media(min-width: 640px) {
+            .person-row { flex-direction: row; align-items: center; border-bottom: none; }
+        }
+        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 100%; sm:width: 75px; flex-shrink: 0; }
+        @media(min-width: 640px) { .role-select { width: 75px; } }
+        
+        .person-name-group { flex: 1; position: relative; min-width: 0; width: 100%; }
+        .person-phone-input { width: 100%; flex-shrink: 0; }
+        @media(min-width: 640px) { .person-phone-input { width: 110px; } }
 
         .print-only { display: none; }
+
+        /* ================= RWD Grid Systems ================= */
+        /* 1. Header Grid (案件名稱/地址等) */
+        .print-grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 768px) { .print-grid-4 { grid-template-columns: repeat(4, 1fr); } }
+
+        /* 2. Finance Row (款項區塊) */
+        .print-finance-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 768px) { .print-finance-row { grid-template-columns: 1fr 1fr; } }
+        
+        .print-finance-grid { display: grid; grid-template-columns: 45% 53%; gap: 12px 2%; align-items: end; }
+        
+        /* 3. People Row (買賣雙方) */
+        .print-people-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 768px) { .print-people-row { grid-template-columns: 1fr 1fr; } }
+        
+        /* 4. Admin Row (行政區塊) */
+        .print-admin-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 1024px) { .print-admin-row { grid-template-columns: 1.25fr 0.95fr 1.05fr; } }
+
+        .doc-list-container { display: grid; grid-template-columns: 1fr; gap: 4px; }
+        @media (min-width: 640px) { .doc-list-container { grid-template-columns: 1fr 1fr; gap: 4px 10px; } }
+
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
@@ -141,6 +172,15 @@
             }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
+            
+            /* 強制恢復 A4 寬度 */
+            #app {
+                max-width: 210mm !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
 
             /* 第一頁容器 */
             .page-one-container { 
@@ -158,7 +198,9 @@
             header .text-xs { font-size: 9pt !important; }
             
             /* 2. Timeline */
-            .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; }
+            .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; overflow: hidden; }
+            .timeline-line-bg { min-width: auto; }
+            .timeline-steps { min-width: auto; }
             .step-icon { width: 32px !important; height: 32px !important; border-width: 2px !important; font-size: 12pt !important; }
             .step-title { font-size: 10pt !important; color: #000 !important; margin-bottom: 0; }
             .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 9pt !important; padding: 1px 3px; font-weight: bold; }
@@ -194,56 +236,25 @@
                 font-weight: 800 !important; 
             }
 
-            /* ==========================================================================
-               CRITICAL FIX 1: 前面抬頭 (Header Info) 
-               - 黃金比例：地址 44% 空間
-               ========================================================================== */
+            /* CRITICAL FIX 1: Header Grid 黃金比例 */
             .print-grid-4 { 
                 display: grid; 
-                /* [Name 16%] [Address 44%] [Land 24%] [Price 16%] */
                 grid-template-columns: 1.6fr 4.4fr 2.4fr 1.6fr; 
                 gap: 10px; 
             }
 
-            /* ==========================================================================
-               CRITICAL FIX 2: 款項與時程 (Finance) 
-               - 左右分開
-               ========================================================================== */
+            /* CRITICAL FIX 2: Finance */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .print-finance-grid { 
-                display: grid; 
-                grid-template-columns: 45% 53%; 
-                gap: 12px 2%; 
-                align-items: end;
-            }
-            .print-finance-grid .relative { 
-                display: block; 
-                width: 100%;
-            }
             /* 金額欄位 */
             .print-finance-grid input.font-mono { 
                 text-align: right; 
                 width: 100% !important; 
                 padding-right: 20px !important; 
             }
-            .unit-tag { 
-                color: #000; 
-                font-size: 9pt; 
-                right: 0; 
-                top: 40%; 
-            }
-            /* 日期欄位 */
-            .print-finance-grid input[type="date"] { 
-                width: 100% !important; 
-                text-align: center; 
-                font-size: 9pt !important;
-            }
-            input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+            .unit-tag { color: #000; font-size: 9pt; right: 0; top: 40%; }
+            .print-finance-grid input[type="date"] { width: 100% !important; text-align: center; font-size: 9pt !important; }
 
-            /* ==========================================================================
-               CRITICAL FIX 3: 買賣雙方 (People)
-               - 強力隱藏下拉箭頭
-               ========================================================================== */
+            /* CRITICAL FIX 3: People */
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
             .person-row { 
                 display: grid !important; 
@@ -261,48 +272,17 @@
                 font-weight: 800;
                 padding: 0 !important;
                 font-size: 9pt !important;
-                /* 強力移除原生樣式 */
                 appearance: none !important;
                 -webkit-appearance: none !important;
-                -moz-appearance: none !important;
                 background-image: none !important;
-                text-indent: 0.01px; 
-                text-overflow: '';
             }
-            /* Firefox hack */
-            .role-select::-ms-expand { display: none; }
+            .person-name-group input { width: 100% !important; }
+            .person-phone-input { width: 100% !important; text-align: right; font-family: 'Courier New', monospace; font-size: 9pt !important; }
 
-            .person-name-group { width: 100%; overflow: hidden; }
-            .person-name-group input { 
-                width: 100% !important; 
-                min-width: 50px; 
-            }
-            .person-phone-input { 
-                width: 100% !important; 
-                text-align: right; 
-                font-family: 'Courier New', monospace;
-                letter-spacing: -0.5px;
-                font-size: 9pt !important;
-            }
-
-            /* ==========================================================================
-               CRITICAL FIX 4: 履約保證 (Escrow) 跑版修正
-               - 緊湊佈局，防止溢出
-               ========================================================================== */
-            .escrow-section {
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start; /* 改為靠上對齊，不要分散撐開 */
-                gap: 4px; /* 縮小垂直間距 */
-                height: 100%;
-            }
-            .escrow-section div {
-                margin-bottom: 6px; /* 手動控制間距 */
-            }
-            .escrow-section input { 
-                width: 100% !important; 
-                margin-bottom: 0 !important;
-            }
+            /* CRITICAL FIX 4: Escrow */
+            .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; height: 100%; }
+            .escrow-section div { margin-bottom: 6px; }
+            .escrow-section input { width: 100% !important; margin-bottom: 0 !important; }
             
             .admin-card { flex-grow: 1; margin-bottom: 0 !important; }
             .print-admin-row { 
@@ -339,7 +319,7 @@
             /* Footer */
             footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
 
-            /* 解決備註欄被截斷問題 */
+            /* Notes */
             .print-notes-container textarea { display: none !important; }
             .print-notes-display { 
                 display: block !important; 
@@ -360,6 +340,7 @@
                 padding-top: 20px; 
                 display: block !important;
             }
+            .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
             .calendar-month { border: 2px solid #000 !important; box-shadow: none !important; }
             .cal-cell { border: 1px solid #888 !important; height: 45px !important; font-size: 10pt !important; }
             .cal-header { border-bottom: 2px solid #000 !important; font-size: 12pt !important; background: #eee !important; -webkit-print-color-adjust: exact; }
@@ -369,54 +350,54 @@
         }
     </style>
 </head>
-<body class="p-4 bg-gray-100">
+<body class="p-2 md:p-4 bg-gray-100">
 
-<div id="app" class="max-w-[210mm] mx-auto bg-white p-6 shadow-xl min-h-screen print:shadow-none print:p-0 print:block">
+<div id="app" class="w-full md:max-w-5xl mx-auto bg-white p-4 md:p-6 shadow-xl min-h-screen print:max-w-[210mm] print:shadow-none print:p-0 print:block">
     
     <div v-if="autoLoadedMsg" class="no-print fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 animate-bounce cursor-pointer" @click="autoLoadedMsg=null">
         <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>{{ autoLoadedMsg }}</p>
     </div>
 
     <div class="page-one-container">
-        <header class="flex justify-between items-end mb-4 border-b-2 border-gray-200 pb-2">
-            <div class="flex items-center gap-2">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b-2 border-gray-200 pb-2">
+            <div class="flex items-center gap-2 mb-2 md:mb-0">
                 <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-10 print:h-10 print:text-xl print:border print:border-black print:text-black print:bg-white">宏</div>
                 <div>
-                    <h1 class="text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
+                    <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.10 Final</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.10</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
                             <span v-if="syncState === 'idle'">已同步</span>
-                            <span v-if="syncState === 'syncing'">雲端傳輸中...</span>
-                            <span v-if="syncState === 'success'" class="text-green-600">傳輸成功</span>
-                            <span v-if="syncState === 'error'" class="text-red-500">傳輸失敗</span>
+                            <span v-if="syncState === 'syncing'">傳輸中...</span>
+                            <span v-if="syncState === 'success'" class="text-green-600">成功</span>
+                            <span v-if="syncState === 'error'" class="text-red-500">失敗</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2 no-print">
-                <button @click="forceCloudUpload" class="flex items-center px-2 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm shadow-sm transition-colors border border-blue-200" title="強制上傳至雲端">
+            <div class="flex flex-wrap gap-2 no-print w-full md:w-auto">
+                <button @click="forceCloudUpload" class="flex-1 md:flex-none flex items-center justify-center px-2 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm shadow-sm transition-colors border border-blue-200" title="強制上傳">
                     <i class="fas fa-cloud-upload-alt"></i>
                 </button>
-                <button @click="forceCloudSync" class="flex items-center px-2 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300" title="從雲端重新下載">
+                <button @click="forceCloudSync" class="flex-1 md:flex-none flex items-center justify-center px-2 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300" title="從雲端重新下載">
                     <i class="fas fa-cloud-download-alt"></i>
                 </button>
-                <button @click="showManager = true" class="flex items-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
-                    <i class="fas fa-folder-open mr-2"></i> 案件後台
+                <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
+                    <i class="fas fa-folder-open mr-1"></i> 後台
                 </button>
-                <button @click="saveAndSync" class="flex items-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
-                    <i class="fas fa-save mr-2"></i> 儲存 (更新列表)
+                <button @click="saveAndSync" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
+                    <i class="fas fa-save mr-1"></i> 儲存
                 </button>
-                <button @click="printPage" class="px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
-                    <i class="fas fa-print mr-2"></i> 列印
+                <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
+                    <i class="fas fa-print mr-1"></i> 列印
                 </button>
             </div>
         </header>
         
         <div v-if="currentCaseIndex > -1" class="no-print bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded mb-4 flex justify-between items-center text-sm shadow-sm">
-            <span class="font-bold"><i class="fas fa-edit mr-2"></i>正在編輯資料庫中的第 {{currentCaseIndex + 1}} 筆案件 ({{form.address || '未命名'}})</span>
-            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100">退出編輯 (新增模式)</button>
+            <span class="font-bold truncate"><i class="fas fa-edit mr-2"></i>編輯: {{form.address || '未命名'}}</span>
+            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 whitespace-nowrap ml-2">退出</button>
         </div>
 
         <div class="card bg-white border border-gray-200 rounded p-4 mb-2">
@@ -429,7 +410,7 @@
                     <div class="step-item" :class="{ active: form.closingDate }"><div class="step-icon"><i class="fas fa-home"></i></div><div class="step-title">4.結案</div><div class="step-date">{{ formatDate(form.closingDate) }}</div></div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 pt-2 border-t border-gray-100 print-grid-4">
+            <div class="print-grid-4 mt-2 pt-2 border-t border-gray-100">
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">案件名稱</label><input v-model="form.propertyName" class="nexus-input font-bold text-navy" placeholder="輸入案名"></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">地址</label><input v-model="form.address" class="nexus-input" placeholder="地址"></div>
                 <div class="relative"><label class="text-xs font-bold text-gray-500 uppercase block">地號/建號</label><input v-model="form.landBuildNo" class="nexus-input" placeholder="地號、建號"></div>
@@ -445,7 +426,7 @@
         <div class="print-finance-row gap-2 mb-2">
             <div class="card bg-white border border-gray-200 rounded p-3">
                 <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
-                <div class="grid grid-cols-2 gap-3 print-finance-grid">
+                <div class="print-finance-grid">
                     <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="relative w-full"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
                     <div class="relative"><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
                     
@@ -472,7 +453,7 @@
         <div class="print-people-row gap-2 mb-2">
             <div class="card bg-blue-50 border border-blue-200 rounded p-3 print:bg-white print:border-gray-300">
                 <h3 class="text-sm font-bold text-navy mb-2 print:text-base print:mb-2">買賣雙方</h3>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="relative group">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs font-bold text-gray-500 block print:text-black">賣方 Seller</label>
@@ -526,7 +507,7 @@
                 </div>
                 <div class="card bg-white border border-gray-200 rounded p-3 flex-1">
                     <div class="flex justify-between"><h3 class="text-sm font-bold text-navy print:text-base">銷售/開發</h3><span v-if="contactsLoaded" class="text-xs text-green-600 no-print">OK</span></div>
-                    <div class="grid grid-cols-2 gap-3 mt-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
                         <div class="relative group">
                             <div class="flex items-center"><input type="text" v-model="form.salesAgent" @input="searchContacts($event,'sales')" class="nexus-input font-bold text-sm mb-1 p-1 flex-1" placeholder="銷售1"><button @click="toggleSales2" class="no-print text-xs bg-gray-200 px-1 ml-1 rounded h-5 w-5">+</button></div>
                             <div v-if="suggestions.target==='sales' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
@@ -659,13 +640,13 @@
                 <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>案件管理後台 (共 {{cases.length}} 筆)</h2>
                 <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
             </div>
-            <div class="bg-gray-100 p-3 flex gap-2 border-b">
-                <label class="cursor-pointer bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-sm font-bold text-gray-700">
-                    <i class="fas fa-upload text-green-600 mr-1"></i> 匯入 Excel (CSV)
+            <div class="bg-gray-100 p-3 flex flex-col md:flex-row gap-2 border-b">
+                <label class="cursor-pointer bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-sm font-bold text-gray-700 text-center">
+                    <i class="fas fa-upload text-green-600 mr-1"></i> 匯入 CSV
                     <input type="file" class="hidden" accept=".csv" @change="handleImportCases">
                 </label>
                 <button @click="exportCases" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-bold">
-                    <i class="fas fa-file-excel mr-1"></i> 匯出 Excel (CSV)
+                    <i class="fas fa-file-excel mr-1"></i> 匯出 CSV
                 </button>
                 <div class="flex-1"></div>
                 <button @click="resetForm(true)" class="bg-nexus-navy text-white px-3 py-1.5 rounded hover:bg-black text-sm font-bold">
@@ -679,7 +660,7 @@
                             <th>編號</th>
                             <th>簽約日</th>
                             <th>客戶姓名</th>
-                            <th>地址</th>
+                            <th class="hidden md:table-cell">地址</th>
                             <th>狀態</th>
                             <th>操作</th>
                         </tr>
@@ -689,7 +670,7 @@
                             <td class="font-mono text-xs">{{ c['編號'] }}</td>
                             <td class="font-mono text-xs">{{ c['簽約日'] }}</td>
                             <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
-                            <td class="text-xs truncate max-w-[120px]" :title="c['地址']">{{ c['地址'] }}</td>
+                            <td class="text-xs truncate max-w-[120px] hidden md:table-cell" :title="c['地址']">{{ c['地址'] }}</td>
                             <td>
                                 <span v-if="c['結案時間']" class="status-badge closed">已結案</span>
                                 <span v-else class="status-badge active">進行中</span>
@@ -1273,56 +1254,59 @@ ${staffTxt}`;
 </script>
 
 <script>
-    // ============================================
-    // Nexus Security Protocol v2.0 (High Alert)
-    // ============================================
-    
-    // 1. Disable Context Menu
-    document.addEventListener('contextmenu', event => event.preventDefault());
-
-    // 2. Advanced Key Blocking
-    document.onkeydown = function(e) {
-        // F12 (DevTools)
-        if(e.keyCode == 123) return false;
+    /**
+     * 宏國 x 易丞地政 - 核心保護層 v33.10
+     * 警告：此段代碼包含反除錯與防篡改機制
+     */
+    (function() {
+        // 1. 禁止右鍵選單
+        document.addEventListener('contextmenu', e => e.preventDefault());
         
-        // Ctrl+Shift+I / J / C (DevTools console/inspector)
-        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) return false;
-        
-        // Ctrl+U (View Source)
-        if(e.ctrlKey && e.keyCode == 85) return false;
-        
-        // Ctrl+S (Save)
-        if(e.ctrlKey && e.keyCode == 83) {
-            e.preventDefault();
-            alert('系統保護中：禁止未授權的儲存操作。');
-            return false;
-        }
+        document.addEventListener('keydown', function(e) {
+            // 禁止 F12, Ctrl+Shift+I/J/C, Ctrl+U (檢視原始碼), Ctrl+S (存檔)
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['u', 's', 'p'].includes(e.key.toLowerCase()))
+            ) {
+                // 如果是 Ctrl+P (列印)，攔截並透過程式按鈕觸發 (可選)
+                if(e.ctrlKey && e.key.toLowerCase() === 'p') {
+                    // 允許列印，但不允許透過快捷鍵繞過介面
+                    return true; 
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
 
-        // Ctrl+P (Print - 僅允許透過按鈕列印)
-        if(e.ctrlKey && e.keyCode == 80) {
-            // Optional: e.preventDefault();
-            // alert('請使用頁面上的「列印」按鈕。');
-            // return false;
-        }
-    }
-
-    // 3. Selection Blocking
-    document.onselectstart = function() { return false; }
-    document.onbgdrag = function() { return false; }
-
-    // 4. Debugger Trap (Anti-Inspection)
-    (function antiDebug() {
-        const _0x = function() {
-            const _start = new Date().getTime();
-            debugger; // The trap
-            const _end = new Date().getTime();
-            if (_end - _start > 100) {
-                // DevTools is likely open and paused execution
-                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:black;color:red;font-size:2rem;font-weight:bold;">Security Alert: Inspection Detected.</div>';
+        // 2. 檢測開發者工具 (DevTools) 是否開啟
+        const detectDevTools = function() {
+            const threshold = 160;
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            
+            // 如果偵測到視窗外部尺寸與內部尺寸差異過大 (通常是因為開了 Console)
+            if (widthThreshold || heightThreshold) {
+                document.body.innerHTML = '<div style="background:#0F2E46;color:#C5A065;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif;"><h1>⚠️ 系統安全警示</h1><p>偵測到非法除錯工具。為保護資料安全，存取已被拒絕。</p></div>';
+                // 強制停止 Vue 運作
+                if(window.app) window.app.unmount();
+                throw "Security Violation"; 
             }
         };
-        // Check every 1 second
-        setInterval(_0x, 1000);
+        
+        setInterval(detectDevTools, 1000);
+
+        // 3. 進階 Debugger 陷阱 (讓開啟 Console 的人瀏覽器卡頓)
+        setInterval(function(){
+            const startTime = new Date();
+            debugger; // 只有在 Console 開啟時才會暫停
+            const endTime = new Date();
+            if (endTime - startTime > 100) {
+                // 如果執行時間差過大，代表被斷點攔截了 -> 清空畫面
+                document.body.innerHTML = "Access Denied.";
+            }
+        }, 500);
     })();
 </script>
 </body>
