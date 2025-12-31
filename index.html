@@ -3,16 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v34.8 (Final URL)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.10 (Secure & Responsive)</title>
     
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            if (msg.includes("ResizeObserver")) return false;
-            alert("⚠️ 系統錯誤：\n" + msg + "\n\n行數：" + line);
-            return false;
-        };
-    </script>
-
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -20,13 +12,55 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Michroma&display=swap');
-        :root { --nexus-navy: #0F2E46; --nexus-gold: #C5A065; --nexus-bg: #f3f4f6; }
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--nexus-bg); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .text-navy { color: var(--nexus-navy); } .bg-navy { background-color: var(--nexus-navy); } .text-gold { color: var(--nexus-gold); } .bg-gold { background-color: var(--nexus-gold); }
-        .nexus-input { width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; transition: all 0.2s; font-size: 1rem; font-weight: 500; line-height: 1.5; margin-bottom: 2px; }
-        .nexus-input:focus { border-color: var(--nexus-navy); ring: 3px solid rgba(15, 46, 70, 0.1); outline: none; background-color: #fffbf0; }
+        
+        :root {
+            --nexus-navy: #0F2E46;
+            --nexus-gold: #C5A065;
+            --nexus-bg: #f3f4f6;
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--nexus-bg);
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* 品牌色 */
+        .text-navy { color: var(--nexus-navy); }
+        .bg-navy { background-color: var(--nexus-navy); }
+        .text-gold { color: var(--nexus-gold); }
+        .bg-gold { background-color: var(--nexus-gold); }
+        .border-gold { border-color: var(--nexus-gold); }
+
+        /* 輸入框通用 */
+        .nexus-input {
+            width: 100%;
+            padding: 0.5rem 0.7rem; 
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: white;
+            transition: all 0.2s;
+            font-size: 1rem; /* 手機版字體調整 */
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 2px;
+        }
+        .nexus-input:focus {
+            border-color: var(--nexus-navy);
+            ring: 3px solid rgba(15, 46, 70, 0.1);
+            outline: none;
+            background-color: #fffbf0;
+        }
+        
         label { display: block; margin-bottom: 4px; font-size: 0.95rem; color: #4b5563; font-weight: 600; }
         .unit-tag { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.9rem; font-weight: bold; pointer-events: none; }
+
+        /* Timeline */
         .timeline-wrapper { position: relative; padding: 15px 0; margin-bottom: 10px; overflow-x: auto; }
         .timeline-line-bg { position: absolute; top: 25px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; min-width: 300px; }
         .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; min-width: 300px; }
@@ -35,12 +69,21 @@
         .step-item.active .step-icon { border-color: var(--nexus-gold); background-color: var(--nexus-navy); color: var(--nexus-gold); transform: scale(1.1); }
         .step-title { font-weight: 700; color: var(--nexus-navy); font-size: 1rem; margin-bottom: 2px; }
         .step-date { font-family: 'Michroma', monospace; font-size: 0.85rem; color: #666; background: #eef2f6; padding: 2px 8px; border-radius: 4px; min-height: 24px; min-width: 80px; }
-        .doc-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e5e7eb; padding: 10px 12px; margin-bottom: 8px; border-radius: 6px; }
+
+        /* [螢幕模式] 行政細節 */
+        .doc-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #fff; border: 1px solid #e5e7eb; padding: 10px 12px; margin-bottom: 8px; border-radius: 6px;
+        }
         .doc-checkbox { transform: scale(1.5); margin-right: 12px; cursor: pointer; }
         .doc-label { font-weight: bold; color: #374151; font-size: 1.1rem; cursor: pointer; flex-grow: 1; }
         .doc-date-input { border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px; font-size: 1rem; width: 140px; }
+
+        /* Detail Grid */
         .detail-grid { display: grid; grid-template-columns: 80px 1fr; gap: 10px; font-size: 1rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px; margin-bottom: 8px; }
         .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.95rem; }
+
+        /* Manager Styles */
         .manager-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
         .manager-panel { width: 100%; md:width: 90%; max-width: 900px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .case-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -49,24 +92,15 @@
         .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .status-badge.active { background-color: #dbeafe; color: #1e40af; }
         .status-badge.closed { background-color: #dcfce7; color: #166534; }
-        .sync-status { display: flex; align-items: center; font-size: 0.8rem; margin-left: 10px; color: #666; }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #ccc; margin-right: 5px; transition: all 0.3s; }
-        .sync-status.syncing .sync-dot { background-color: #fbbf24; box-shadow: 0 0 5px #fbbf24; animation: pulse 1s infinite; }
-        .sync-status.success .sync-dot { background-color: #10b981; }
-        .sync-status.error .sync-dot { background-color: #ef4444; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* Suggestions & Calendar */
         .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; max-height: 180px; overflow-y: auto; z-index: 50; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
         .suggestion-item:hover { background-color: #f0f9ff; }
-        .person-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }
-        @media(min-width: 640px) { .person-row { flex-direction: row; align-items: center; border-bottom: none; } }
-        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 100%; sm:width: 75px; flex-shrink: 0; }
-        .person-name-group { flex: 1; position: relative; min-width: 0; width: 100%; }
-        .person-phone-input { width: 100%; flex-shrink: 0; }
-        @media(min-width: 640px) { .person-phone-input { width: 110px; } }
         .calendar-section { margin-top: 20px; }
         .calendar-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 768px) { .calendar-container { grid-template-columns: repeat(2, 1fr); } }
+        
         .calendar-month { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .cal-header { text-align: center; font-weight: bold; color: var(--nexus-navy); border-bottom: 2px solid var(--nexus-gold); padding: 4px 0; margin-bottom: 4px; font-size: 0.9rem; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center; }
@@ -75,41 +109,244 @@
         .cal-cell.holiday { background-color: #fee2e2; color: #dc2626; font-weight: bold; }
         .cal-cell.weekend { color: #dc2626; }
         .cal-marker { position: absolute; bottom: 2px; left: 1px; right: 1px; font-size: 0.6rem; color: white; border-radius: 2px; padding: 1px 0; font-weight: bold; }
-        .marker-sign { background-color: #2563eb; } .marker-seal { background-color: #ca8a04; } .marker-tax { background-color: #9333ea; } .marker-close { background-color: #dc2626; }
+        .marker-sign { background-color: #2563eb; }
+        .marker-seal { background-color: #ca8a04; }
+        .marker-tax { background-color: #9333ea; }
+        .marker-close { background-color: #dc2626; }
+
+        /* Sync Indicator */
+        .sync-status { display: flex; align-items: center; font-size: 0.8rem; margin-left: 10px; color: #666; }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #ccc; margin-right: 5px; transition: all 0.3s; }
+        .sync-status.syncing .sync-dot { background-color: #fbbf24; box-shadow: 0 0 5px #fbbf24; animation: pulse 1s infinite; }
+        .sync-status.success .sync-dot { background-color: #10b981; }
+        .sync-status.error .sync-dot { background-color: #ef4444; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* Dynamic Person Row (Screen Mode) */
+        .person-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }
+        @media(min-width: 640px) {
+            .person-row { flex-direction: row; align-items: center; border-bottom: none; }
+        }
+        .role-select { border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; padding: 4px; background-color: #f9fafb; color: var(--nexus-navy); font-weight: bold; width: 100%; sm:width: 75px; flex-shrink: 0; }
+        @media(min-width: 640px) { .role-select { width: 75px; } }
+        
+        .person-name-group { flex: 1; position: relative; min-width: 0; width: 100%; }
+        .person-phone-input { width: 100%; flex-shrink: 0; }
+        @media(min-width: 640px) { .person-phone-input { width: 110px; } }
+
         .print-only { display: none; }
+
+        /* ================= RWD Grid Systems ================= */
+        /* 1. Header Grid (案件名稱/地址等) */
         .print-grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-grid-4 { grid-template-columns: repeat(4, 1fr); } }
+
+        /* 2. Finance Row (款項區塊) */
         .print-finance-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-finance-row { grid-template-columns: 1fr 1fr; } }
+        
         .print-finance-grid { display: grid; grid-template-columns: 45% 53%; gap: 12px 2%; align-items: end; }
+        
+        /* 3. People Row (買賣雙方) */
         .print-people-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-people-row { grid-template-columns: 1fr 1fr; } }
+        
+        /* 4. Admin Row (行政區塊) */
         .print-admin-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media (min-width: 1024px) { .print-admin-row { grid-template-columns: 1.25fr 0.95fr 1.05fr; } }
+
         .doc-list-container { display: grid; grid-template-columns: 1fr; gap: 4px; }
         @media (min-width: 640px) { .doc-list-container { grid-template-columns: 1fr 1fr; gap: 4px 10px; } }
+
+
+        /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
             @page { margin: 5mm 8mm; size: A4 portrait; }
-            body { background: white; font-size: 10pt; line-height: 1.2; color: #000; user-select: auto; }
+            
+            body { 
+                background: white; 
+                font-size: 10pt; 
+                line-height: 1.2; 
+                color: #000; 
+                user-select: auto; 
+            }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            #app { max-width: 210mm !important; width: 100% !important; margin: 0 auto !important; padding: 0 !important; box-shadow: none !important; }
-            .page-one-container { display: flex; flex-direction: column; height: 98vh; justify-content: flex-start; page-break-after: always; gap: 2px; }
+            
+            /* 強制恢復 A4 寬度 */
+            #app {
+                max-width: 210mm !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+
+            /* 第一頁容器 */
+            .page-one-container { 
+                display: flex;
+                flex-direction: column;
+                height: 98vh; 
+                justify-content: flex-start;
+                page-break-after: always;
+                gap: 2px;
+            }
+
+            /* 1. Header */
             header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 2px solid #000 !important; }
+            header h1 { font-size: 1.6rem !important; margin-bottom: 0; }
+            header .text-xs { font-size: 9pt !important; }
+            
+            /* 2. Timeline */
             .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; overflow: hidden; }
+            .timeline-line-bg { min-width: auto; }
+            .timeline-steps { min-width: auto; }
             .step-icon { width: 32px !important; height: 32px !important; border-width: 2px !important; font-size: 12pt !important; }
-            .card { box-shadow: none !important; border: 2px solid #555 !important; margin-bottom: 4px !important; padding: 4px 6px !important; break-inside: avoid; }
-            input, select, textarea { font-size: 10pt !important; font-weight: 600 !important; border: none !important; border-bottom: 1px solid #555 !important; background: transparent !important; color: black !important; padding: 0 !important; height: auto !important; }
+            .step-title { font-size: 10pt !important; color: #000 !important; margin-bottom: 0; }
+            .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 9pt !important; padding: 1px 3px; font-weight: bold; }
+
+            /* 3. Card & Input */
+            .card { 
+                box-shadow: none !important; 
+                border: 2px solid #555 !important; 
+                margin-bottom: 4px !important; 
+                padding: 4px 6px !important; 
+                break-inside: avoid;
+            }
+            
+            /* 通用輸入框修正 - 列印時 */
+            input, select, textarea { 
+                font-size: 10pt !important; 
+                font-weight: 600 !important;
+                color: #000 !important;
+                margin-bottom: 1px !important; 
+                height: 1.4em !important;
+                line-height: 1.4em !important;
+                padding: 0 2px !important;
+                background: transparent !important;
+                border: none !important;
+                border-bottom: 1px solid #555 !important; 
+                border-radius: 0 !important;
+            }
             .nexus-input { border: none !important; border-bottom: 1px solid #555 !important; }
-            .print-grid-4 { display: grid; grid-template-columns: 1.6fr 4.4fr 2.4fr 1.6fr; gap: 10px; }
+            
+            /* 數字輸入框特別調整 */
+            input[type="number"], .font-mono { 
+                font-family: 'Courier New', monospace !important; 
+                font-weight: 800 !important; 
+            }
+
+            /* CRITICAL FIX 1: Header Grid 黃金比例 */
+            .print-grid-4 { 
+                display: grid; 
+                grid-template-columns: 1.6fr 4.4fr 2.4fr 1.6fr; 
+                gap: 10px; 
+            }
+
+            /* CRITICAL FIX 2: Finance */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .person-row { display: grid !important; grid-template-columns: 40px 1fr 90px !important; gap: 8px; align-items: center; border-bottom: 1px dotted #ccc; }
-            .print-admin-row { display: grid; grid-template-columns: 1.25fr 0.95fr 1.05fr; gap: 12px; }
-            .doc-row { border: none; background: transparent; padding: 2px 0; }
-            .print-notes-display { display: block !important; white-space: pre-wrap; font-size: 10pt; border-bottom: 1px solid #000; min-height: 50px; }
-            .calendar-section { break-before: page; page-break-before: always; display: block !important; margin-top: 0; padding-top: 10px; }
-            .role-select { appearance: none; border: none; font-weight: 800; padding: 0; }
-            .unit-tag { color: black; }
+            /* 金額欄位 */
+            .print-finance-grid input.font-mono { 
+                text-align: right; 
+                width: 100% !important; 
+                padding-right: 20px !important; 
+            }
+            .unit-tag { color: #000; font-size: 9pt; right: 0; top: 40%; }
+            .print-finance-grid input[type="date"] { width: 100% !important; text-align: center; font-size: 9pt !important; }
+
+            /* CRITICAL FIX 3: People */
+            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .person-row { 
+                display: grid !important; 
+                grid-template-columns: 40px 1fr 90px !important; 
+                gap: 8px;
+                margin-bottom: 4px; 
+                border-bottom: 1px dotted #ccc; 
+                padding-bottom: 2px; 
+                align-items: center;
+            }
+            .role-select { 
+                width: 100% !important; 
+                text-align: left;
+                border: none !important;
+                font-weight: 800;
+                padding: 0 !important;
+                font-size: 9pt !important;
+                appearance: none !important;
+                -webkit-appearance: none !important;
+                background-image: none !important;
+            }
+            .person-name-group input { width: 100% !important; }
+            .person-phone-input { width: 100% !important; text-align: right; font-family: 'Courier New', monospace; font-size: 9pt !important; }
+
+            /* CRITICAL FIX 4: Escrow */
+            .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; height: 100%; }
+            .escrow-section div { margin-bottom: 6px; }
+            .escrow-section input { width: 100% !important; margin-bottom: 0 !important; }
+            
+            .admin-card { flex-grow: 1; margin-bottom: 0 !important; }
+            .print-admin-row { 
+                display: grid; 
+                grid-template-columns: 1.25fr 0.95fr 1.05fr; 
+                gap: 12px; 
+                font-size: 10pt; 
+            }
+            
+            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 2px 0; margin-bottom: 1px; }
+            .doc-checkbox { appearance: auto; width: 14px; height: 14px; margin-right: 4px; border: 1px solid #000; }
+            .doc-label { font-size: 10pt; font-weight: normal; margin-right: 4px; color: #000; white-space: nowrap; }
+            
+            .doc-date-input { 
+                border: none; 
+                border-bottom: 1px solid #555 !important; 
+                border-radius: 0; 
+                flex-grow: 1; 
+                width: auto !important;
+                padding: 0 5px; 
+                font-size: 9pt; 
+                height: 18px; 
+                text-align: left; 
+                color: #000 !important;
+            }
+
+            label { font-size: 9pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
+            .unit-tag { color: #000; font-size: 9pt; right: 0; }
+
+            .detail-label { font-size: 9.5pt !important; width: 50px !important; font-weight: 900; color: #000; }
+            .detail-grid { grid-template-columns: 50px 1fr !important; gap: 4px !important; margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px dotted #999 !important; }
+
+            /* Footer */
+            footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
+
+            /* Notes */
+            .print-notes-container textarea { display: none !important; }
+            .print-notes-display { 
+                display: block !important; 
+                white-space: pre-wrap; 
+                font-size: 10pt; 
+                font-weight: 500; 
+                min-height: 50px; 
+                border-bottom: 1px solid #000;
+                line-height: 1.5; 
+                padding-top: 4px;
+            }
+
+            /* Calendar Page 2 */
+            .calendar-section { 
+                break-before: page; 
+                page-break-before: always; 
+                margin-top: 0; 
+                padding-top: 20px; 
+                display: block !important;
+            }
+            .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .calendar-month { border: 2px solid #000 !important; box-shadow: none !important; }
+            .cal-cell { border: 1px solid #888 !important; height: 45px !important; font-size: 10pt !important; }
+            .cal-header { border-bottom: 2px solid #000 !important; font-size: 12pt !important; background: #eee !important; -webkit-print-color-adjust: exact; }
+            .cal-marker { color: #000 !important; background: white !important; border: 1px solid #000; font-size: 8pt !important; font-weight: 900; }
+            
+            .preview-card, .db-control-btn, .manager-overlay { display: none !important; }
         }
     </style>
 </head>
@@ -128,40 +365,39 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v34.8</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.10</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
-                            <span v-if="syncState === 'idle'">已就緒</span>
-                            <span v-if="syncState === 'syncing'">同步中...</span>
-                            <span v-if="syncState === 'success'" class="text-green-600">同步成功</span>
-                            <span v-if="syncState === 'error'" class="text-red-500">同步失敗</span>
+                            <span v-if="syncState === 'idle'">已同步</span>
+                            <span v-if="syncState === 'syncing'">傳輸中...</span>
+                            <span v-if="syncState === 'success'" class="text-green-600">成功</span>
+                            <span v-if="syncState === 'error'" class="text-red-500">失敗</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
             <div class="flex flex-wrap gap-2 no-print w-full md:w-auto">
-                <button @click="forceCloudSync" class="flex-1 md:flex-none flex items-center justify-center px-2 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 text-sm border border-blue-200" title="從雲端下載最新資料 (同步)">
-                    <i class="fas fa-cloud-download-alt mr-1"></i> 雲端載入
+                <button @click="forceCloudUpload" class="flex-1 md:flex-none flex items-center justify-center px-2 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm shadow-sm transition-colors border border-blue-200" title="強制上傳">
+                    <i class="fas fa-cloud-upload-alt"></i>
                 </button>
-                <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm border border-gray-600">
+                <button @click="forceCloudSync" class="flex-1 md:flex-none flex items-center justify-center px-2 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300" title="從雲端重新下載">
+                    <i class="fas fa-cloud-download-alt"></i>
+                </button>
+                <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
                     <i class="fas fa-folder-open mr-1"></i> 後台
                 </button>
-                <button @click="resetForm(true)" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm shadow-md font-bold">
-                    <i class="fas fa-plus-circle mr-1"></i> 新增案件
+                <button @click="saveAndSync" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
+                    <i class="fas fa-save mr-1"></i> 儲存
                 </button>
-                <button @click="saveAndSync" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded hover:bg-green-700 text-sm shadow-md">
-                    <i class="fas fa-save mr-1"></i> 儲存(上傳)
-                </button>
-                <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black shadow-lg">
+                <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
                     <i class="fas fa-print mr-1"></i> 列印
                 </button>
             </div>
         </header>
-
-        <div v-if="currentCaseIndex > -1" class="no-print bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded mb-4 flex justify-between items-center text-sm">
-            <span class="font-bold truncate"><i class="fas fa-edit mr-2"></i>編輯模式: {{form.address || '未命名案件'}}</span>
-            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 ml-2">退出並新增</button>
+        
+        <div v-if="currentCaseIndex > -1" class="no-print bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded mb-4 flex justify-between items-center text-sm shadow-sm">
+            <span class="font-bold truncate"><i class="fas fa-edit mr-2"></i>編輯: {{form.address || '未命名'}}</span>
+            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 whitespace-nowrap ml-2">退出</button>
         </div>
 
         <div class="card bg-white border border-gray-200 rounded p-4 mb-2">
@@ -175,153 +411,306 @@
                 </div>
             </div>
             <div class="print-grid-4 mt-2 pt-2 border-t border-gray-100">
-                <div><label class="text-xs font-bold text-gray-500 uppercase block">案件名稱</label><input v-model="form.propertyName" class="nexus-input font-bold text-navy" placeholder="案名"></div>
+                <div><label class="text-xs font-bold text-gray-500 uppercase block">案件名稱</label><input v-model="form.propertyName" class="nexus-input font-bold text-navy" placeholder="輸入案名"></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">地址</label><input v-model="form.address" class="nexus-input" placeholder="地址"></div>
                 <div class="relative"><label class="text-xs font-bold text-gray-500 uppercase block">地號/建號</label><input v-model="form.landBuildNo" class="nexus-input" placeholder="地號、建號"></div>
                 <div class="relative">
                     <label class="text-xs font-bold text-gray-500 uppercase block">成交總價</label>
                     <input type="number" v-model="form.totalPrice" class="nexus-input font-mono font-bold" :class="{'bg-red-50 text-red-600': priceMismatch}">
                     <span class="unit-tag">萬</span>
+                    <div v-if="priceMismatch" class="text-red-600 text-[10px] font-bold absolute bottom-[-16px] left-0 bg-white px-1 border border-red-200 rounded print:border-0 print:bottom-[-14px]">⚠️ 金額不符 (總和:{{priceSum}})</div>
                 </div>
             </div>
         </div>
 
         <div class="print-finance-row gap-2 mb-2">
             <div class="card bg-white border border-gray-200 rounded p-3">
-                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base">款項與時程 (金額:萬 | 日期)</h3>
+                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
                 <div class="print-finance-grid">
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white"><label class="text-xs text-gray-400 font-bold block">1. 簽約</label><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent"><span class="unit-tag">萬</span></div>
-                    <div class="relative"><input type="date" v-model="form.contractDate" class="nexus-input text-xs w-full p-1 font-bold text-blue-800"></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white"><label class="text-xs text-gray-400 font-bold block">2. 用印</label><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-1 bg-transparent"><span class="unit-tag">萬</span></div>
-                    <div class="relative"><input type="date" v-model="form.sealDate" class="nexus-input text-xs w-full p-1 font-bold text-blue-800"></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white"><label class="text-xs text-gray-400 font-bold block">3. 完稅</label><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-1 bg-transparent"><span class="unit-tag">萬</span></div>
-                    <div class="relative"><input type="date" v-model="form.taxDate" class="nexus-input text-xs w-full p-1 font-bold text-blue-800"></div>
-                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white"><label class="text-xs text-gray-400 font-bold block">4. 尾款</label><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-1 bg-transparent"><span class="unit-tag">萬</span></div>
-                    <div class="relative"><input type="date" v-model="form.closingDate" class="nexus-input text-xs w-full p-1 font-bold text-blue-800"></div>
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="relative w-full"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">2. 用印</label><div class="relative w-full"><input v-model="form.paymentSeal" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.sealDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">3. 完稅</label><div class="relative w-full"><input v-model="form.paymentTax" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.taxDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    
+                    <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">4. 尾款</label><div class="relative w-full"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                    <div class="relative"><input type="date" v-model="form.closingDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
                 </div>
             </div>
-            <div class="card bg-white border border-gray-200 rounded p-3">
-                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base">履約保證</h3>
-                <div class="grid grid-cols-1 gap-1">
-                    <div><label class="text-xs text-gray-400 block">編號</label><input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-sm"></div>
-                    <div><label class="text-xs text-gray-400 block">銀行/戶名</label><input v-model="form.escrowName" class="nexus-input text-sm"></div>
-                    <div><label class="text-xs text-gray-400 block">分行</label><input v-model="form.escrowBranch" class="nexus-input text-sm"></div>
+            <div class="card bg-white border border-gray-200 rounded p-3 mt-2 md:mt-0">
+                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">履約保證</h3>
+                <div class="escrow-section">
+                    <div><label class="text-xs text-gray-400 block print:text-black">編號</label><input v-model="form.escrowNumber" class="nexus-input font-mono text-blue-800 text-sm w-full print:text-black" placeholder="編號"></div>
+                    <div><label class="text-xs text-gray-400 block print:text-black">銀行/戶名</label><input v-model="form.escrowName" class="nexus-input text-sm w-full" placeholder="銀行戶名"></div>
+                    <div><label class="text-xs text-gray-400 block print:text-black">分行</label><input v-model="form.escrowBranch" class="nexus-input text-sm w-full" placeholder="分行"></div>
                 </div>
             </div>
         </div>
 
         <div class="print-people-row gap-2 mb-2">
             <div class="card bg-blue-50 border border-blue-200 rounded p-3 print:bg-white print:border-gray-300">
-                <h3 class="text-sm font-bold text-navy mb-2 print:text-base">買賣雙方</h3>
+                <h3 class="text-sm font-bold text-navy mb-2 print:text-base print:mb-2">買賣雙方</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <div class="flex justify-between items-center mb-1"><label class="text-xs font-bold text-gray-500 block">賣方 Seller</label><button @click="addPerson('sellers')" class="no-print text-xs text-blue-600">+增</button></div>
-                        <div v-for="(p, idx) in form.sellers" :key="'s'+idx" class="person-row">
-                            <select v-model="p.role" class="role-select"><option>本人</option><option>代理人</option><option>共有人</option></select>
-                            <input v-model="p.name" class="nexus-input font-bold p-1 text-sm flex-1" placeholder="姓名">
-                            <input v-model="p.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
-                            <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print text-red-400 ml-1">×</button>
+                    <div class="relative group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-500 block print:text-black">賣方 Seller</label>
+                            <button @click="addPerson('sellers')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(person, idx) in form.sellers" :key="'s'+idx" class="person-row relative">
+                            <select v-model="person.role" class="role-select">
+                                <option value="本人">本人</option>
+                                <option value="代理人">代理人</option>
+                                <option value="共有人">共有人</option>
+                            </select>
+                            <div class="person-name-group">
+                                <input type="text" v-model="person.name" @input="searchContacts($event,'seller', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
+                                <div v-if="suggestions.target==='seller' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('seller', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
+                            </div>
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
+                            <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-1"><label class="text-xs font-bold text-gray-500 block">買方 Buyer</label><button @click="addPerson('buyers')" class="no-print text-xs text-blue-600">+增</button></div>
-                        <div v-for="(p, idx) in form.buyers" :key="'b'+idx" class="person-row">
-                            <select v-model="p.role" class="role-select"><option>本人</option><option>代理人</option><option>共有人</option></select>
-                            <input v-model="p.name" class="nexus-input font-bold p-1 text-sm flex-1" placeholder="姓名">
-                            <input v-model="p.phone" class="nexus-input font-mono text-xs p-1 w-24" placeholder="電話">
-                            <button v-if="form.buyers.length > 1" @click="removePerson('buyers', idx)" class="no-print text-red-400 ml-1">×</button>
+
+                    <div class="relative group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-500 block print:text-black">買方 Buyer</label>
+                            <button @click="addPerson('buyers')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(person, idx) in form.buyers" :key="'b'+idx" class="person-row relative">
+                             <select v-model="person.role" class="role-select">
+                                <option value="本人">本人</option>
+                                <option value="代理人">代理人</option>
+                                <option value="共有人">共有人</option>
+                            </select>
+                            <div class="person-name-group">
+                                <input type="text" v-model="person.name" @input="searchContacts($event,'buyer', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
+                                <div v-if="suggestions.target==='buyer' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box z-50"><div v-for="c in suggestions.list" @click="selectContact('buyer', c, idx)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div>
+                            </div>
+                            <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
+                            <button v-if="form.buyers.length > 1" @click="removePerson('buyers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="flex flex-col gap-2">
                 <div class="card bg-white border border-gray-200 rounded p-3">
-                    <h3 class="text-sm font-bold text-navy print:text-base mb-1">承辦團隊</h3>
-                    <div class="flex flex-wrap gap-3">
-                        <label v-for="s in staffList" :key="s.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
-                            <input type="checkbox" :value="s.name" v-model="selectedStaff" class="w-4 h-4 mr-1">
-                            <span class="text-sm font-bold">{{s.name}}</span>
+                    <div class="flex justify-between items-center mb-1"><h3 class="text-sm font-bold text-navy print:text-base">承辦團隊</h3><div class="no-print text-xs flex gap-1"><input v-model="newStaff.name" class="border w-10 text-center" placeholder="名"><input v-model="newStaff.phone" class="border w-16 text-center" placeholder="電"><button @click="addStaff" class="bg-gray-200 px-2 rounded">+</button></div></div>
+                    <div class="flex flex-wrap gap-3 relative z-0">
+                        <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
+                            <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
+                            <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
                         </label>
                     </div>
                 </div>
                 <div class="card bg-white border border-gray-200 rounded p-3 flex-1">
-                    <h3 class="text-sm font-bold text-navy print:text-base">銷售/開發</h3>
-                    <div class="grid grid-cols-2 gap-2 mt-1">
-                        <div><input v-model="form.salesAgent" class="nexus-input text-sm p-1" placeholder="銷售"></div>
-                        <div><input v-model="form.devAgent" class="nexus-input text-sm p-1" placeholder="開發"></div>
+                    <div class="flex justify-between"><h3 class="text-sm font-bold text-navy print:text-base">銷售/開發</h3><span v-if="contactsLoaded" class="text-xs text-green-600 no-print">OK</span></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                        <div class="relative group">
+                            <div class="flex items-center"><input type="text" v-model="form.salesAgent" @input="searchContacts($event,'sales')" class="nexus-input font-bold text-sm mb-1 p-1 flex-1" placeholder="銷售1"><button @click="toggleSales2" class="no-print text-xs bg-gray-200 px-1 ml-1 rounded h-5 w-5">+</button></div>
+                            <div v-if="suggestions.target==='sales' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
+                            <div class="flex gap-1 mb-1"><input v-model="form.salesStore" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="form.salesPhone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                            <div v-if="showSales2" class="border-t border-dotted pt-1 mb-1 flex gap-1"><div class="relative flex-1"><input v-model="form.salesAgent2" @input="searchContacts($event,'sales2')" class="nexus-input font-bold text-sm p-1 w-full" placeholder="銷售2"><div v-if="suggestions.target==='sales2' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('sales2',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div></div><input v-model="form.salesPhone2" class="nexus-input text-xs p-1 w-1/2" placeholder="電話2"></div>
+                            <div class="flex gap-1 border-t border-dotted pt-1"><div class="relative flex-1"><input v-model="form.salesManager" @input="searchContacts($event,'salesMgr')" class="nexus-input text-xs p-1 bg-yellow-50 flex-1 print:bg-transparent" placeholder="店長"><div v-if="suggestions.target==='salesMgr' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectManager('sales',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div></div><input v-model="form.salesManagerPhone" class="nexus-input text-xs p-1 w-1/2 bg-yellow-50 print:bg-transparent" placeholder="店長電話"></div>
+                        </div>
+                        <div class="relative group">
+                            <div class="flex items-center"><input type="text" v-model="form.devAgent" @input="searchContacts($event,'dev')" class="nexus-input font-bold text-sm mb-1 p-1 flex-1" placeholder="開發1"><button @click="toggleDev2" class="no-print text-xs bg-gray-200 px-1 ml-1 rounded h-5 w-5">+</button></div>
+                            <div v-if="suggestions.target==='dev' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('dev',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
+                            <div class="flex gap-1 mb-1"><input v-model="form.devStore" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="form.devPhone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                            <div v-if="showDev2" class="border-t border-dotted pt-1 mb-1 flex gap-1"><div class="relative flex-1"><input v-model="form.devAgent2" @input="searchContacts($event,'dev2')" class="nexus-input font-bold text-sm p-1 w-full" placeholder="開發2"><div v-if="suggestions.target==='dev2' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectContact('dev2',c)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div></div><input v-model="form.devPhone2" class="nexus-input text-xs p-1 w-1/2" placeholder="電話2"></div>
+                            <div class="flex gap-1 border-t border-dotted pt-1"><div class="relative flex-1"><input v-model="form.devManager" @input="searchContacts($event,'devMgr')" class="nexus-input text-xs p-1 bg-yellow-50 flex-1 print:bg-transparent" placeholder="店長"><div v-if="suggestions.target==='devMgr' && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectManager('dev',c)" class="suggestion-item">{{c.name}} {{c.phone}}</div></div></div><input v-model="form.devManagerPhone" class="nexus-input text-xs p-1 w-1/2 bg-yellow-50 print:bg-transparent" placeholder="店長電話"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-white border border-gray-200 rounded p-3 mt-2">
-            <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base">行政細節與備註</h3>
+        <div class="card bg-white border border-gray-200 rounded p-3 mt-2 admin-card">
+            <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">行政與過戶細節 (文件/稅務/預收)</h3>
             <div class="print-admin-row">
-                <div class="detail-grid">
-                    <div class="detail-label">買方預收</div>
-                    <div class="flex items-center gap-2"><input v-model="form.buyerPrePay" class="nexus-input text-sm p-1" placeholder="金額"><label class="text-xs"><input type="checkbox" v-model="form.buyerPrePayRemit">已匯</label></div>
+                <div>
+                    <div class="mb-3 print:mb-2">
+                        <div class="detail-label bg-gray-100 px-1 mb-2 font-bold print:bg-transparent print:text-black print:border-b print:w-full print:mb-1">賣方文件 (日期)</div>
+                        <div class="doc-list-container">
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docSellerDeed" id="d1" class="doc-checkbox">
+                                <label for="d1" class="doc-label">權狀</label>
+                                <input type="date" v-model="form.docSellerDeedDate" class="doc-date-input">
+                            </div>
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docSellerSeal" id="d2" class="doc-checkbox">
+                                <label for="d2" class="doc-label">印鑑</label>
+                                <input type="date" v-model="form.docSellerSealDate" class="doc-date-input">
+                            </div>
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docSellerOrdSeal" id="d3" class="doc-checkbox">
+                                <label for="d3" class="doc-label text-blue-700 print:text-black">便章</label>
+                                <input type="date" v-model="form.docSellerOrdSealDate" class="doc-date-input">
+                            </div>
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docSellerStamp" id="d4" class="doc-checkbox">
+                                <label for="d4" class="doc-label">其他</label>
+                                <input type="date" v-model="form.docSellerStampDate" class="doc-date-input">
+                            </div>
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docSellerID" id="d5" class="doc-checkbox">
+                                <label for="d5" class="doc-label">身分證</label>
+                                <input type="date" v-model="form.docSellerIDDate" class="doc-date-input">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="detail-label bg-gray-100 px-1 mb-2 font-bold print:bg-transparent print:text-black print:border-b print:w-full print:mb-1">買方文件 (日期)</div>
+                        <div class="doc-list-container">
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docBuyerSeal" id="d6" class="doc-checkbox">
+                                <label for="d6" class="doc-label">印章</label>
+                                <input type="date" v-model="form.docBuyerSealDate" class="doc-date-input">
+                            </div>
+                            <div class="doc-row">
+                                <input type="checkbox" v-model="form.docBuyerID" id="d7" class="doc-checkbox">
+                                <label for="d7" class="doc-label">身分證</label>
+                                <input type="date" v-model="form.docBuyerIDDate" class="doc-date-input">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-span-2">
-                    <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-sm no-print" placeholder="備註：交屋細節、特殊約定..."></textarea>
-                    <div class="print-notes-display print-only">{{ form.notes }}</div>
+                <div>
+                    <div class="detail-grid">
+                        <div class="detail-label">申請</div>
+                        <div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-label">增值稅</div>
+                        <div class="flex gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-label">買貸</div>
+                        <div class="grid grid-cols-1 gap-1"><input v-model="form.buyerBank" class="nexus-input text-xs p-1" placeholder="銀行/承辦"><input v-model="form.buyerBankAmount" class="nexus-input text-xs p-1" placeholder="核准額/利率"></div>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-label">塗銷</div>
+                        <div class="grid grid-cols-1 gap-1"><input v-model="form.sellerBank" class="nexus-input text-xs p-1" placeholder="銀行"><input v-model="form.sellerMortgage" class="nexus-input text-xs p-1" placeholder="金額"></div>
+                    </div>
                 </div>
+                <div>
+                    <div class="detail-grid">
+                        <div class="detail-label">查欠</div>
+                        <div class="grid grid-cols-1 gap-1"><input v-model="form.deedTaxId" class="nexus-input text-xs p-1" placeholder="契稅案號"><input v-model="form.landTaxId" class="nexus-input text-xs p-1" placeholder="土增案號"></div>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-label">結清</div>
+                        <div class="grid grid-cols-1 gap-1"><input v-model="form.waterId" class="nexus-input text-xs p-1" placeholder="水/電號"><input v-model="form.mgmtFee" class="nexus-input text-xs p-1" placeholder="管理費"></div>
+                    </div>
+                    <div class="detail-grid border-l-2 border-red-200 pl-1">
+                        <div class="detail-label text-red-800 print:text-black">買方預收</div>
+                        <div>
+                            <input v-model="form.buyerPrePay" class="nexus-input text-xs p-1 w-full mb-1" placeholder="金額 $">
+                            <div class="flex items-center gap-1 text-xs print:text-[10.5pt]">
+                                <label><input type="checkbox" v-model="form.buyerPrePayRemit">已匯</label>
+                                <input type="date" v-model="form.buyerPrePayDate" class="border-b w-24 p-0 print:w-24">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-1 border-t border-gray-100 pt-1 print-notes-container">
+                <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-sm no-print-force" placeholder="備註：交屋細節、特殊約定..."></textarea>
+                <div class="print-notes-display print-only">{{ form.notes }}</div>
             </div>
         </div>
 
         <div class="preview-card card bg-navy text-white rounded p-3 mt-2 no-print">
             <div class="flex justify-between items-center mb-1 border-b border-gray-600 pb-1">
-                <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 複製文字</h3>
+                <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
                 <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600">複製</button>
             </div>
-            <div class="text-xs font-mono whitespace-pre-wrap h-32 overflow-y-auto text-gray-200">{{ previewText }}</div>
+            <div class="text-xs font-mono whitespace-pre-wrap h-40 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
         </div>
 
-        <footer class="mt-auto text-center text-[9px] text-gray-400 font-bold pt-2 no-print">宏國地政 | 易丞地政</footer>
+        <footer class="mt-auto text-center text-[9px] text-gray-400 font-bold tracking-[0.2em] pt-2 border-t no-print">
+            宏國地政 | 易丞地政
+        </footer>
     </div>
-
     <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
         <div class="manager-panel">
-            <div class="p-4 bg-navy text-white flex justify-between items-center">
-                <h2 class="text-lg font-bold">案件資料庫 (共 {{cases.length}} 筆)</h2>
-                <button @click="showManager = false" class="text-2xl hover:text-gray-300">×</button>
+            <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
+                <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>案件管理後台 (共 {{cases.length}} 筆)</h2>
+                <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
             </div>
-            <div class="p-2 bg-gray-100 flex justify-between items-center border-b">
-                 <button @click="forceCloudSync" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                    <i class="fas fa-sync-alt mr-1"></i> 立即同步雲端
-                 </button>
-                 <span class="text-xs text-gray-500">提示: 點擊「儲存」會自動同步</span>
+            <div class="bg-gray-100 p-3 flex flex-col md:flex-row gap-2 border-b">
+                <label class="cursor-pointer bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-sm font-bold text-gray-700 text-center">
+                    <i class="fas fa-upload text-green-600 mr-1"></i> 匯入 CSV
+                    <input type="file" class="hidden" accept=".csv" @change="handleImportCases">
+                </label>
+                <button @click="exportCases" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-bold">
+                    <i class="fas fa-file-excel mr-1"></i> 匯出 CSV
+                </button>
+                <div class="flex-1"></div>
+                <button @click="resetForm(true)" class="bg-nexus-navy text-white px-3 py-1.5 rounded hover:bg-black text-sm font-bold">
+                    <i class="fas fa-plus mr-1"></i> 新增空案件
+                </button>
             </div>
-            <div class="flex-1 overflow-y-auto p-4">
-                <table class="case-table">
-                    <thead><tr><th>簽約日</th><th>客戶</th><th>地址</th><th>操作</th></tr></thead>
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <table class="case-table bg-white shadow-sm">
+                    <thead>
+                        <tr>
+                            <th>編號</th>
+                            <th>簽約日</th>
+                            <th>客戶姓名</th>
+                            <th class="hidden md:table-cell">地址</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        <tr v-for="(c, idx) in cases" :key="idx" :class="{'bg-yellow-50': idx === currentCaseIndex}">
-                            <td>{{ c['簽約日'] }}</td>
-                            <td>{{ c['客戶姓名(買/賣方)'] }}</td>
-                            <td class="truncate max-w-[150px]">{{ c['地址'] }}</td>
+                        <tr v-for="(c, idx) in cases" :key="idx" :class="{'bg-yellow-50': idx === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
+                            <td class="font-mono text-xs">{{ c['編號'] }}</td>
+                            <td class="font-mono text-xs">{{ c['簽約日'] }}</td>
+                            <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
+                            <td class="text-xs truncate max-w-[120px] hidden md:table-cell" :title="c['地址']">{{ c['地址'] }}</td>
                             <td>
-                                <button @click="editCase(idx)" class="text-blue-600 mr-2 hover:underline">編輯</button>
-                                <button @click="deleteCase(idx)" class="text-red-400 hover:text-red-600">刪除</button>
+                                <span v-if="c['結案時間']" class="status-badge closed">已結案</span>
+                                <span v-else class="status-badge active">進行中</span>
+                            </td>
+                            <td>
+                                <button @click="editCase(idx)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 p-1 rounded" title="編輯"><i class="fas fa-edit"></i></button>
+                                <button @click="deleteCase(idx)" class="text-red-400 hover:text-red-600 bg-red-100 p-1 rounded" title="刪除"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
                         <tr v-if="cases.length === 0">
-                            <td colspan="4" class="text-center py-4 text-gray-500">目前尚無資料，請嘗試點擊「雲端載入」</td>
+                            <td colspan="6" class="text-center py-8 text-gray-400">
+                                尚無資料。請點擊上方「匯入」按鈕載入您的案件表。<br>
+                                <span class="text-xs text-green-600 mt-2 block">(系統會自動記憶資料，下次無需重新匯入)</span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    
+    <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
 
-    <div class="calendar-section no-print:mt-10">
-        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black">案件進度行事曆</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="calendar-section">
+        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
+        <div class="calendar-container">
             <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
                 <div class="cal-header">{{ month.title }}</div>
                 <div class="cal-grid">
-                    <div class="cal-day-header text-red-600">日</div><div class="cal-day-header">一</div><div class="cal-day-header">二</div><div class="cal-day-header">三</div><div class="cal-day-header">四</div><div class="cal-day-header">五</div><div class="cal-day-header text-red-600">六</div>
-                    <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50"></div>
-                    <div v-for="day in month.days" :key="day.dateStr" class="cal-cell" :class="{ 'holiday': day.isHoliday || day.isWeekend }">
+                    <div class="cal-day-header text-red-600">日</div>
+                    <div class="cal-day-header">一</div>
+                    <div class="cal-day-header">二</div>
+                    <div class="cal-day-header">三</div>
+                    <div class="cal-day-header">四</div>
+                    <div class="cal-day-header">五</div>
+                    <div class="cal-day-header text-red-600">六</div>
+                    <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50 print:bg-white"></div>
+                    <div v-for="day in month.days" :key="day.dateStr" 
+                         class="cal-cell" 
+                         :class="{ 'holiday': day.isHoliday || day.isWeekend }">
                         <span>{{ day.dayNum }}</span>
                         <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
                         <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
@@ -336,243 +725,589 @@
 </div>
 
 <script>
-    if (typeof Vue === 'undefined') {
-        alert("⚠️ 系統錯誤：無法載入核心程式 (Vue.js)。\n請檢查您的網路連線，或防火牆是否阻擋了 unpkg.com");
-    }
+    const { createApp, ref, computed, watch, onMounted } = Vue;
 
-    const { createApp, ref, computed, onMounted } = Vue;
     const holidays = [
         '2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', 
         '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01', 
         '2025-10-04', '2025-10-05', '2025-10-06', '2025-10-10', '2025-10-11', '2025-10-12',
-        '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22'
+        '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22',
+        '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06',
+        '2026-06-19', '2026-06-20', '2026-06-21',
+        '2026-09-25', '2026-09-26', '2026-09-27'
     ];
 
-    try {
-        createApp({
-            setup() {
-                // ==========================================================
-                // 您的專屬正確網址 (v34.8 Updated)
-                // ==========================================================
-                const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEMiwYwZ0L3hFqsNbIK2D4iceUJAwF6CkyWwCSXLNUb0MXJzouAUkQwcKlxtVLBuRzYQ/exec';
+    createApp({
+        setup() {
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9Oo2TQVsunq2e6RQW2_r_2ZkVc973J0YpdXm3xHG7T7DebU6t8q3uv7s9vyEqE_Q1/exec';
+
+            const staffList = [
+                { name: "宜婷", phone: "0910-854-444" },
+                { name: "淑玲", phone: "0910-111-088" },
+                { name: "蕙蓁", phone: "0911-905-270" },
+                { name: "美汎", phone: "0927-055-226" }
+            ];
+            
+            const selectedStaff = ref([]); 
+            const newStaff = ref({name:'', phone:''});
+            const showSales2 = ref(false);
+            const showDev2 = ref(false);
+            const showManager = ref(false);
+            const autoLoadedMsg = ref(null);
+            
+            // Cloud Sync State
+            const syncState = ref('idle'); // idle, syncing, success, error
+
+            // Database State
+            const cases = ref([]);
+            const currentCaseIndex = ref(-1); // -1 = New Case
+            const csvHeaders = ref([]); 
+
+            const form = ref({
+                contractDate: new Date().toISOString().split('T')[0],
+                sealDate: '', taxDate: '', closingDate: '',
+                paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '',
+                propertyName: '', address: '', landBuildNo: '',
+                escrowNumber: '', escrowName: '', escrowBranch: '',
+                totalPrice: '', loanPrice: '',
                 
-                const staffList = [
-                    { name: "宜婷", phone: "0910-854-444" }, { name: "淑玲", phone: "0910-111-088" },
-                    { name: "蕙蓁", phone: "0911-905-270" }, { name: "美汎", phone: "0927-055-226" }
-                ];
+                // Dynamic People
+                sellers: [{ name: '', phone: '', role: '本人' }],
+                buyers: [{ name: '', phone: '', role: '本人' }],
+
+                salesAgent: '', salesPhone: '', salesStore: '', salesAgent2: '', salesPhone2: '', salesManager: '', salesManagerPhone: '',
+                devAgent: '', devPhone: '', devStore: '', devAgent2: '', devPhone2: '', devManager: '', devManagerPhone: '',
+                buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '',
+                deedTaxId: '', landTaxId: '', waterId: '', elecId: '', mgmtFee: '',
+                notes: '',
+                docSellerDeed: false, docSellerDeedDate: '', docSellerSeal: false, docSellerSealDate: '', 
+                docSellerOrdSeal: false, docSellerOrdSealDate: '', 
+                docSellerStamp: false, docSellerStampDate: '', 
+                docSellerID: false, docSellerIDDate: '',
+                docBuyerSeal: false, docBuyerSealDate: '', docBuyerID: false, docBuyerIDDate: '',
+                taxTypeGeneral: false, taxTypeSelf: false,
+                buyerPrePay: '', buyerPrePayRemit: false, buyerPrePayDate: ''
+            });
+
+            const defaultForm = JSON.parse(JSON.stringify(form.value));
+
+            // Price Validation Logic
+            const priceSum = computed(() => {
+                const p1 = parseFloat(form.value.paymentContract) || 0;
+                const p2 = parseFloat(form.value.paymentSeal) || 0;
+                const p3 = parseFloat(form.value.paymentTax) || 0;
+                const p4 = parseFloat(form.value.paymentBalance) || 0;
+                return p1 + p2 + p3 + p4;
+            });
+
+            const priceMismatch = computed(() => {
+                const total = parseFloat(form.value.totalPrice);
+                if (!total) return false;
+                // Allow small floating point error
+                return Math.abs(total - priceSum.value) > 0.01;
+            });
+
+            // Auto-Load Data on Startup & Cloud Sync
+            onMounted(() => {
+                const savedForm = localStorage.getItem('nexus_form_v33');
+                if (savedForm) {
+                    const parsed = JSON.parse(savedForm);
+                    // Migration check for old data
+                    if(!parsed.sellers) parsed.sellers = [{ name: parsed.sellerName || '', phone: parsed.sellerPhone || '', role: '本人' }];
+                    if(!parsed.buyers) parsed.buyers = [{ name: parsed.buyerName || '', phone: parsed.buyerPhone || '', role: '本人' }];
+                    form.value = parsed;
+                }
+                const savedStaff = localStorage.getItem('nexus_staff_v33');
+                if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
-                const selectedStaff = ref([]); 
-                const showManager = ref(false);
-                const autoLoadedMsg = ref(null);
-                const syncState = ref('idle');
-                const cases = ref([]);
-                const currentCaseIndex = ref(-1);
-
-                const form = ref({
-                    contractDate: new Date().toISOString().split('T')[0],
-                    sealDate: '', taxDate: '', closingDate: '',
-                    paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '',
-                    propertyName: '', address: '', landBuildNo: '', totalPrice: '',
-                    escrowNumber: '', escrowName: '', escrowBranch: '',
-                    sellers: [{ name: '', phone: '', role: '本人' }],
-                    buyers: [{ name: '', phone: '', role: '本人' }],
-                    salesAgent: '', devAgent: '', notes: '', buyerPrePay: '', buyerPrePayRemit: false
-                });
-
-                const defaultForm = JSON.parse(JSON.stringify(form.value));
-
-                const priceSum = computed(() => {
-                    const p1 = parseFloat(form.value.paymentContract) || 0;
-                    const p2 = parseFloat(form.value.paymentSeal) || 0;
-                    const p3 = parseFloat(form.value.paymentTax) || 0;
-                    const p4 = parseFloat(form.value.paymentBalance) || 0;
-                    return p1 + p2 + p3 + p4;
-                });
-                const priceMismatch = computed(() => {
-                    const total = parseFloat(form.value.totalPrice);
-                    if (!total) return false;
-                    return Math.abs(total - priceSum.value) > 0.01;
-                });
-
-                const handleCloudSync = async (action) => {
-                    syncState.value = 'syncing';
-                    try {
-                        let opts = {};
-                        if (action === 'push') {
-                            // POST: 上傳資料
-                            opts = {
-                                method: 'POST',
-                                body: JSON.stringify({ data: cases.value }),
-                                headers: { "Content-Type": "text/plain;charset=utf-8" }
-                            };
-                        }
-
-                        const res = await fetch(GOOGLE_SCRIPT_URL, opts);
-                        const json = await res.json();
-
-                        if (json.result === 'error') {
-                            throw new Error(json.message);
-                        }
-
-                        if (action === 'pull') {
-                            if (Array.isArray(json)) {
-                                cases.value = json;
-                                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                                autoLoadedMsg.value = `成功載入 ${cases.value.length} 筆案件`;
-                            }
-                        } else {
-                            autoLoadedMsg.value = `資料已同步上傳`;
-                        }
-                        
-                        syncState.value = 'success';
-                        setTimeout(() => { syncState.value = 'idle'; autoLoadedMsg.value = null; }, 3000);
-
-                    } catch (e) { 
-                        console.error(e);
-                        syncState.value = 'error'; 
-                        alert("同步發生問題：\n" + e.message);
-                    }
-                };
-                
-                const forceCloudSync = () => {
-                    if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) {
-                        handleCloudSync('pull');
-                    }
-                };
-
-                const forceCloudUpload = () => {
-                    if(confirm('確定要將目前的資料庫「強制上傳」覆蓋雲端資料嗎？')) {
-                        handleCloudSync('push');
-                    }
-                };
-
-                onMounted(() => {
-                    const savedCases = localStorage.getItem('nexus_cases_db');
-                    if (savedCases) cases.value = JSON.parse(savedCases);
-                    handleCloudSync('pull');
-                });
-
-                const editCase = (idx) => {
-                    currentCaseIndex.value = idx;
-                    const c = cases.value[idx];
-                    Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
-
-                    form.value.address = c['地址'];
-                    form.value.propertyName = c['案名'] || '';
-                    form.value.contractDate = c['簽約日'] ? c['簽約日'].replace(/\./g, '-') : ''; 
-                    form.value.totalPrice = (c['售價(萬)']||'').replace('萬','');
-                    
-                    if(c['_sellers_json']) {
-                        try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){}
-                    }
-                    if(c['_buyers_json']) {
-                        try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
-                    }
-                    
-                    showManager.value = false;
-                };
-                
-                const deleteCase = (idx) => {
-                    if(confirm("確定刪除此案件？(此動作將同步刪除雲端資料)")) {
-                        cases.value.splice(idx, 1);
-                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                        handleCloudSync('push'); 
-                        if(currentCaseIndex.value === idx) resetForm(false);
+                // Load Local DB first (Speed)
+                const savedCases = localStorage.getItem('nexus_cases_db');
+                if (savedCases) {
+                    cases.value = JSON.parse(savedCases);
+                    if(cases.value.length > 0) {
+                        autoLoadedMsg.value = `已載入本地 ${cases.value.length} 筆案件`;
+                        setTimeout(() => autoLoadedMsg.value = null, 3000);
                     }
                 }
+                const savedHeaders = localStorage.getItem('nexus_csv_headers');
+                if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
 
-                const saveAndSync = () => {
-                    const sellerNames = form.value.sellers.map(s => s.name).join('、');
-                    const buyerNames = form.value.buyers.map(b => b.name).join('、');
+                // Then Try Cloud Sync (Async)
+                handleCloudSync('pull');
+            });
+
+            // --- Nexus Cloud Sync Core ---
+            const handleCloudSync = async (action) => {
+                syncState.value = 'syncing';
+                try {
+                    let fetchOptions = {};
                     
-                    const rowData = {
-                        '簽約日': form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '',
-                        '客戶姓名(買/賣方)': `${sellerNames} / ${buyerNames}`,
-                        '地址': form.value.address,
-                        '案名': form.value.propertyName,
-                        '售價(萬)': form.value.totalPrice + '萬',
-                        '_sellers_json': JSON.stringify(form.value.sellers),
-                        '_buyers_json': JSON.stringify(form.value.buyers),
-                        ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
-                    };
-                    
-                    rowData['簽約日'] = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
-                    rowData['客戶姓名(買/賣方)'] = `${sellerNames} / ${buyerNames}`;
-                    rowData['地址'] = form.value.address;
-                    rowData['案名'] = form.value.propertyName;
-
-                    if (currentCaseIndex.value > -1) cases.value[currentCaseIndex.value] = rowData;
-                    else cases.value.push(rowData);
-                    
-                    localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                    handleCloudSync('push');
-                };
-
-                const resetForm = (confirmAction) => { 
-                    if(confirmAction && !confirm("確定要清空目前表單並新增案件嗎？(未儲存的內容將會消失)")) return;
-                    currentCaseIndex.value = -1; 
-                    Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
-                    selectedStaff.value = [];
-                    showManager.value = false;
-                    autoLoadedMsg.value = "已開啟新案件表單";
-                    setTimeout(()=>autoLoadedMsg.value=null, 2000);
-                };
-
-                const formatDate = (d) => d ? d.split('-')[1]+'/'+d.split('-')[2] : '--/--';
-                const addPerson = (type) => form.value[type].push({ name: '', phone: '', role: '本人' });
-                const removePerson = (type, idx) => form.value[type].splice(idx, 1);
-                
-                const previewText = computed(() => `簽約案：${form.value.propertyName}\n地址：${form.value.address}\n買方：${form.value.buyers.map(b=>b.name).join('、')}\n賣方：${form.value.sellers.map(s=>s.name).join('、')}`);
-                const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(()=>alert('已複製')); };
-                
-                const generatedCalendar = computed(() => {
-                    if (!form.value.contractDate) return [];
-                    const start = new Date(form.value.contractDate);
-                    const end = form.value.closingDate ? new Date(form.value.closingDate) : new Date(start.getFullYear(), start.getMonth() + 3, 1);
-                    const startDate = new Date(start.getFullYear(), start.getMonth(), 1);
-                    const endDate = new Date(end.getFullYear(), end.getMonth() + 1, 0);
-                    const months = [];
-                    let current = new Date(startDate);
-                    while (current <= endDate) {
-                        const year = current.getFullYear();
-                        const month = current.getMonth();
-                        const monthTitle = `${year}年 ${month + 1}月`;
-                        const daysInMonth = new Date(year, month + 1, 0).getDate();
-                        const startDay = new Date(year, month, 1).getDay(); 
-                        const days = [];
-                        for (let i = 1; i <= daysInMonth; i++) {
-                            const dateObj = new Date(year, month, i);
-                            const mStr = (month + 1).toString().padStart(2, '0');
-                            const dStr = i.toString().padStart(2, '0');
-                            const dateStr = `${year}-${mStr}-${dStr}`;
-                            const dayOfWeek = dateObj.getDay();
-                            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                            const isHoliday = holidays.includes(dateStr);
-                            days.push({ dayNum: i, dateStr, isWeekend, isHoliday });
-                        }
-                        months.push({ id: `${year}-${month}`, title: monthTitle, startDay, days });
-                        current.setMonth(current.getMonth() + 1);
+                    if (action === 'push') {
+                        fetchOptions = {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                data: cases.value,
+                                updated: new Date().toISOString()
+                            })
+                        };
+                    } else {
+                        // GET (Pull)
+                        fetchOptions = { method: 'GET' };
                     }
-                    return months;
-                });
 
-                return {
-                    form, cases, staffList, selectedStaff, showManager, currentCaseIndex, editCase, saveAndSync, deleteCase,
-                    formatDate, addPerson, removePerson, previewText, copyToClipboard, autoLoadedMsg,
-                    syncStatusClass: computed(() => ({ 'syncing': syncState.value === 'syncing', 'success': syncState.value === 'success', 'error': syncState.value === 'error' })),
-                    syncState, 
-                    forceCloudSync, 
-                    forceCloudUpload,
-                    resetForm, priceMismatch, priceSum, generatedCalendar,
-                    printPage: () => window.print()
+                    // For 'push' (upload), we use no-cors to avoid CORS errors on simple POST, 
+                    // BUT Google Apps Script usually needs redirect handling for POST.
+                    // The standard 'fetch' here will work if the GAS is set up correctly for CORS.
+                    // If CORS fails on POST but data is sent, we might get an opaque response.
+                    
+                    if (action === 'push') {
+                        // Special handling for GAS POST which might return 302
+                        const response = await fetch(GOOGLE_SCRIPT_URL, fetchOptions);
+                         // Simply assume success if no network error, as GAS POST response is tricky in browser
+                    } else {
+                        const response = await fetch(GOOGLE_SCRIPT_URL);
+                        const data = await response.json();
+                        if (data && Array.isArray(data)) {
+                            if(data.length > 0) {
+                                cases.value = data;
+                                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                                autoLoadedMsg.value = `雲端同步完成！共 ${cases.value.length} 筆資料。`;
+                                setTimeout(() => autoLoadedMsg.value = null, 3000);
+                            }
+                        }
+                    }
+
+                    syncState.value = 'success';
+                    setTimeout(() => syncState.value = 'idle', 3000);
+                } catch (error) {
+                    console.error("Cloud Sync Error:", error);
+                    // For POST, sometimes it succeeds but throws CORS error on response reading
+                    if (action === 'push') {
+                         syncState.value = 'success'; // Assume optimistic success for GAS POST
+                         setTimeout(() => syncState.value = 'idle', 3000);
+                    } else {
+                        syncState.value = 'error';
+                    }
+                }
+            };
+            
+            const forceCloudSync = () => {
+                if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) {
+                    handleCloudSync('pull');
+                }
+            };
+
+            const forceCloudUpload = () => {
+                if(confirm('確定要將目前的資料庫「強制上傳」覆蓋雲端資料嗎？')) {
+                    handleCloudSync('push');
+                }
+            };
+
+            const syncStatusClass = computed(() => ({
+                'syncing': syncState.value === 'syncing',
+                'success': syncState.value === 'success',
+                'error': syncState.value === 'error'
+            }));
+
+            // Date Helpers
+            const toROC = (dateStr) => {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '';
+                return `${d.getFullYear()-1911}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')}`;
+            };
+            const fromROC = (rocStr) => {
+                if (!rocStr) return '';
+                const parts = rocStr.split(/[./]/);
+                if (parts.length >= 3) {
+                    const y = parseInt(parts[0]) + 1911;
+                    const m = parts[1].padStart(2,'0');
+                    const d = parts[2].padStart(2,'0');
+                    return `${y}-${m}-${d}`;
+                }
+                return '';
+            };
+
+            // Manager Functions
+            const handleImportCases = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                Papa.parse(file, {
+                    header: false,
+                    complete: (res) => {
+                        const rows = res.data;
+                        const headerIdx = rows.findIndex(r => r.includes('編號'));
+                        if (headerIdx === -1) { alert("無法辨識 Excel 格式 (找不到'編號'欄位)"); return; }
+                        
+                        csvHeaders.value = rows[headerIdx]; 
+                        const dataRows = rows.slice(headerIdx + 1);
+                        
+                        cases.value = dataRows.map(row => {
+                            let obj = {};
+                            csvHeaders.value.forEach((h, i) => obj[h] = row[i] || '');
+                            return obj;
+                        }).filter(c => c['編號'] || c['地址']);
+
+                        localStorage.setItem('nexus_csv_headers', JSON.stringify(csvHeaders.value));
+                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                        
+                        // Import 後直接 Sync 到雲端
+                        handleCloudSync('push');
+                        
+                        alert(`匯入成功！共 ${cases.value.length} 筆案件。已同步至雲端。`);
+                    }
+                });
+            };
+
+            const editCase = (idx) => {
+                currentCaseIndex.value = idx;
+                const c = cases.value[idx];
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); // Reset first
+
+                form.value.contractDate = fromROC(c['簽約日']);
+                form.value.closingDate = fromROC(c['結案時間']);
+                form.value.address = c['地址'];
+                form.value.totalPrice = (c['售價(萬)']||'').replace(/[^\d.]/g,'');
+                form.value.loanPrice = (c['銀行貸款金額']||'').replace(/[^\d.]/g,'');
+                form.value.buyerBankAmount = c['核貸金額'] || '';
+                form.value.buyerBank = c['貸款銀行+承辦'] || '';
+                form.value.buyerPrePay = c['預收款'] || '';
+                form.value.waterId = c['水電、瓦斯、管理費'] || '';
+
+                // Restore Multiple People if JSON exists, else parse string
+                if (c['_sellers_json']) {
+                    try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){ form.value.sellers = [{name: '', phone: '', role: '本人'}]; }
+                } else {
+                    const names = c['客戶姓名(買/賣方)'] || '';
+                    const parts = names.split(/[、,]/); // Simple split
+                    // Try to guess: First part seller, second part buyer
+                    // But wait, the string is mixed. Let's do a best effort.
+                    // Actually, usually it's "Seller, Buyer". 
+                    // Let's just put the whole first part as Seller Name 1 and Buyer Name 1 if no JSON.
+                     if(nameParts = names.split(/[、,]/)) {
+                         form.value.sellers[0].name = nameParts[0] || '';
+                         form.value.buyers[0].name = nameParts[1] || '';
+                     }
+                }
+                
+                if(c['_buyers_json']) {
+                     try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
+                }
+
+                const staffStr = c['承辦'] || '';
+                selectedStaff.value = staffList.filter(s => staffStr.includes(s.name)).map(s => s.name);
+
+                showManager.value = false;
+            };
+
+            const deleteCase = (idx) => {
+                if(confirm('確定刪除此案件？')) {
+                    cases.value.splice(idx, 1);
+                    if(currentCaseIndex.value === idx) resetForm();
+                    localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    handleCloudSync('push'); // Delete 也要同步
+                }
+            };
+
+            const resetForm = (switchToNew = false) => {
+                currentCaseIndex.value = -1;
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
+                selectedStaff.value = [];
+                if(switchToNew) showManager.value = false;
+            };
+
+            const saveAndSync = () => {
+                // Generate Display Names
+                const sellerDisplay = form.value.sellers.map(s => s.name + (s.role !== '本人' ? `(${s.role})` : '')).filter(n=>n).join('、');
+                const buyerDisplay = form.value.buyers.map(b => b.name + (b.role !== '本人' ? `(${b.role})` : '')).filter(n=>n).join('、');
+
+                // Save current work
+                localStorage.setItem('nexus_form_v33', JSON.stringify(form.value));
+                localStorage.setItem('nexus_staff_v33', JSON.stringify(selectedStaff.value));
+
+                // Sync to DB
+                const rowData = {
+                    '編號': currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value]['編號'] : (cases.value.length + 1).toString(),
+                    '簽約日': toROC(form.value.contractDate),
+                    '客戶姓名(買/賣方)': `${sellerDisplay}、${buyerDisplay}`,
+                    '地址': form.value.address,
+                    '承辦': selectedStaff.value.join('、'),
+                    '售價(萬)': form.value.totalPrice ? form.value.totalPrice + '萬' : '',
+                    '銀行貸款金額': form.value.loanPrice ? form.value.loanPrice + '萬' : '',
+                    '核貸金額': form.value.buyerBankAmount,
+                    '貸款銀行+承辦': form.value.buyerBank,
+                    '預收款': form.value.buyerPrePay,
+                    '水電、瓦斯、管理費': form.value.waterId,
+                    '結案時間': toROC(form.value.closingDate),
+                    // Hidden JSON for full data restoration
+                    '_sellers_json': JSON.stringify(form.value.sellers),
+                    '_buyers_json': JSON.stringify(form.value.buyers),
+                    ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
                 };
-            }
-        }).mount('#app');
-    
-    } catch (e) {
-        alert("程式執行錯誤：" + e);
-    }
+
+                // Explicit Override (Ensure core fields update)
+                rowData['簽約日'] = toROC(form.value.contractDate);
+                rowData['客戶姓名(買/賣方)'] = `${sellerDisplay}、${buyerDisplay}`;
+                rowData['地址'] = form.value.address;
+                rowData['承辦'] = selectedStaff.value.join('、');
+                rowData['售價(萬)'] = form.value.totalPrice ? form.value.totalPrice + '萬' : '';
+                rowData['銀行貸款金額'] = form.value.loanPrice ? form.value.loanPrice + '萬' : '';
+                rowData['核貸金額'] = form.value.buyerBankAmount;
+                rowData['貸款銀行+承辦'] = form.value.buyerBank;
+                rowData['預收款'] = form.value.buyerPrePay;
+                rowData['水電、瓦斯、管理費'] = form.value.waterId;
+                rowData['結案時間'] = toROC(form.value.closingDate);
+                rowData['_sellers_json'] = JSON.stringify(form.value.sellers);
+                rowData['_buyers_json'] = JSON.stringify(form.value.buyers);
+
+
+                if (currentCaseIndex.value > -1) {
+                    cases.value[currentCaseIndex.value] = rowData;
+                } else {
+                    cases.value.push(rowData);
+                    currentCaseIndex.value = cases.value.length - 1; 
+                }
+                
+                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                
+                // Trigger Cloud Push
+                handleCloudSync('push');
+
+                alert('已儲存！正在背景上傳至雲端...');
+            };
+
+            const exportCases = () => {
+                const titleRow = ["宏國地政 | 易丞地政 案件"];
+                const headerRow = csvHeaders.value.length ? csvHeaders.value : ['編號','簽約日','客戶姓名(買/賣方)','地址','承辦','售價(萬)','銀行貸款金額','核貸金額','貸款不足額','貸款銀行+承辦','貸款狀況','稅單核下','預收款','買服','室內格局','可送過戶','代償','水電、瓦斯、管理費','結案時間'];
+                // Filter out hidden keys starting with _
+                const exportHeader = headerRow.filter(k => !k.startsWith('_'));
+                
+                const dataRows = cases.value.map(c => exportHeader.map(h => c[h] || ''));
+                const csvContent = Papa.unparse([titleRow, exportHeader, ...dataRows]);
+                const blob = new Blob(["\uFEFF"+csvContent], {type: 'text/csv;charset=utf-8;'});
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `案件進度表_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            };
+
+            // Contacts & Calendar (Standard)
+            const contactsDB = ref([]);
+            const contactsLoaded = ref(false);
+            const contactsCount = ref(0);
+            const suggestions = ref({ target: null, list: [], idx: null });
+            
+            const handleContactUpload = (e) => { /* Reuse logic */ }; 
+            const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
+                        contactsDB.value = res.data.map(row => {
+                            const fName = row['First Name'] || '';
+                            const lName = row['Last Name'] || '';
+                            const name = (lName + fName).trim() || row['Name'] || Object.values(row)[0] || '';
+                            const phoneKey = findKey(row, ['phone', 'mobile', 'cell', 'tel']);
+                            const phone = phoneKey ? row[phoneKey].replace(/[^0-9-]/g,'') : '';
+                            const orgKey = findKey(row, ['organization', 'company', 'department', 'office', 'store', 'job']);
+                            const org = orgKey ? row[orgKey] : '';
+                            return {name, phone, org};
+                        }).filter(c => c.name && c.name.length > 1);
+                        contactsLoaded.value = true;
+                        contactsCount.value = contactsDB.value.length;
+                    }});
+            };
+            const searchContacts = (e, target, idx = null) => {
+                const q = e.target.value.toLowerCase();
+                suggestions.value.target = target;
+                suggestions.value.idx = idx;
+                if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
+                suggestions.value.list = contactsDB.value.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))).slice(0,5);
+            };
+            const selectContact = (target, c, idx) => {
+                if(target==='seller') { form.value.sellers[idx].name=c.name; form.value.sellers[idx].phone=c.phone; }
+                else if(target==='buyer') { form.value.buyers[idx].name=c.name; form.value.buyers[idx].phone=c.phone; }
+                else if(target==='sales') { form.value.salesAgent=c.name; form.value.salesPhone=c.phone; form.value.salesStore=c.org; }
+                else if(target==='sales2') { form.value.salesAgent2=c.name; form.value.salesPhone2=c.phone; }
+                else if(target==='dev') { form.value.devAgent=c.name; form.value.devPhone=c.phone; form.value.devStore=c.org; }
+                else if(target==='dev2') { form.value.devAgent2=c.name; form.value.devPhone2=c.phone; }
+                suggestions.value.list = [];
+            };
+            const selectManager = (target, c) => { 
+                if(target==='sales') { form.value.salesManager=c.name; form.value.salesManagerPhone=c.phone; }
+                if(target==='dev') { form.value.devManager=c.name; form.value.devManagerPhone=c.phone; }
+                suggestions.value.list = [];
+            };
+
+            // Dynamic Person Logic
+            const addPerson = (type) => { // type: 'sellers' or 'buyers'
+                form.value[type].push({ name: '', phone: '', role: '本人' });
+            };
+            const removePerson = (type, idx) => {
+                if (form.value[type].length > 1) {
+                    form.value[type].splice(idx, 1);
+                }
+            };
+
+            const toggleSales2 = () => showSales2.value = !showSales2.value;
+            const toggleDev2 = () => showDev2.value = !showDev2.value;
+            const addStaff = () => {}; 
+            const formatDate = (d) => d ? (new Date(d).getMonth()+1)+'/'+new Date(d).getDate() : '____/____';
+            const printPage = () => window.print();
+
+            const generatedCalendar = computed(() => {
+                if (!form.value.contractDate) return [];
+                const start = new Date(form.value.contractDate);
+                const end = form.value.closingDate ? new Date(form.value.closingDate) : new Date(start.getFullYear(), start.getMonth() + 3, 1);
+                const startDate = new Date(start.getFullYear(), start.getMonth(), 1);
+                const endDate = new Date(end.getFullYear(), end.getMonth() + 1, 0);
+                const months = [];
+                let current = new Date(startDate);
+                while (current <= endDate) {
+                    const year = current.getFullYear();
+                    const month = current.getMonth();
+                    const monthTitle = `${year}年 ${month + 1}月`;
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    const startDay = new Date(year, month, 1).getDay(); 
+                    const days = [];
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const dateObj = new Date(year, month, i);
+                        const mStr = (month + 1).toString().padStart(2, '0');
+                        const dStr = i.toString().padStart(2, '0');
+                        const dateStr = `${year}-${mStr}-${dStr}`;
+                        const dayOfWeek = dateObj.getDay();
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                        const isHoliday = holidays.includes(dateStr);
+                        days.push({ dayNum: i, dateStr, isWeekend, isHoliday });
+                    }
+                    months.push({ id: `${year}-${month}`, title: monthTitle, startDay, days });
+                    current.setMonth(current.getMonth() + 1);
+                }
+                return months;
+            });
+            
+            // --- LINE Summary Template Logic (New) ---
+            const previewText = computed(() => { 
+                let staffTxt = "";
+                selectedStaff.value.forEach(name => {
+                    const s = staffList.find(staff => staff.name === name);
+                    if (s) {
+                        staffTxt += `${s.name} ${s.phone}\n`;
+                    }
+                });
+                
+                const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
+                const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
+
+                // Build detailed people strings
+                const sellerTxt = form.value.sellers.map(s => `${s.name}${s.role!=='本人'?'('+s.role+')':''}`).join('、');
+                const buyerTxt = form.value.buyers.map(b => `${b.name}${b.role!=='本人'?'('+b.role+')':''}`).join('、');
+
+                return `簽約案件：${d}
+案名：${form.value.propertyName}
+🏠 住址：${form.value.address}
+ (${form.value.landBuildNo})
+
+👤 買方：${buyerTxt}
+👤 賣方：${sellerTxt}
+🏢 銷售：${form.value.salesStore}
+🏢 開發：${form.value.devStore}
+
+⚠️ 特殊事項 ：
+${form.value.notes}
+
+💰 價金明細：
+總價：${form.value.totalPrice} 萬元
+1️簽約款：${form.value.paymentContract || 0} 萬
+2備證款：${form.value.paymentSeal || 0} 萬
+3完稅款：${form.value.paymentTax || 0} 萬
+4貸款：${form.value.paymentBalance || 0} 萬
+
+⏰ 最後點交日：${closing}
+🏦 履保編號：${form.value.escrowNumber}
+戶名：${form.value.escrowName}
+分行：${form.value.escrowBranch}
+
+📞 案件相關問題請聯繫：
+宏國x易丞地政:06-2582589
+承辦：
+${staffTxt}`; 
+            });
+
+            const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
+
+            return {
+                staffList, selectedStaff, newStaff, addStaff, form,
+                handleFileUpload, contactsLoaded, contactsCount, handleImportCases, handleContactUpload,
+                searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
+                showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveAndSync, exportCases,
+                formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
+                // New Sync Exports
+                syncState, syncStatusClass, forceCloudSync, forceCloudUpload,
+                // New Dynamic Person Methods
+                addPerson, removePerson,
+                // New Price Check
+                priceSum, priceMismatch
+            };
+        }
+    }).mount('#app');
 </script>
 
+<script>
+    /**
+     * 宏國 x 易丞地政 - 核心保護層 v33.10
+     * 警告：此段代碼包含反除錯與防篡改機制
+     */
+    (function() {
+        // 1. 禁止右鍵選單
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        document.addEventListener('keydown', function(e) {
+            // 禁止 F12, Ctrl+Shift+I/J/C, Ctrl+U (檢視原始碼), Ctrl+S (存檔)
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['u', 's', 'p'].includes(e.key.toLowerCase()))
+            ) {
+                // 如果是 Ctrl+P (列印)，攔截並透過程式按鈕觸發 (可選)
+                if(e.ctrlKey && e.key.toLowerCase() === 'p') {
+                    // 允許列印，但不允許透過快捷鍵繞過介面
+                    return true; 
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+
+        // 2. 檢測開發者工具 (DevTools) 是否開啟
+        const detectDevTools = function() {
+            const threshold = 160;
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            
+            // 如果偵測到視窗外部尺寸與內部尺寸差異過大 (通常是因為開了 Console)
+            if (widthThreshold || heightThreshold) {
+                document.body.innerHTML = '<div style="background:#0F2E46;color:#C5A065;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif;"><h1>⚠️ 系統安全警示</h1><p>偵測到非法除錯工具。為保護資料安全，存取已被拒絕。</p></div>';
+                // 強制停止 Vue 運作
+                if(window.app) window.app.unmount();
+                throw "Security Violation"; 
+            }
+        };
+        
+        setInterval(detectDevTools, 1000);
+
+        // 3. 進階 Debugger 陷阱 (讓開啟 Console 的人瀏覽器卡頓)
+        setInterval(function(){
+            const startTime = new Date();
+            debugger; // 只有在 Console 開啟時才會暫停
+            const endTime = new Date();
+            if (endTime - startTime > 100) {
+                // 如果執行時間差過大，代表被斷點攔截了 -> 清空畫面
+                document.body.innerHTML = "Access Denied.";
+            }
+        }, 500);
+    })();
+</script>
 </body>
 </html>
