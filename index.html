@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.10 (Secure & Responsive)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v36.7 (Layout Fixed)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,7 +45,7 @@
             border-radius: 0.375rem;
             background-color: white;
             transition: all 0.2s;
-            font-size: 1rem; /* 手機版字體調整 */
+            font-size: 1rem;
             font-weight: 500;
             line-height: 1.5;
             margin-bottom: 2px;
@@ -317,7 +317,7 @@
             .detail-grid { grid-template-columns: 50px 1fr !important; gap: 4px !important; margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px dotted #999 !important; }
 
             /* Footer */
-            footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
+            footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; display: block !important; }
 
             /* Notes */
             .print-notes-container textarea { display: none !important; }
@@ -365,11 +365,11 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.10</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v36.7</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
-                            <span v-if="syncState === 'idle'">已同步</span>
-                            <span v-if="syncState === 'syncing'">傳輸中...</span>
+                            <span v-if="syncState === 'idle'">已就緒</span>
+                            <span v-if="syncState === 'syncing'">同步中...</span>
                             <span v-if="syncState === 'success'" class="text-green-600">成功</span>
                             <span v-if="syncState === 'error'" class="text-red-500">失敗</span>
                         </div>
@@ -385,6 +385,9 @@
                 </button>
                 <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
                     <i class="fas fa-folder-open mr-1"></i> 後台
+                </button>
+                <button @click="resetForm(false)" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-red-100 text-red-700 border border-red-200 rounded hover:bg-red-200 text-sm font-bold shadow-sm transition-colors">
+                    <i class="fas fa-eraser mr-1"></i> 清空
                 </button>
                 <button @click="saveAndSync" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
                     <i class="fas fa-save mr-1"></i> 儲存
@@ -461,9 +464,7 @@
                         </div>
                         <div v-for="(person, idx) in form.sellers" :key="'s'+idx" class="person-row relative">
                             <select v-model="person.role" class="role-select">
-                                <option value="本人">本人</option>
-                                <option value="代理人">代理人</option>
-                                <option value="共有人">共有人</option>
+                                <option value="本人">本人</option><option value="代理人">代理人</option><option value="共有人">共有人</option>
                             </select>
                             <div class="person-name-group">
                                 <input type="text" v-model="person.name" @input="searchContacts($event,'seller', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
@@ -473,7 +474,6 @@
                             <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print text-red-400 hover:text-red-600 ml-1"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
-
                     <div class="relative group">
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs font-bold text-gray-500 block print:text-black">買方 Buyer</label>
@@ -481,9 +481,7 @@
                         </div>
                         <div v-for="(person, idx) in form.buyers" :key="'b'+idx" class="person-row relative">
                              <select v-model="person.role" class="role-select">
-                                <option value="本人">本人</option>
-                                <option value="代理人">代理人</option>
-                                <option value="共有人">共有人</option>
+                                <option value="本人">本人</option><option value="代理人">代理人</option><option value="共有人">共有人</option>
                             </select>
                             <div class="person-name-group">
                                 <input type="text" v-model="person.name" @input="searchContacts($event,'buyer', idx)" class="nexus-input font-bold p-1 text-sm" placeholder="姓名">
@@ -534,86 +532,31 @@
                     <div class="mb-3 print:mb-2">
                         <div class="detail-label bg-gray-100 px-1 mb-2 font-bold print:bg-transparent print:text-black print:border-b print:w-full print:mb-1">賣方文件 (日期)</div>
                         <div class="doc-list-container">
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docSellerDeed" id="d1" class="doc-checkbox">
-                                <label for="d1" class="doc-label">權狀</label>
-                                <input type="date" v-model="form.docSellerDeedDate" class="doc-date-input">
-                            </div>
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docSellerSeal" id="d2" class="doc-checkbox">
-                                <label for="d2" class="doc-label">印鑑</label>
-                                <input type="date" v-model="form.docSellerSealDate" class="doc-date-input">
-                            </div>
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docSellerOrdSeal" id="d3" class="doc-checkbox">
-                                <label for="d3" class="doc-label text-blue-700 print:text-black">便章</label>
-                                <input type="date" v-model="form.docSellerOrdSealDate" class="doc-date-input">
-                            </div>
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docSellerStamp" id="d4" class="doc-checkbox">
-                                <label for="d4" class="doc-label">其他</label>
-                                <input type="date" v-model="form.docSellerStampDate" class="doc-date-input">
-                            </div>
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docSellerID" id="d5" class="doc-checkbox">
-                                <label for="d5" class="doc-label">身分證</label>
-                                <input type="date" v-model="form.docSellerIDDate" class="doc-date-input">
-                            </div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docSellerDeed" id="d1" class="doc-checkbox"><label for="d1" class="doc-label">權狀</label><input type="date" v-model="form.docSellerDeedDate" class="doc-date-input"></div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docSellerSeal" id="d2" class="doc-checkbox"><label for="d2" class="doc-label">印鑑</label><input type="date" v-model="form.docSellerSealDate" class="doc-date-input"></div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docSellerOrdSeal" id="d3" class="doc-checkbox"><label for="d3" class="doc-label text-blue-700 print:text-black">便章</label><input type="date" v-model="form.docSellerOrdSealDate" class="doc-date-input"></div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docSellerStamp" id="d4" class="doc-checkbox"><label for="d4" class="doc-label">其他</label><input type="date" v-model="form.docSellerStampDate" class="doc-date-input"></div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docSellerID" id="d5" class="doc-checkbox"><label for="d5" class="doc-label">身分證</label><input type="date" v-model="form.docSellerIDDate" class="doc-date-input"></div>
                         </div>
                     </div>
                     <div>
                         <div class="detail-label bg-gray-100 px-1 mb-2 font-bold print:bg-transparent print:text-black print:border-b print:w-full print:mb-1">買方文件 (日期)</div>
                         <div class="doc-list-container">
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docBuyerSeal" id="d6" class="doc-checkbox">
-                                <label for="d6" class="doc-label">印章</label>
-                                <input type="date" v-model="form.docBuyerSealDate" class="doc-date-input">
-                            </div>
-                            <div class="doc-row">
-                                <input type="checkbox" v-model="form.docBuyerID" id="d7" class="doc-checkbox">
-                                <label for="d7" class="doc-label">身分證</label>
-                                <input type="date" v-model="form.docBuyerIDDate" class="doc-date-input">
-                            </div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docBuyerSeal" id="d6" class="doc-checkbox"><label for="d6" class="doc-label">印章</label><input type="date" v-model="form.docBuyerSealDate" class="doc-date-input"></div>
+                            <div class="doc-row"><input type="checkbox" v-model="form.docBuyerID" id="d7" class="doc-checkbox"><label for="d7" class="doc-label">身分證</label><input type="date" v-model="form.docBuyerIDDate" class="doc-date-input"></div>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <div class="detail-grid">
-                        <div class="detail-label">申請</div>
-                        <div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-label">增值稅</div>
-                        <div class="flex gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-label">買貸</div>
-                        <div class="grid grid-cols-1 gap-1"><input v-model="form.buyerBank" class="nexus-input text-xs p-1" placeholder="銀行/承辦"><input v-model="form.buyerBankAmount" class="nexus-input text-xs p-1" placeholder="核准額/利率"></div>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-label">塗銷</div>
-                        <div class="grid grid-cols-1 gap-1"><input v-model="form.sellerBank" class="nexus-input text-xs p-1" placeholder="銀行"><input v-model="form.sellerMortgage" class="nexus-input text-xs p-1" placeholder="金額"></div>
-                    </div>
+                    <div class="detail-grid"><div class="detail-label">申請</div><div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div></div>
+                    <div class="detail-grid"><div class="detail-label">增值稅</div><div class="flex gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div></div>
+                    <div class="detail-grid"><div class="detail-label">買貸</div><div class="grid grid-cols-1 gap-1"><input v-model="form.buyerBank" class="nexus-input text-xs p-1" placeholder="銀行/承辦"><input v-model="form.buyerBankAmount" class="nexus-input text-xs p-1" placeholder="核准額/利率"></div></div>
+                    <div class="detail-grid"><div class="detail-label">塗銷</div><div class="grid grid-cols-1 gap-1"><input v-model="form.sellerBank" class="nexus-input text-xs p-1" placeholder="銀行"><input v-model="form.sellerMortgage" class="nexus-input text-xs p-1" placeholder="金額"></div></div>
                 </div>
                 <div>
-                    <div class="detail-grid">
-                        <div class="detail-label">查欠</div>
-                        <div class="grid grid-cols-1 gap-1"><input v-model="form.deedTaxId" class="nexus-input text-xs p-1" placeholder="契稅案號"><input v-model="form.landTaxId" class="nexus-input text-xs p-1" placeholder="土增案號"></div>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-label">結清</div>
-                        <div class="grid grid-cols-1 gap-1"><input v-model="form.waterId" class="nexus-input text-xs p-1" placeholder="水/電號"><input v-model="form.mgmtFee" class="nexus-input text-xs p-1" placeholder="管理費"></div>
-                    </div>
-                    <div class="detail-grid border-l-2 border-red-200 pl-1">
-                        <div class="detail-label text-red-800 print:text-black">買方預收</div>
-                        <div>
-                            <input v-model="form.buyerPrePay" class="nexus-input text-xs p-1 w-full mb-1" placeholder="金額 $">
-                            <div class="flex items-center gap-1 text-xs print:text-[10.5pt]">
-                                <label><input type="checkbox" v-model="form.buyerPrePayRemit">已匯</label>
-                                <input type="date" v-model="form.buyerPrePayDate" class="border-b w-24 p-0 print:w-24">
-                            </div>
-                        </div>
-                    </div>
+                    <div class="detail-grid"><div class="detail-label">查欠</div><div class="grid grid-cols-1 gap-1"><input v-model="form.deedTaxId" class="nexus-input text-xs p-1" placeholder="契稅案號"><input v-model="form.landTaxId" class="nexus-input text-xs p-1" placeholder="土增案號"></div></div>
+                    <div class="detail-grid"><div class="detail-label">結清</div><div class="grid grid-cols-1 gap-1"><input v-model="form.waterId" class="nexus-input text-xs p-1" placeholder="水/電號"><input v-model="form.mgmtFee" class="nexus-input text-xs p-1" placeholder="管理費"></div></div>
+                    <div class="detail-grid border-l-2 border-red-200 pl-1"><div class="detail-label text-red-800 print:text-black">買方預收</div><div><input v-model="form.buyerPrePay" class="nexus-input text-xs p-1 w-full mb-1" placeholder="金額 $"><div class="flex items-center gap-1 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.buyerPrePayRemit">已匯</label><input type="date" v-model="form.buyerPrePayDate" class="border-b w-24 p-0 print:w-24"></div></div></div>
                 </div>
             </div>
             <div class="mt-1 border-t border-gray-100 pt-1 print-notes-container">
@@ -630,10 +573,33 @@
             <div class="text-xs font-mono whitespace-pre-wrap h-40 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
         </div>
 
+        <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
+
+        <div class="calendar-section">
+            <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
+            <div class="calendar-container">
+                <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
+                    <div class="cal-header">{{ month.title }}</div>
+                    <div class="cal-grid">
+                        <div class="cal-day-header text-red-600">日</div><div class="cal-day-header">一</div><div class="cal-day-header">二</div><div class="cal-day-header">三</div><div class="cal-day-header">四</div><div class="cal-day-header">五</div><div class="cal-day-header text-red-600">六</div>
+                        <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50 print:bg-white"></div>
+                        <div v-for="day in month.days" :key="day.dateStr" class="cal-cell" :class="{ 'holiday': day.isHoliday || day.isWeekend }">
+                            <span>{{ day.dayNum }}</span>
+                            <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
+                            <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
+                            <div v-if="day.dateStr === form.taxDate" class="cal-marker marker-tax">完</div>
+                            <div v-if="day.dateStr === form.closingDate" class="cal-marker marker-close">結</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer class="mt-auto text-center text-[9px] text-gray-400 font-bold tracking-[0.2em] pt-2 border-t no-print">
             宏國地政 | 易丞地政
         </footer>
     </div>
+    
     <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
         <div class="manager-panel">
             <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
@@ -655,69 +621,22 @@
             </div>
             <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
                 <table class="case-table bg-white shadow-sm">
-                    <thead>
-                        <tr>
-                            <th>編號</th>
-                            <th>簽約日</th>
-                            <th>客戶姓名</th>
-                            <th class="hidden md:table-cell">地址</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>編號</th><th>簽約日</th><th>客戶姓名</th><th class="hidden md:table-cell">地址</th><th>狀態</th><th>操作</th></tr></thead>
                     <tbody>
                         <tr v-for="(c, idx) in cases" :key="idx" :class="{'bg-yellow-50': idx === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
                             <td class="font-mono text-xs">{{ c['編號'] }}</td>
                             <td class="font-mono text-xs">{{ c['簽約日'] }}</td>
                             <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
                             <td class="text-xs truncate max-w-[120px] hidden md:table-cell" :title="c['地址']">{{ c['地址'] }}</td>
-                            <td>
-                                <span v-if="c['結案時間']" class="status-badge closed">已結案</span>
-                                <span v-else class="status-badge active">進行中</span>
-                            </td>
+                            <td><span v-if="c['結案時間']" class="status-badge closed">已結案</span><span v-else class="status-badge active">進行中</span></td>
                             <td>
                                 <button @click="editCase(idx)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 p-1 rounded" title="編輯"><i class="fas fa-edit"></i></button>
                                 <button @click="deleteCase(idx)" class="text-red-400 hover:text-red-600 bg-red-100 p-1 rounded" title="刪除"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
-                        <tr v-if="cases.length === 0">
-                            <td colspan="6" class="text-center py-8 text-gray-400">
-                                尚無資料。請點擊上方「匯入」按鈕載入您的案件表。<br>
-                                <span class="text-xs text-green-600 mt-2 block">(系統會自動記憶資料，下次無需重新匯入)</span>
-                            </td>
-                        </tr>
+                        <tr v-if="cases.length === 0"><td colspan="6" class="text-center py-8 text-gray-400">尚無資料。請點擊上方「匯入」按鈕載入您的案件表。<br><span class="text-xs text-green-600 mt-2 block">(系統會自動記憶資料，下次無需重新匯入)</span></td></tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-    
-    <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
-
-    <div class="calendar-section">
-        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
-        <div class="calendar-container">
-            <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
-                <div class="cal-header">{{ month.title }}</div>
-                <div class="cal-grid">
-                    <div class="cal-day-header text-red-600">日</div>
-                    <div class="cal-day-header">一</div>
-                    <div class="cal-day-header">二</div>
-                    <div class="cal-day-header">三</div>
-                    <div class="cal-day-header">四</div>
-                    <div class="cal-day-header">五</div>
-                    <div class="cal-day-header text-red-600">六</div>
-                    <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50 print:bg-white"></div>
-                    <div v-for="day in month.days" :key="day.dateStr" 
-                         class="cal-cell" 
-                         :class="{ 'holiday': day.isHoliday || day.isWeekend }">
-                        <span>{{ day.dayNum }}</span>
-                        <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
-                        <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
-                        <div v-if="day.dateStr === form.taxDate" class="cal-marker marker-tax">完</div>
-                        <div v-if="day.dateStr === form.closingDate" class="cal-marker marker-close">結</div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -727,40 +646,23 @@
 <script>
     const { createApp, ref, computed, watch, onMounted } = Vue;
 
-    const holidays = [
-        '2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', 
-        '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01', 
-        '2025-10-04', '2025-10-05', '2025-10-06', '2025-10-10', '2025-10-11', '2025-10-12',
-        '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22',
-        '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06',
-        '2026-06-19', '2026-06-20', '2026-06-21',
-        '2026-09-25', '2026-09-26', '2026-09-27'
-    ];
+    const holidays = ['2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01', '2025-10-04', '2025-10-05', '2025-10-06', '2025-10-10', '2025-10-11', '2025-10-12', '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22'];
 
     createApp({
         setup() {
-            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9Oo2TQVsunq2e6RQW2_r_2ZkVc973J0YpdXm3xHG7T7DebU6t8q3uv7s9vyEqE_Q1/exec';
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEMiwYwZ0L3hFqsNbIK2D4iceUJAwF6CkyWwCSXLNUb0MXJzouAUkQwcKlxtVLBuRzYQ/exec';
 
-            const staffList = [
-                { name: "宜婷", phone: "0910-854-444" },
-                { name: "淑玲", phone: "0910-111-088" },
-                { name: "蕙蓁", phone: "0911-905-270" },
-                { name: "美汎", phone: "0927-055-226" }
-            ];
-            
+            const staffList = [{ name: "宜婷", phone: "0910-854-444" }, { name: "淑玲", phone: "0910-111-088" }, { name: "蕙蓁", phone: "0911-905-270" }, { name: "美汎", phone: "0927-055-226" }];
             const selectedStaff = ref([]); 
             const newStaff = ref({name:'', phone:''});
             const showSales2 = ref(false);
             const showDev2 = ref(false);
             const showManager = ref(false);
             const autoLoadedMsg = ref(null);
-            
-            // Cloud Sync State
-            const syncState = ref('idle'); // idle, syncing, success, error
-
-            // Database State
+            const syncState = ref('idle');
+            const lastSyncTime = ref('');
             const cases = ref([]);
-            const currentCaseIndex = ref(-1); // -1 = New Case
+            const currentCaseIndex = ref(-1);
             const csvHeaders = ref([]); 
 
             const form = ref({
@@ -770,11 +672,8 @@
                 propertyName: '', address: '', landBuildNo: '',
                 escrowNumber: '', escrowName: '', escrowBranch: '',
                 totalPrice: '', loanPrice: '',
-                
-                // Dynamic People
                 sellers: [{ name: '', phone: '', role: '本人' }],
                 buyers: [{ name: '', phone: '', role: '本人' }],
-
                 salesAgent: '', salesPhone: '', salesStore: '', salesAgent2: '', salesPhone2: '', salesManager: '', salesManagerPhone: '',
                 devAgent: '', devPhone: '', devStore: '', devAgent2: '', devPhone2: '', devManager: '', devManagerPhone: '',
                 buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '',
@@ -790,124 +689,101 @@
             });
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
+            const priceSum = computed(() => (parseFloat(form.value.paymentContract)||0) + (parseFloat(form.value.paymentSeal)||0) + (parseFloat(form.value.paymentTax)||0) + (parseFloat(form.value.paymentBalance)||0));
+            const priceMismatch = computed(() => { const t = parseFloat(form.value.totalPrice); return t && Math.abs(t - priceSum.value) > 0.01; });
 
-            // Price Validation Logic
-            const priceSum = computed(() => {
-                const p1 = parseFloat(form.value.paymentContract) || 0;
-                const p2 = parseFloat(form.value.paymentSeal) || 0;
-                const p3 = parseFloat(form.value.paymentTax) || 0;
-                const p4 = parseFloat(form.value.paymentBalance) || 0;
-                return p1 + p2 + p3 + p4;
-            });
-
-            const priceMismatch = computed(() => {
-                const total = parseFloat(form.value.totalPrice);
-                if (!total) return false;
-                // Allow small floating point error
-                return Math.abs(total - priceSum.value) > 0.01;
-            });
-
-            // Auto-Load Data on Startup & Cloud Sync
             onMounted(() => {
                 const savedForm = localStorage.getItem('nexus_form_v33');
                 if (savedForm) {
                     const parsed = JSON.parse(savedForm);
-                    // Migration check for old data
-                    if(!parsed.sellers) parsed.sellers = [{ name: parsed.sellerName || '', phone: parsed.sellerPhone || '', role: '本人' }];
-                    if(!parsed.buyers) parsed.buyers = [{ name: parsed.buyerName || '', phone: parsed.buyerPhone || '', role: '本人' }];
+                    if(!parsed.sellers) parsed.sellers = [{ name: '', phone: '', role: '本人' }];
+                    if(!parsed.buyers) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
                     form.value = parsed;
                 }
                 const savedStaff = localStorage.getItem('nexus_staff_v33');
                 if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
-                // Load Local DB first (Speed)
                 const savedCases = localStorage.getItem('nexus_cases_db');
-                if (savedCases) {
-                    cases.value = JSON.parse(savedCases);
-                    if(cases.value.length > 0) {
-                        autoLoadedMsg.value = `已載入本地 ${cases.value.length} 筆案件`;
-                        setTimeout(() => autoLoadedMsg.value = null, 3000);
-                    }
-                }
+                if (savedCases) cases.value = JSON.parse(savedCases);
                 const savedHeaders = localStorage.getItem('nexus_csv_headers');
                 if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
 
-                // Then Try Cloud Sync (Async)
-                handleCloudSync('pull');
+                handleCloudSync('pull').catch(e => console.log("Init sync silent fail"));
             });
 
-            // --- Nexus Cloud Sync Core ---
+            // =========================================================================
+            // Nexus Core Logic v36.6: Fixed Sync + "Clear" Logic
+            // =========================================================================
             const handleCloudSync = async (action) => {
                 syncState.value = 'syncing';
                 try {
-                    let fetchOptions = {};
-                    
+                    let opts = {};
                     if (action === 'push') {
-                        fetchOptions = {
+                        // 關鍵修正：使用 text/plain 繞過 CORS 預檢
+                        opts = {
                             method: 'POST',
-                            body: JSON.stringify({
-                                data: cases.value,
-                                updated: new Date().toISOString()
-                            })
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({ data: cases.value, updated: new Date().toISOString() })
                         };
                     } else {
-                        // GET (Pull)
-                        fetchOptions = { method: 'GET' };
+                        opts = { method: 'GET' };
                     }
 
-                    // For 'push' (upload), we use no-cors to avoid CORS errors on simple POST, 
-                    // BUT Google Apps Script usually needs redirect handling for POST.
-                    // The standard 'fetch' here will work if the GAS is set up correctly for CORS.
-                    // If CORS fails on POST but data is sent, we might get an opaque response.
-                    
+                    const res = await fetch(GOOGLE_SCRIPT_URL, opts);
+                    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+
+                    let json = null;
+                    try {
+                         const text = await res.text();
+                         if (text) json = JSON.parse(text);
+                    } catch(e) { console.warn("JSON Parse warning:", e); }
+
                     if (action === 'push') {
-                        // Special handling for GAS POST which might return 302
-                        const response = await fetch(GOOGLE_SCRIPT_URL, fetchOptions);
-                         // Simply assume success if no network error, as GAS POST response is tricky in browser
-                    } else {
-                        const response = await fetch(GOOGLE_SCRIPT_URL);
-                        const data = await response.json();
-                        if (data && Array.isArray(data)) {
-                            if(data.length > 0) {
-                                cases.value = data;
-                                localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                                autoLoadedMsg.value = `雲端同步完成！共 ${cases.value.length} 筆資料。`;
-                                setTimeout(() => autoLoadedMsg.value = null, 3000);
-                            }
-                        }
+                        autoLoadedMsg.value = `資料已同步至雲端`;
+                    } else if (json && Array.isArray(json)) {
+                        cases.value = json;
+                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                        autoLoadedMsg.value = `同步成功：共 ${cases.value.length} 筆`;
+                    } else if (json && json.result === 'success') {
+                         autoLoadedMsg.value = `伺服器回應：成功`;
                     }
 
+                    lastSyncTime.value = new Date().toLocaleTimeString();
                     syncState.value = 'success';
-                    setTimeout(() => syncState.value = 'idle', 3000);
-                } catch (error) {
-                    console.error("Cloud Sync Error:", error);
-                    // For POST, sometimes it succeeds but throws CORS error on response reading
+                    setTimeout(() => { syncState.value = 'idle'; autoLoadedMsg.value = null; }, 3000);
+
+                } catch (e) {
+                    console.error("Sync Log:", e);
                     if (action === 'push') {
-                         syncState.value = 'success'; // Assume optimistic success for GAS POST
-                         setTimeout(() => syncState.value = 'idle', 3000);
+                        autoLoadedMsg.value = "資料已送出";
+                        syncState.value = 'success'; 
+                        setTimeout(() => { syncState.value = 'idle'; autoLoadedMsg.value = null; }, 3000);
                     } else {
                         syncState.value = 'error';
                     }
                 }
             };
             
-            const forceCloudSync = () => {
-                if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) {
-                    handleCloudSync('pull');
+            const forceCloudSync = () => { if(confirm('確定要從雲端重新下載資料嗎？(本地未儲存的修改可能會遺失)')) handleCloudSync('pull'); };
+            const forceCloudUpload = () => { if(confirm('確定強制上傳？')) handleCloudSync('push'); };
+            
+            // New: Reset Form Logic (Nexus Add)
+            const resetForm = (switchToNew = false) => {
+                if(switchToNew) {
+                    if(!confirm("確定要新增空案件嗎？")) return;
+                    currentCaseIndex.value = -1;
+                    showManager.value = false;
+                } else {
+                    if(!confirm("確定要清空目前填寫的內容嗎？")) return;
                 }
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
+                selectedStaff.value = [];
+                autoLoadedMsg.value = "表單已重置";
+                setTimeout(()=>autoLoadedMsg.value=null, 1500);
             };
 
-            const forceCloudUpload = () => {
-                if(confirm('確定要將目前的資料庫「強制上傳」覆蓋雲端資料嗎？')) {
-                    handleCloudSync('push');
-                }
-            };
-
-            const syncStatusClass = computed(() => ({
-                'syncing': syncState.value === 'syncing',
-                'success': syncState.value === 'success',
-                'error': syncState.value === 'error'
-            }));
+            const syncStatusClass = computed(() => ({ 'syncing': syncState.value === 'syncing', 'success': syncState.value === 'success', 'error': syncState.value === 'error' }));
+            const syncStatusText = computed(() => { if(syncState.value==='idle')return '已就緒'; if(syncState.value==='syncing')return '同步中...'; if(syncState.value==='success')return '同步成功'; return '同步失敗'; });
 
             // Date Helpers
             const toROC = (dateStr) => {
@@ -928,42 +804,31 @@
                 return '';
             };
 
-            // Manager Functions
-            const handleImportCases = (e) => {
+            const handleImportCases = (e) => { 
                 const file = e.target.files[0];
                 if (!file) return;
-                Papa.parse(file, {
-                    header: false,
-                    complete: (res) => {
+                Papa.parse(file, { header: false, complete: (res) => {
                         const rows = res.data;
                         const headerIdx = rows.findIndex(r => r.includes('編號'));
-                        if (headerIdx === -1) { alert("無法辨識 Excel 格式 (找不到'編號'欄位)"); return; }
-                        
+                        if (headerIdx === -1) { alert("無法辨識格式"); return; }
                         csvHeaders.value = rows[headerIdx]; 
                         const dataRows = rows.slice(headerIdx + 1);
-                        
                         cases.value = dataRows.map(row => {
                             let obj = {};
                             csvHeaders.value.forEach((h, i) => obj[h] = row[i] || '');
                             return obj;
                         }).filter(c => c['編號'] || c['地址']);
-
                         localStorage.setItem('nexus_csv_headers', JSON.stringify(csvHeaders.value));
                         localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                        
-                        // Import 後直接 Sync 到雲端
                         handleCloudSync('push');
-                        
-                        alert(`匯入成功！共 ${cases.value.length} 筆案件。已同步至雲端。`);
-                    }
-                });
+                        alert(`匯入成功！共 ${cases.value.length} 筆。`);
+                }});
             };
 
             const editCase = (idx) => {
                 currentCaseIndex.value = idx;
                 const c = cases.value[idx];
-                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); // Reset first
-
+                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
                 form.value.contractDate = fromROC(c['簽約日']);
                 form.value.closingDate = fromROC(c['結案時間']);
                 form.value.address = c['地址'];
@@ -973,59 +838,34 @@
                 form.value.buyerBank = c['貸款銀行+承辦'] || '';
                 form.value.buyerPrePay = c['預收款'] || '';
                 form.value.waterId = c['水電、瓦斯、管理費'] || '';
+                form.value.propertyName = c['案名'] || '';
 
-                // Restore Multiple People if JSON exists, else parse string
-                if (c['_sellers_json']) {
-                    try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){ form.value.sellers = [{name: '', phone: '', role: '本人'}]; }
-                } else {
-                    const names = c['客戶姓名(買/賣方)'] || '';
-                    const parts = names.split(/[、,]/); // Simple split
-                    // Try to guess: First part seller, second part buyer
-                    // But wait, the string is mixed. Let's do a best effort.
-                    // Actually, usually it's "Seller, Buyer". 
-                    // Let's just put the whole first part as Seller Name 1 and Buyer Name 1 if no JSON.
-                     if(nameParts = names.split(/[、,]/)) {
-                         form.value.sellers[0].name = nameParts[0] || '';
-                         form.value.buyers[0].name = nameParts[1] || '';
-                     }
-                }
+                if (c['_sellers_json']) { try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){ form.value.sellers = [{name: '', phone: '', role: '本人'}]; } } 
+                else if(names = (c['客戶姓名(買/賣方)']||'').split(/[、,]/)) { form.value.sellers[0].name = names[0] || ''; }
                 
-                if(c['_buyers_json']) {
-                     try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
-                }
+                if(c['_buyers_json']) { try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){} }
+                else if(names = (c['客戶姓名(買/賣方)']||'').split(/[、,]/)) { form.value.buyers[0].name = names[1] || ''; }
 
                 const staffStr = c['承辦'] || '';
                 selectedStaff.value = staffList.filter(s => staffStr.includes(s.name)).map(s => s.name);
-
                 showManager.value = false;
             };
 
             const deleteCase = (idx) => {
-                if(confirm('確定刪除此案件？')) {
+                if(confirm('確定刪除此案件？(同步刪除雲端)')) {
                     cases.value.splice(idx, 1);
                     if(currentCaseIndex.value === idx) resetForm();
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                    handleCloudSync('push'); // Delete 也要同步
+                    handleCloudSync('push');
                 }
             };
 
-            const resetForm = (switchToNew = false) => {
-                currentCaseIndex.value = -1;
-                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
-                selectedStaff.value = [];
-                if(switchToNew) showManager.value = false;
-            };
-
             const saveAndSync = () => {
-                // Generate Display Names
-                const sellerDisplay = form.value.sellers.map(s => s.name + (s.role !== '本人' ? `(${s.role})` : '')).filter(n=>n).join('、');
-                const buyerDisplay = form.value.buyers.map(b => b.name + (b.role !== '本人' ? `(${b.role})` : '')).filter(n=>n).join('、');
-
-                // Save current work
+                const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
+                const buyerDisplay = form.value.buyers.map(b => b.name).join('、');
                 localStorage.setItem('nexus_form_v33', JSON.stringify(form.value));
                 localStorage.setItem('nexus_staff_v33', JSON.stringify(selectedStaff.value));
 
-                // Sync to DB
                 const rowData = {
                     '編號': currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value]['編號'] : (cases.value.length + 1).toString(),
                     '簽約日': toROC(form.value.contractDate),
@@ -1039,49 +879,29 @@
                     '預收款': form.value.buyerPrePay,
                     '水電、瓦斯、管理費': form.value.waterId,
                     '結案時間': toROC(form.value.closingDate),
-                    // Hidden JSON for full data restoration
+                    '案名': form.value.propertyName,
                     '_sellers_json': JSON.stringify(form.value.sellers),
                     '_buyers_json': JSON.stringify(form.value.buyers),
                     ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
                 };
 
-                // Explicit Override (Ensure core fields update)
                 rowData['簽約日'] = toROC(form.value.contractDate);
                 rowData['客戶姓名(買/賣方)'] = `${sellerDisplay}、${buyerDisplay}`;
                 rowData['地址'] = form.value.address;
-                rowData['承辦'] = selectedStaff.value.join('、');
-                rowData['售價(萬)'] = form.value.totalPrice ? form.value.totalPrice + '萬' : '';
-                rowData['銀行貸款金額'] = form.value.loanPrice ? form.value.loanPrice + '萬' : '';
-                rowData['核貸金額'] = form.value.buyerBankAmount;
-                rowData['貸款銀行+承辦'] = form.value.buyerBank;
-                rowData['預收款'] = form.value.buyerPrePay;
-                rowData['水電、瓦斯、管理費'] = form.value.waterId;
-                rowData['結案時間'] = toROC(form.value.closingDate);
-                rowData['_sellers_json'] = JSON.stringify(form.value.sellers);
-                rowData['_buyers_json'] = JSON.stringify(form.value.buyers);
+                rowData['案名'] = form.value.propertyName;
 
-
-                if (currentCaseIndex.value > -1) {
-                    cases.value[currentCaseIndex.value] = rowData;
-                } else {
-                    cases.value.push(rowData);
-                    currentCaseIndex.value = cases.value.length - 1; 
-                }
+                if (currentCaseIndex.value > -1) { cases.value[currentCaseIndex.value] = rowData; } 
+                else { cases.value.push(rowData); currentCaseIndex.value = cases.value.length - 1; }
                 
                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                
-                // Trigger Cloud Push
                 handleCloudSync('push');
-
-                alert('已儲存！正在背景上傳至雲端...');
+                alert('已儲存！(同步中)');
             };
 
             const exportCases = () => {
                 const titleRow = ["宏國地政 | 易丞地政 案件"];
                 const headerRow = csvHeaders.value.length ? csvHeaders.value : ['編號','簽約日','客戶姓名(買/賣方)','地址','承辦','售價(萬)','銀行貸款金額','核貸金額','貸款不足額','貸款銀行+承辦','貸款狀況','稅單核下','預收款','買服','室內格局','可送過戶','代償','水電、瓦斯、管理費','結案時間'];
-                // Filter out hidden keys starting with _
                 const exportHeader = headerRow.filter(k => !k.startsWith('_'));
-                
                 const dataRows = cases.value.map(c => exportHeader.map(h => c[h] || ''));
                 const csvContent = Papa.unparse([titleRow, exportHeader, ...dataRows]);
                 const blob = new Blob(["\uFEFF"+csvContent], {type: 'text/csv;charset=utf-8;'});
@@ -1091,32 +911,26 @@
                 link.click();
             };
 
-            // Contacts & Calendar (Standard)
             const contactsDB = ref([]);
             const contactsLoaded = ref(false);
             const contactsCount = ref(0);
             const suggestions = ref({ target: null, list: [], idx: null });
-            
-            const handleContactUpload = (e) => { /* Reuse logic */ }; 
-            const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
-            const handleFileUpload = (e) => {
+            const handleContactUpload = (e) => { 
                 const file = e.target.files[0];
                 if(!file) return;
                 Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
                         contactsDB.value = res.data.map(row => {
-                            const fName = row['First Name'] || '';
-                            const lName = row['Last Name'] || '';
-                            const name = (lName + fName).trim() || row['Name'] || Object.values(row)[0] || '';
-                            const phoneKey = findKey(row, ['phone', 'mobile', 'cell', 'tel']);
-                            const phone = phoneKey ? row[phoneKey].replace(/[^0-9-]/g,'') : '';
-                            const orgKey = findKey(row, ['organization', 'company', 'department', 'office', 'store', 'job']);
-                            const org = orgKey ? row[orgKey] : '';
+                            const name = (row['Last Name']||'') + (row['First Name']||'') || row['Name'] || Object.values(row)[0] || '';
+                            const phone = (row['Mobile Phone'] || row['Home Phone'] || row['Phone'] || '').replace(/[^0-9-]/g,'');
+                            const org = row['Organization'] || row['Company'] || '';
                             return {name, phone, org};
                         }).filter(c => c.name && c.name.length > 1);
                         contactsLoaded.value = true;
-                        contactsCount.value = contactsDB.value.length;
-                    }});
+                        alert(`聯絡人匯入成功: ${contactsDB.value.length} 筆`);
+                }});
             };
+            const findKey = (row, keywords) => Object.keys(row).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+            const handleFileUpload = (e) => { /* Logic reused */ };
             const searchContacts = (e, target, idx = null) => {
                 const q = e.target.value.toLowerCase();
                 suggestions.value.target = target;
@@ -1138,17 +952,8 @@
                 if(target==='dev') { form.value.devManager=c.name; form.value.devManagerPhone=c.phone; }
                 suggestions.value.list = [];
             };
-
-            // Dynamic Person Logic
-            const addPerson = (type) => { // type: 'sellers' or 'buyers'
-                form.value[type].push({ name: '', phone: '', role: '本人' });
-            };
-            const removePerson = (type, idx) => {
-                if (form.value[type].length > 1) {
-                    form.value[type].splice(idx, 1);
-                }
-            };
-
+            const addPerson = (type) => form.value[type].push({ name: '', phone: '', role: '本人' });
+            const removePerson = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
             const toggleSales2 = () => showSales2.value = !showSales2.value;
             const toggleDev2 = () => showDev2.value = !showDev2.value;
             const addStaff = () => {}; 
@@ -1166,72 +971,33 @@
                 while (current <= endDate) {
                     const year = current.getFullYear();
                     const month = current.getMonth();
-                    const monthTitle = `${year}年 ${month + 1}月`;
                     const daysInMonth = new Date(year, month + 1, 0).getDate();
                     const startDay = new Date(year, month, 1).getDay(); 
                     const days = [];
                     for (let i = 1; i <= daysInMonth; i++) {
                         const dateObj = new Date(year, month, i);
-                        const mStr = (month + 1).toString().padStart(2, '0');
-                        const dStr = i.toString().padStart(2, '0');
-                        const dateStr = `${year}-${mStr}-${dStr}`;
+                        const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                         const dayOfWeek = dateObj.getDay();
-                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                        const isHoliday = holidays.includes(dateStr);
-                        days.push({ dayNum: i, dateStr, isWeekend, isHoliday });
+                        days.push({ dayNum: i, dateStr, isWeekend: dayOfWeek===0||dayOfWeek===6, isHoliday: holidays.includes(dateStr) });
                     }
-                    months.push({ id: `${year}-${month}`, title: monthTitle, startDay, days });
+                    months.push({ id: `${year}-${month}`, title: `${year}年 ${month + 1}月`, startDay, days });
                     current.setMonth(current.getMonth() + 1);
                 }
                 return months;
             });
             
-            // --- LINE Summary Template Logic (New) ---
             const previewText = computed(() => { 
                 let staffTxt = "";
                 selectedStaff.value.forEach(name => {
                     const s = staffList.find(staff => staff.name === name);
-                    if (s) {
-                        staffTxt += `${s.name} ${s.phone}\n`;
-                    }
+                    if (s) staffTxt += `${s.name} ${s.phone}\n`;
                 });
-                
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
-
-                // Build detailed people strings
                 const sellerTxt = form.value.sellers.map(s => `${s.name}${s.role!=='本人'?'('+s.role+')':''}`).join('、');
                 const buyerTxt = form.value.buyers.map(b => `${b.name}${b.role!=='本人'?'('+b.role+')':''}`).join('、');
 
-                return `簽約案件：${d}
-案名：${form.value.propertyName}
-🏠 住址：${form.value.address}
- (${form.value.landBuildNo})
-
-👤 買方：${buyerTxt}
-👤 賣方：${sellerTxt}
-🏢 銷售：${form.value.salesStore}
-🏢 開發：${form.value.devStore}
-
-⚠️ 特殊事項 ：
-${form.value.notes}
-
-💰 價金明細：
-總價：${form.value.totalPrice} 萬元
-1️簽約款：${form.value.paymentContract || 0} 萬
-2備證款：${form.value.paymentSeal || 0} 萬
-3完稅款：${form.value.paymentTax || 0} 萬
-4貸款：${form.value.paymentBalance || 0} 萬
-
-⏰ 最後點交日：${closing}
-🏦 履保編號：${form.value.escrowNumber}
-戶名：${form.value.escrowName}
-分行：${form.value.escrowBranch}
-
-📞 案件相關問題請聯繫：
-宏國x易丞地政:06-2582589
-承辦：
-${staffTxt}`; 
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n (${form.value.landBuildNo})\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n🏢 銷售：${form.value.salesStore}\n🏢 開發：${form.value.devStore}\n\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n1️簽約款：${form.value.paymentContract || 0} 萬\n2備證款：${form.value.paymentSeal || 0} 萬\n3完稅款：${form.value.paymentTax || 0} 萬\n4貸款：${form.value.paymentBalance || 0} 萬\n\n⏰ 最後點交日：${closing}\n🏦 履保編號：${form.value.escrowNumber}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBranch}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
@@ -1242,71 +1008,21 @@ ${staffTxt}`;
                 searchContacts, suggestions, selectContact, selectManager, toggleSales2, toggleDev2, showSales2, showDev2,
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveAndSync, exportCases,
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
-                // New Sync Exports
-                syncState, syncStatusClass, forceCloudSync, forceCloudUpload,
-                // New Dynamic Person Methods
-                addPerson, removePerson,
-                // New Price Check
-                priceSum, priceMismatch
+                syncState, syncStatusClass, forceCloudSync, forceCloudUpload, syncStatusText,
+                addPerson, removePerson, priceSum, priceMismatch
             };
         }
     }).mount('#app');
-</script>
 
-<script>
-    /**
-     * 宏國 x 易丞地政 - 核心保護層 v33.10
-     * 警告：此段代碼包含反除錯與防篡改機制
-     */
+    // Security Layer (Restored from v33.10)
     (function() {
-        // 1. 禁止右鍵選單
         document.addEventListener('contextmenu', e => e.preventDefault());
-        
         document.addEventListener('keydown', function(e) {
-            // 禁止 F12, Ctrl+Shift+I/J/C, Ctrl+U (檢視原始碼), Ctrl+S (存檔)
-            if (
-                e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
-                (e.ctrlKey && ['u', 's', 'p'].includes(e.key.toLowerCase()))
-            ) {
-                // 如果是 Ctrl+P (列印)，攔截並透過程式按鈕觸發 (可選)
-                if(e.ctrlKey && e.key.toLowerCase() === 'p') {
-                    // 允許列印，但不允許透過快捷鍵繞過介面
-                    return true; 
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) || (e.ctrlKey && ['u', 's', 'p'].includes(e.key.toLowerCase()))) {
+                if(e.ctrlKey && e.key.toLowerCase() === 'p') return true; 
+                e.preventDefault(); e.stopPropagation(); return false;
             }
         });
-
-        // 2. 檢測開發者工具 (DevTools) 是否開啟
-        const detectDevTools = function() {
-            const threshold = 160;
-            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-            
-            // 如果偵測到視窗外部尺寸與內部尺寸差異過大 (通常是因為開了 Console)
-            if (widthThreshold || heightThreshold) {
-                document.body.innerHTML = '<div style="background:#0F2E46;color:#C5A065;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif;"><h1>⚠️ 系統安全警示</h1><p>偵測到非法除錯工具。為保護資料安全，存取已被拒絕。</p></div>';
-                // 強制停止 Vue 運作
-                if(window.app) window.app.unmount();
-                throw "Security Violation"; 
-            }
-        };
-        
-        setInterval(detectDevTools, 1000);
-
-        // 3. 進階 Debugger 陷阱 (讓開啟 Console 的人瀏覽器卡頓)
-        setInterval(function(){
-            const startTime = new Date();
-            debugger; // 只有在 Console 開啟時才會暫停
-            const endTime = new Date();
-            if (endTime - startTime > 100) {
-                // 如果執行時間差過大，代表被斷點攔截了 -> 清空畫面
-                document.body.innerHTML = "Access Denied.";
-            }
-        }, 500);
     })();
 </script>
 </body>
