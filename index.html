@@ -1254,60 +1254,19 @@ ${staffTxt}`;
 </script>
 
 <script>
-    /**
-     * 宏國 x 易丞地政 - 核心保護層 v33.10
-     * 警告：此段代碼包含反除錯與防篡改機制
-     */
-    (function() {
-        // 1. 禁止右鍵選單
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        
-        document.addEventListener('keydown', function(e) {
-            // 禁止 F12, Ctrl+Shift+I/J/C, Ctrl+U (檢視原始碼), Ctrl+S (存檔)
-            if (
-                e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
-                (e.ctrlKey && ['u', 's', 'p'].includes(e.key.toLowerCase()))
-            ) {
-                // 如果是 Ctrl+P (列印)，攔截並透過程式按鈕觸發 (可選)
-                if(e.ctrlKey && e.key.toLowerCase() === 'p') {
-                    // 允許列印，但不允許透過快捷鍵繞過介面
-                    return true; 
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
-        });
-
-        // 2. 檢測開發者工具 (DevTools) 是否開啟
-        const detectDevTools = function() {
-            const threshold = 160;
-            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-            
-            // 如果偵測到視窗外部尺寸與內部尺寸差異過大 (通常是因為開了 Console)
-            if (widthThreshold || heightThreshold) {
-                document.body.innerHTML = '<div style="background:#0F2E46;color:#C5A065;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif;"><h1>⚠️ 系統安全警示</h1><p>偵測到非法除錯工具。為保護資料安全，存取已被拒絕。</p></div>';
-                // 強制停止 Vue 運作
-                if(window.app) window.app.unmount();
-                throw "Security Violation"; 
-            }
-        };
-        
-        setInterval(detectDevTools, 1000);
-
-        // 3. 進階 Debugger 陷阱 (讓開啟 Console 的人瀏覽器卡頓)
-        setInterval(function(){
-            const startTime = new Date();
-            debugger; // 只有在 Console 開啟時才會暫停
-            const endTime = new Date();
-            if (endTime - startTime > 100) {
-                // 如果執行時間差過大，代表被斷點攔截了 -> 清空畫面
-                document.body.innerHTML = "Access Denied.";
-            }
-        }, 500);
-    })();
+    // 溫和保護：僅防止誤觸右鍵與常見存檔快捷鍵，不偵測視窗，不鎖死系統
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', function(e) {
+        if (
+            e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+            (e.ctrlKey && ['u', 's'].includes(e.key.toLowerCase()))
+        ) {
+            e.preventDefault();
+            return false;
+        }
+    });
 </script>
+
 </body>
 </html>
