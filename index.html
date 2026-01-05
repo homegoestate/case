@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.15 (Live Sync & Escrow Update)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.17 (Compact Print)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -161,12 +161,12 @@
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
-            @page { margin: 5mm 8mm; size: A4 portrait; }
+            @page { margin: 3mm 5mm; size: A4 portrait; } /* 縮小頁面邊界 */
             
             body { 
                 background: white; 
-                font-size: 10pt; 
-                line-height: 1.2; 
+                font-size: 9.5pt; /* 稍微縮小字體以確保放入第一頁 */
+                line-height: 1.15; 
                 color: #000; 
                 user-select: auto; 
             }
@@ -180,48 +180,47 @@
                 margin: 0 auto !important;
                 padding: 0 !important;
                 box-shadow: none !important;
+                display: block !important;
             }
 
-            /* 第一頁容器 */
+            /* 第一頁容器：自然流動，強制分頁 */
             .page-one-container { 
-                display: flex;
-                flex-direction: column;
-                height: 98vh; 
-                justify-content: flex-start;
+                display: block; /* 避免 flex 在列印時的奇怪行為 */
+                width: 100%;
                 page-break-after: always;
-                gap: 2px;
+                break-after: page;
+                margin-bottom: 0;
             }
 
             /* 1. Header */
-            header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 2px solid #000 !important; }
-            header h1 { font-size: 1.6rem !important; margin-bottom: 0; }
+            header { margin-bottom: 2px !important; padding-bottom: 1px !important; border-bottom: 2px solid #000 !important; }
+            header h1 { font-size: 1.4rem !important; margin-bottom: 0; }
             header .text-xs { font-size: 9pt !important; }
             
-            /* 2. Timeline */
-            .timeline-wrapper { padding: 4px 0 !important; margin-bottom: 4px !important; overflow: hidden; }
-            .timeline-line-bg { min-width: auto; }
-            .timeline-steps { min-width: auto; }
-            .step-icon { width: 32px !important; height: 32px !important; border-width: 2px !important; font-size: 12pt !important; }
-            .step-title { font-size: 10pt !important; color: #000 !important; margin-bottom: 0; }
-            .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 9pt !important; padding: 1px 3px; font-weight: bold; }
+            /* 2. Timeline - 壓縮高度 */
+            .timeline-wrapper { padding: 2px 0 !important; margin-bottom: 2px !important; overflow: hidden; }
+            .timeline-line-bg { top: 20px !important; height: 3px !important; }
+            .step-icon { width: 28px !important; height: 28px !important; border-width: 2px !important; font-size: 10pt !important; margin-bottom: 2px !important; }
+            .step-title { font-size: 9pt !important; color: #000 !important; margin-bottom: 0; }
+            .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 8pt !important; padding: 0 2px; font-weight: bold; min-height: auto !important; }
 
-            /* 3. Card & Input */
+            /* 3. Card & Input - 極致壓縮 */
             .card { 
                 box-shadow: none !important; 
                 border: 2px solid #555 !important; 
-                margin-bottom: 4px !important; 
-                padding: 4px 6px !important; 
+                margin-bottom: 2px !important; /* 極小間距 */
+                padding: 2px 4px !important; 
                 break-inside: avoid;
             }
             
             /* 通用輸入框修正 - 列印時 */
             input, select, textarea, .nexus-select { 
-                font-size: 10pt !important; 
+                font-size: 9.5pt !important; 
                 font-weight: 600 !important;
                 color: #000 !important;
-                margin-bottom: 1px !important; 
-                height: 1.4em !important;
-                line-height: 1.4em !important;
+                margin-bottom: 0px !important; 
+                height: 1.2em !important; /* 降低高度 */
+                line-height: 1.2em !important;
                 padding: 0 2px !important;
                 background: transparent !important;
                 border: none !important;
@@ -237,112 +236,89 @@
                 font-weight: 800 !important; 
             }
 
-            /* CRITICAL FIX 1: Header Grid 黃金比例 */
+            /* Header Grid 黃金比例 */
             .print-grid-4 { 
                 display: grid; 
                 grid-template-columns: 1.6fr 4.4fr 2.4fr 1.6fr; 
-                gap: 10px; 
+                gap: 8px; 
             }
 
-            /* CRITICAL FIX 2: Finance */
-            .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            /* 金額欄位 */
-            .print-finance-grid input.font-mono { 
-                text-align: right; 
-                width: 100% !important; 
-                padding-right: 20px !important; 
-            }
-            .unit-tag { color: #000; font-size: 9pt; right: 0; top: 40%; }
+            /* Finance */
+            .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
+            .print-finance-grid input.font-mono { text-align: right; width: 100% !important; padding-right: 20px !important; }
+            .unit-tag { color: #000; font-size: 8pt; right: 0; top: 40%; }
             .print-finance-grid input[type="date"] { width: 100% !important; text-align: center; font-size: 9pt !important; }
 
-            /* CRITICAL FIX 3: People */
-            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            /* People */
+            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
             .person-row { 
                 display: grid !important; 
-                grid-template-columns: 40px 1fr 90px !important; 
-                gap: 8px;
-                margin-bottom: 4px; 
+                grid-template-columns: 40px 1fr 80px !important; 
+                gap: 6px;
+                margin-bottom: 2px; 
                 border-bottom: 1px dotted #ccc; 
-                padding-bottom: 2px; 
+                padding-bottom: 1px; 
                 align-items: center;
             }
-            .role-select { 
-                width: 100% !important; 
-                text-align: left;
-                border: none !important;
-                font-weight: 800;
-                padding: 0 !important;
-                font-size: 9pt !important;
-                appearance: none !important;
-                -webkit-appearance: none !important;
-                background-image: none !important;
-            }
+            .role-select { width: 100% !important; text-align: left; border: none !important; font-weight: 800; padding: 0 !important; font-size: 9pt !important; }
             .person-name-group input { width: 100% !important; }
             .person-phone-input { width: 100% !important; text-align: right; font-family: 'Courier New', monospace; font-size: 9pt !important; }
 
-            /* CRITICAL FIX 4: Escrow */
-            .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; height: 100%; }
-            .escrow-section div { margin-bottom: 6px; }
+            /* Escrow */
+            .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 2px; }
+            .escrow-section div { margin-bottom: 2px; }
             .escrow-section input, .escrow-section select { width: 100% !important; margin-bottom: 0 !important; }
-            /* Escrow Special Layout for Print */
             .print-escrow-id-row { display: flex !important; gap: 4px; }
             .print-escrow-id-row select { width: 80px !important; }
             .print-escrow-id-row input { flex-grow: 1; }
             
-            .admin-card { flex-grow: 1; margin-bottom: 0 !important; }
+            /* Admin & Doc Details (強制不分頁) */
+            .admin-card { 
+                flex-grow: 1; 
+                margin-bottom: 0 !important; 
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
             .print-admin-row { 
                 display: grid; 
                 grid-template-columns: 1.25fr 0.95fr 1.05fr; 
-                gap: 12px; 
-                font-size: 10pt; 
+                gap: 10px; 
+                font-size: 9.5pt; 
             }
             
-            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
-            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 2px 0; margin-bottom: 1px; }
-            .doc-checkbox { appearance: auto; width: 14px; height: 14px; margin-right: 4px; border: 1px solid #000; }
-            .doc-label { font-size: 10pt; font-weight: normal; margin-right: 4px; color: #000; white-space: nowrap; }
-            
-            .doc-date-input { 
-                border: none; 
-                border-bottom: 1px solid #555 !important; 
-                border-radius: 0; 
-                flex-grow: 1; 
-                width: auto !important;
-                padding: 0 5px; 
-                font-size: 9pt; 
-                height: 18px; 
-                text-align: left; 
-                color: #000 !important;
-            }
+            .doc-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+            .doc-row { display: flex; align-items: center; border: none; background: transparent; padding: 1px 0; margin-bottom: 0; }
+            .doc-checkbox { appearance: auto; width: 12px; height: 12px; margin-right: 4px; border: 1px solid #000; }
+            .doc-label { font-size: 9.5pt; font-weight: normal; margin-right: 4px; color: #000; white-space: nowrap; }
+            .doc-date-input { border: none; border-bottom: 1px solid #555 !important; border-radius: 0; flex-grow: 1; width: auto !important; padding: 0 2px; font-size: 9pt; height: 16px; text-align: left; color: #000 !important; }
 
             label { font-size: 9pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
-            .unit-tag { color: #000; font-size: 9pt; right: 0; }
-
-            .detail-label { font-size: 9.5pt !important; width: 50px !important; font-weight: 900; color: #000; }
-            .detail-grid { grid-template-columns: 50px 1fr !important; gap: 4px !important; margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px dotted #999 !important; }
+            
+            .detail-label { font-size: 9pt !important; width: 45px !important; font-weight: 900; color: #000; }
+            .detail-grid { grid-template-columns: 45px 1fr !important; gap: 4px !important; margin-bottom: 1px !important; padding-bottom: 1px !important; border-bottom: 1px dotted #999 !important; }
 
             /* Footer */
-            footer { border-top: 2px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 2px !important; font-weight: bold; }
+            footer { border-top: 1px solid #000 !important; padding-top: 2px; font-size: 8pt !important; margin-top: 1px !important; font-weight: bold; }
 
             /* Notes */
             .print-notes-container textarea { display: none !important; }
             .print-notes-display { 
                 display: block !important; 
                 white-space: pre-wrap; 
-                font-size: 10pt; 
+                font-size: 9pt; 
                 font-weight: 500; 
-                min-height: 50px; 
+                min-height: 30px; 
                 border-bottom: 1px solid #000;
-                line-height: 1.5; 
-                padding-top: 4px;
+                line-height: 1.3; 
+                padding-top: 2px;
             }
 
-            /* Calendar Page 2 */
+            /* Calendar Page 2 (強制換頁) */
             .calendar-section { 
                 break-before: page; 
                 page-break-before: always; 
                 margin-top: 0; 
-                padding-top: 20px; 
+                padding-top: 10mm; 
                 display: block !important;
             }
             .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
@@ -370,7 +346,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.15</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.17</p>
                         <div class="sync-status no-print" :class="syncStatusClass">
                             <div class="sync-dot"></div>
                             <span v-if="syncState === 'idle'">已同步</span>
@@ -973,8 +949,8 @@
                 } catch (error) {
                     console.error("Cloud Sync Error:", error);
                     if (action === 'push') {
-                         syncState.value = 'success'; // Assume optimistic success for GAS POST
-                         setTimeout(() => syncState.value = 'idle', 3000);
+                          syncState.value = 'success'; // Assume optimistic success for GAS POST
+                          setTimeout(() => syncState.value = 'idle', 3000);
                     } else {
                         syncState.value = 'error';
                     }
@@ -1394,37 +1370,6 @@ ${staffTxt}`;
                 return false;
             }
         });
-
-        // 2. 檢測開發者工具 (DevTools) 是否開啟
-        /* const detectDevTools = function() {
-            const threshold = 160;
-            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-            
-            // 如果偵測到視窗外部尺寸與內部尺寸差異過大 (通常是因為開了 Console)
-            if (widthThreshold || heightThreshold) {
-                document.body.innerHTML = '<div style="background:#0F2E46;color:#C5A065;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif;"><h1>⚠️ 系統安全警示</h1><p>偵測到非法除錯工具。為保護資料安全，存取已被拒絕。</p></div>';
-                // 強制停止 Vue 運作
-                if(window.app) window.app.unmount();
-                throw "Security Violation"; 
-            }
-        };
-        
-        setInterval(detectDevTools, 1000); 
-        */
-
-        // 3. 進階 Debugger 陷阱 (讓開啟 Console 的人瀏覽器卡頓)
-        /*
-        setInterval(function(){
-            const startTime = new Date();
-            debugger; // 只有在 Console 開啟時才會暫停
-            const endTime = new Date();
-            if (endTime - startTime > 100) {
-                // 如果執行時間差過大，代表被斷點攔截了 -> 清空畫面
-                document.body.innerHTML = "Access Denied.";
-            }
-        }, 500);
-        */
     })();
 </script>
 </body>
