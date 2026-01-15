@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.25 (Compact Layout)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.27 (2-Page Lock)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,7 @@
             --nexus-navy: #0F2E46;
             --nexus-gold: #C5A065;
             --nexus-bg: #f3f4f6;
+            --step-line: #bdc3c7;
         }
 
         body { 
@@ -59,7 +60,7 @@
         label { display: block; margin-bottom: 2px; font-size: 0.9rem; color: #4b5563; font-weight: 600; }
         .unit-tag { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.85rem; font-weight: bold; pointer-events: none; }
 
-        /* Timeline */
+        /* Timeline (Page 1) */
         .timeline-wrapper { position: relative; padding: 10px 0; margin-bottom: 5px; overflow-x: auto; }
         .timeline-line-bg { position: absolute; top: 20px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; min-width: 300px; }
         .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; min-width: 300px; }
@@ -70,18 +71,8 @@
         .step-date { font-family: 'Michroma', monospace; font-size: 0.8rem; color: #666; background: #eef2f6; padding: 1px 6px; border-radius: 4px; min-height: 20px; min-width: 80px; }
 
         /* Document Checkbox Styling */
-        .doc-flex-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px 12px;
-            align-items: center;
-        }
-        .doc-check-item {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            white-space: nowrap;
-        }
+        .doc-flex-container { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+        .doc-check-item { display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
         .doc-check-item input[type="checkbox"] { transform: scale(1.2); margin-right: 6px; cursor: pointer; }
         .doc-check-item span { font-weight: bold; color: #374151; font-size: 0.95rem; }
 
@@ -104,6 +95,39 @@
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
         .suggestion-item:hover { background-color: #f0f9ff; }
 
+        /* ================= STRATEGIC MAP STYLES (Page 2 Top) ================= */
+        .roadmap-container { padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 20px; }
+        .roadmap-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--nexus-navy); padding-bottom: 10px; margin-bottom: 10px; }
+        .roadmap-title { font-size: 1.2rem; font-weight: 900; color: var(--nexus-navy); }
+        .roadmap-controls { display: flex; gap: 10px; align-items: center; }
+        
+        .roadmap { position: relative; padding-left: 5px; }
+        .roadmap::before { content: ''; position: absolute; left: 19px; top: 10px; bottom: 20px; width: 2px; background: var(--step-line); }
+        
+        .station { position: relative; margin-bottom: 10px; break-inside: avoid; page-break-inside: avoid; }
+        .station-dot { position: absolute; left: 12px; top: 16px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 4px solid var(--nexus-navy); z-index: 2; }
+        .station.critical .station-dot { border-color: #c0392b; }
+        .station.private .station-dot { border-color: #000; background: #000; }
+        
+        .station-card { margin-left: 35px; background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; position: relative; }
+        .station-card::before { content: ''; position: absolute; left: -14px; top: 22px; width: 14px; height: 2px; background: var(--nexus-navy); }
+        .station.critical .station-card { border-left: 4px solid #c0392b; background-color: #fff5f5; }
+        .station.private .station-card { border-left: 4px solid #000; background-color: #f3f3f3; }
+        
+        .station-title { font-weight: bold; color: var(--nexus-navy); border-bottom: 1px dashed #ddd; padding-bottom: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .task-list { list-style: none; padding: 0; margin: 0; }
+        .task-item { font-size: 0.9rem; margin-bottom: 2px; display: flex; align-items: flex-start; cursor: pointer; }
+        .task-checkbox { width: 14px; height: 14px; border: 1px solid #999; margin-right: 6px; margin-top: 3px; display: flex; align-items: center; justify-content: center; background: white; }
+        .task-item.checked .task-checkbox { background: var(--nexus-navy); border-color: var(--nexus-navy); }
+        .task-item.checked .task-checkbox::after { content: '✔'; color: white; font-size: 10px; }
+        .task-item.checked span { color: #aaa; text-decoration: line-through; }
+        .important-red { color: #c0392b; font-weight: bold; }
+
+        /* Calc Box inside Roadmap */
+        .calc-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 8px; border-radius: 4px; margin-top: 5px; font-size: 0.85rem; }
+        .calc-row { display: flex; gap: 5px; align-items: center; margin-bottom: 4px; }
+        .calc-input { width: 60px; padding: 2px; border: 1px solid #ccc; text-align: right; }
+
         /* Calendar */
         .calendar-section { margin-top: 20px; }
         .calendar-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
@@ -122,20 +146,9 @@
         .marker-close { background-color: #dc2626; }
 
         /* ================= INPUT MODE STYLES (Screen) ================= */
-        .person-input-card {
-            background: #fff;
-            border-bottom: 1px dashed #eee;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-        }
-        .person-input-row-1 {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 4px;
-        }
-        .person-input-row-2 {
-            display: flex;
-        }
+        .person-input-card { background: #fff; border-bottom: 1px dashed #eee; margin-bottom: 8px; padding-bottom: 8px; }
+        .person-input-row-1 { display: flex; gap: 4px; margin-bottom: 4px; }
+        .person-input-row-2 { display: flex; }
         .role-select { width: 80px; flex-shrink: 0; }
         .person-name-group { flex-grow: 1; min-width: 0; position: relative; } 
         .person-phone-input { width: 100%; }
@@ -145,49 +158,25 @@
         /* ================= RWD Grid Systems ================= */
         .print-grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-grid-4 { grid-template-columns: repeat(4, 1fr); } }
-
         .print-finance-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-finance-row { grid-template-columns: 1fr 1fr; } }
-        
         .print-finance-grid { display: grid; grid-template-columns: 45% 53%; gap: 12px 2%; align-items: end; }
-        
         .print-people-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-people-row { grid-template-columns: 1fr 1fr; } }
-        
         .print-admin-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media (min-width: 1024px) { .print-admin-row { grid-template-columns: 1.25fr 0.95fr 1.05fr; } }
-
 
         /* ================= 極致版面舒適列印 (Final Print Mode) ================= */
         @media print {
             @page { margin: 3mm 5mm; size: A4 portrait; }
-            
-            body { 
-                background: white; 
-                font-size: 9.5pt; 
-                line-height: 1.15; 
-                color: #000; 
-                user-select: auto; 
-            }
+            body { background: white; font-size: 9.5pt; line-height: 1.15; color: #000; user-select: auto; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             
-            #app {
-                max-width: 210mm !important;
-                width: 100% !important;
-                margin: 0 auto !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                display: block !important;
-            }
+            #app { max-width: 210mm !important; width: 100% !important; margin: 0 auto !important; padding: 0 !important; box-shadow: none !important; display: block !important; }
 
-            .page-one-container { 
-                display: block;
-                width: 100%;
-                page-break-after: always;
-                break-after: page;
-                margin-bottom: 0;
-            }
+            .page-one-container { display: block; width: 100%; page-break-after: always; break-after: page; margin-bottom: 0; }
+            .page-two-container { display: block; width: 100%; page-break-before: always; break-before: page; margin-top: 0; padding-top: 5mm; }
 
             /* Header */
             header { margin-bottom: 2px !important; padding-bottom: 1px !important; border-bottom: 2px solid #000 !important; }
@@ -202,48 +191,18 @@
             .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 8pt !important; padding: 0 2px; font-weight: bold; min-height: auto !important; }
 
             /* Card & Input */
-            .card { 
-                box-shadow: none !important; 
-                border: 2px solid #555 !important; 
-                margin-bottom: 2px !important;
-                padding: 2px 4px !important; 
-                break-inside: avoid;
-            }
-            
+            .card { box-shadow: none !important; border: 2px solid #555 !important; margin-bottom: 2px !important; padding: 2px 4px !important; break-inside: avoid; }
             input, select, textarea, .nexus-select { 
-                font-size: 9.5pt !important; 
-                font-weight: 600 !important;
-                color: #000 !important;
-                margin-bottom: 0px !important; 
-                height: 1.2em !important;
-                line-height: 1.2em !important;
-                padding: 0 2px !important;
-                background: transparent !important;
-                border: none !important;
-                border-bottom: 1px solid #555 !important; 
-                border-radius: 0 !important;
-                appearance: none !important;
+                font-size: 9.5pt !important; font-weight: 600 !important; color: #000 !important;
+                margin-bottom: 0px !important; height: 1.2em !important; line-height: 1.2em !important; padding: 0 2px !important;
+                background: transparent !important; border: none !important; border-bottom: 1px solid #555 !important; border-radius: 0 !important; appearance: none !important;
             }
             .nexus-input { border: none !important; border-bottom: 1px solid #555 !important; }
-            
-            input[type="number"], .font-mono { 
-                font-family: 'Courier New', monospace !important; 
-                font-weight: 800 !important; 
-            }
+            input[type="number"], .font-mono { font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
 
-            /* Header Grid - OPTIMIZED FOR LONG NAMES */
-            .print-grid-4 { 
-                display: grid; 
-                /* New Ratio: Name(2.2) | Address(4.1) | Land(2.4) | Price(1.3) */
-                grid-template-columns: 2.2fr 4.1fr 2.4fr 1.3fr; 
-                gap: 8px; 
-                align-items: center;
-                margin-bottom: 4px;
-            }
-            .print-grid-4 input {
-                padding-top: 2px !important;
-                padding-bottom: 0px !important;
-            }
+            /* Header Grid */
+            .print-grid-4 { display: grid; grid-template-columns: 2.2fr 4.1fr 2.4fr 1.3fr; gap: 8px; align-items: center; margin-bottom: 4px; }
+            .print-grid-4 input { padding-top: 2px !important; padding-bottom: 0px !important; }
 
             /* Finance */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
@@ -253,40 +212,15 @@
 
             /* People Row */
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
-            .person-input-card {
-                border: none !important;
-                margin-bottom: 1px !important;
-                padding-bottom: 1px !important;
-                display: grid !important;
-                grid-template-columns: 35px 1fr 100px !important;
-                gap: 4px !important;
-                align-items: center;
-            }
+            .person-input-card { border: none !important; margin-bottom: 1px !important; padding-bottom: 1px !important; display: grid !important; grid-template-columns: 35px 1fr 100px !important; gap: 4px !important; align-items: center; }
             .person-input-row-1 { display: contents !important; }
             .person-input-row-2 { display: contents !important; }
             .role-select { display: none !important; } 
-            .person-phone-input { 
-                width: 100% !important; 
-                text-align: right; 
-                font-family: 'Courier New', monospace; 
-                font-size: 9pt !important; 
-            }
+            .person-phone-input { width: 100% !important; text-align: right; font-family: 'Courier New', monospace; font-size: 9pt !important; }
 
             /* Agents Grid */
-            .agent-print-grid {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 4px 12px !important;
-            }
-            .agent-item {
-                border-bottom: 1px dotted #ccc !important;
-                padding-bottom: 1px !important;
-                margin-bottom: 1px !important;
-                font-size: 9pt !important;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }
+            .agent-print-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 4px 12px !important; }
+            .agent-item { border-bottom: 1px dotted #ccc !important; padding-bottom: 1px !important; margin-bottom: 1px !important; font-size: 9pt !important; display: flex; align-items: center; gap: 4px; }
             .agent-name-print { font-weight: bold; width: 35%; flex-shrink: 0; }
             .agent-details-print { font-size: 8.5pt; flex-grow: 1; text-align: right; }
             .agent-input-group { display: none !important; } 
@@ -301,54 +235,17 @@
             .print-escrow-id-row input { flex-grow: 1; }
             
             /* Admin & Doc */
-            .admin-card { 
-                flex-grow: 1; 
-                margin-bottom: 0 !important; 
-                break-inside: avoid !important;
-                page-break-inside: avoid !important;
-            }
-            .print-doc-header {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 4px;
-                margin-bottom: 4px;
-            }
+            .admin-card { flex-grow: 1; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+            .print-doc-header { display: grid !important; grid-template-columns: 1fr 1fr; gap: 15px; border-bottom: 1px solid #eee; padding-bottom: 4px; margin-bottom: 4px; }
             .print-doc-col { display: flex; align-items: center; flex-wrap: wrap; }
             .print-doc-title { font-weight: bold; margin-right: 8px; white-space: nowrap; font-size: 9.5pt; color: #000; }
-            .print-admin-row { 
-                display: grid; 
-                grid-template-columns: 1.1fr 1.1fr 1.2fr; 
-                gap: 10px; 
-                font-size: 9.5pt; 
-            }
-            .doc-flex-container {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 2px 8px !important;
-            }
-            .doc-check-item {
-                border: none !important;
-                padding: 0 !important;
-                background: transparent !important;
-                margin-bottom: 0 !important;
-            }
-            .doc-check-item input[type="checkbox"] {
-                width: 12px !important;
-                height: 12px !important;
-                border: 1px solid #000 !important;
-                margin-right: 2px !important;
-                appearance: auto !important;
-            }
-            .doc-check-item span {
-                font-size: 9pt !important;
-                color: #000 !important;
-                font-weight: normal !important;
-            }
+            .print-admin-row { display: grid; grid-template-columns: 1.1fr 1.1fr 1.2fr; gap: 10px; font-size: 9.5pt; }
+            .doc-flex-container { display: flex !important; flex-wrap: wrap !important; gap: 2px 8px !important; }
+            .doc-check-item { border: none !important; padding: 0 !important; background: transparent !important; margin-bottom: 0 !important; }
+            .doc-check-item input[type="checkbox"] { width: 12px !important; height: 12px !important; border: 1px solid #000 !important; margin-right: 2px !important; appearance: auto !important; }
+            .doc-check-item span { font-size: 9pt !important; color: #000 !important; font-weight: normal !important; }
 
             label { font-size: 9pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
-            
             .detail-label { font-size: 9pt !important; width: 45px !important; font-weight: 900; color: #000; }
             .detail-grid { grid-template-columns: 45px 1fr !important; gap: 4px !important; margin-bottom: 1px !important; padding-bottom: 1px !important; border-bottom: 1px dotted #999 !important; }
 
@@ -357,31 +254,36 @@
 
             /* Notes */
             .print-notes-container textarea { display: none !important; }
-            .print-notes-display { 
-                display: block !important; 
-                white-space: pre-wrap; 
-                font-size: 9pt; 
-                font-weight: 500; 
-                min-height: 120px !important; 
-                border-bottom: 1px solid #000;
-                line-height: 1.3; 
-                padding-top: 2px;
-            }
+            .print-notes-display { display: block !important; white-space: pre-wrap; font-size: 9pt; font-weight: 500; min-height: 120px !important; border-bottom: 1px solid #000; line-height: 1.3; padding-top: 2px; }
 
-            /* Calendar Page 2 */
-            .calendar-section { 
-                break-before: page; 
-                page-break-before: always; 
-                margin-top: 0; 
-                padding-top: 10mm; 
-                display: block !important;
-            }
-            .calendar-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-            .calendar-month { border: 2px solid #000 !important; box-shadow: none !important; }
-            .cal-cell { border: 1px solid #888 !important; height: 45px !important; font-size: 10pt !important; }
-            .cal-header { border-bottom: 2px solid #000 !important; font-size: 12pt !important; background: #eee !important; -webkit-print-color-adjust: exact; }
-            .cal-marker { color: #000 !important; background: white !important; border: 1px solid #000; font-size: 8pt !important; font-weight: 900; }
+            /* === PAGE 2 PRINT STYLES (COMPRESSED) === */
+            .roadmap-container { border: none !important; margin-top: 0 !important; padding: 0 !important; }
+            .roadmap-header { border-bottom: 2px solid #000 !important; padding-bottom: 5px; margin-bottom: 8px; }
+            .roadmap-title { color: #000 !important; font-size: 13pt !important; }
+            .roadmap::before { background: #000 !important; left: 15px !important; }
             
+            /* Tighter Roadmap */
+            .station { margin-bottom: 4px !important; }
+            .station-dot { border-color: #000 !important; border-width: 2px !important; width: 12px !important; height: 12px !important; left: 10px !important; top: 12px !important; }
+            .station-card { border: 1px solid #000 !important; margin-left: 30px !important; padding: 4px 6px !important; }
+            .station-card::before { background: #000 !important; height: 1px !important; left: -15px !important; top: 18px !important; }
+            .station.critical .station-card { border-left: 4px solid #000 !important; background: #fff !important; }
+            .station.private .station-card { border-left: 4px solid #000 !important; background: #eee !important; }
+            
+            .station-title { color: #000 !important; border-bottom: 1px solid #ccc !important; font-size: 9.5pt !important; margin-bottom: 2px !important; }
+            .task-item { font-size: 9pt !important; margin-bottom: 1px !important; }
+            .task-checkbox { border-color: #000 !important; width: 12px !important; height: 12px !important; margin-top: 2px !important; }
+            .important-red { color: #000 !important; text-decoration: underline; }
+            
+            .calc-box { display: none !important; } /* Hide calculator on print */
+
+            /* Compact Calendar */
+            .calendar-section { margin-top: 5mm !important; } 
+            .calendar-month { border: 2px solid #000 !important; box-shadow: none !important; }
+            .cal-cell { border: 1px solid #888 !important; height: 30px !important; font-size: 8.5pt !important; }
+            .cal-header { border-bottom: 2px solid #000 !important; background: #eee !important; color: #000 !important; font-size: 10pt !important; padding: 2px 0 !important; }
+            .cal-marker { border: 1px solid #000; color: #000 !important; background: white !important; font-weight: 900; font-size: 8pt !important; bottom: 1px !important; }
+
             .preview-card, .db-control-btn, .manager-overlay, .add-option-btn, .no-print-force, .agent-remove-btn { display: none !important; }
         }
     </style>
@@ -401,7 +303,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.25</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.27</p>
                     </div>
                 </div>
             </div>
@@ -728,6 +630,81 @@
             宏國地政 | 易丞地政
         </footer>
     </div>
+
+    <div class="page-two-container">
+        
+        <div class="roadmap-container">
+            <div class="roadmap-header">
+                <div class="roadmap-title"><i class="fas fa-map-signs mr-2"></i>案件標準作業戰略地圖 (SOP)</div>
+                <div class="roadmap-controls no-print">
+                    <select v-model="roadmapType" class="text-xs border p-1 rounded font-bold">
+                        <option value="house">🏠 房地案件</option>
+                        <option value="land">🌳 純土地</option>
+                        <option value="construction">🏗️ 建設公司</option>
+                    </select>
+                    <label class="text-xs flex items-center font-bold text-red-600"><input type="checkbox" v-model="showPrivateLien" class="mr-1">私人設定</label>
+                </div>
+            </div>
+            
+            <div class="roadmap">
+                <div v-for="(step, idx) in currentRoadmapSteps" :key="idx" class="station" :class="step.type">
+                    <div class="station-dot"></div>
+                    <div class="station-card">
+                        <div class="station-title">
+                            <span>{{ step.title }}</span>
+                        </div>
+                        <ul class="task-list">
+                            <li v-for="(task, tIdx) in step.tasks" :key="tIdx" class="task-item" @click="toggleTask($event)">
+                                <div class="task-checkbox"></div>
+                                <span v-html="task"></span>
+                            </li>
+                        </ul>
+                        <div v-if="step.calcType === 'pre_pay'" class="calc-box no-print">
+                            <div class="font-bold text-blue-700 mb-1">💵 預收款試算 (Fees)</div>
+                            <div class="calc-row">
+                                契稅 <input type="number" v-model="calcDeed" class="calc-input" placeholder="元"> 
+                                貸(萬) <input type="number" v-model="calcLoan" class="calc-input" placeholder="萬">
+                                <span class="ml-2 font-bold text-red-600">= {{ calcResult }} 元</span>
+                            </div>
+                            <div class="text-xs text-gray-500">公式: 契稅 + (貸款x1.2x0.001) + 25000</div>
+                        </div>
+                        <div v-if="step.note" class="text-xs text-gray-500 mt-1 bg-gray-50 p-1 border-l-2 border-gray-400 no-print">
+                            💡 {{ step.note }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-section">
+            <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
+            <div class="calendar-container">
+                <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
+                    <div class="cal-header">{{ month.title }}</div>
+                    <div class="cal-grid">
+                        <div class="cal-day-header text-red-600">日</div>
+                        <div class="cal-day-header">一</div>
+                        <div class="cal-day-header">二</div>
+                        <div class="cal-day-header">三</div>
+                        <div class="cal-day-header">四</div>
+                        <div class="cal-day-header">五</div>
+                        <div class="cal-day-header text-red-600">六</div>
+                        <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50 print:bg-white"></div>
+                        <div v-for="day in month.days" :key="day.dateStr" 
+                             class="cal-cell" 
+                             :class="{ 'holiday': day.isHoliday || day.isWeekend }">
+                            <span>{{ day.dayNum }}</span>
+                            <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
+                            <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
+                            <div v-if="day.dateStr === form.taxDate" class="cal-marker marker-tax">完</div>
+                            <div v-if="day.dateStr === form.closingDate" class="cal-marker marker-close">結</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
         <div class="manager-panel">
             <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
@@ -774,34 +751,6 @@
     
     <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
 
-    <div class="calendar-section">
-        <h2 class="text-center font-bold text-lg mb-4 text-navy border-b-2 border-gold pb-2 print:text-black print:border-black">案件進度行事曆 (Schedule)</h2>
-        <div class="calendar-container">
-            <div v-for="month in generatedCalendar" :key="month.id" class="calendar-month">
-                <div class="cal-header">{{ month.title }}</div>
-                <div class="cal-grid">
-                    <div class="cal-day-header text-red-600">日</div>
-                    <div class="cal-day-header">一</div>
-                    <div class="cal-day-header">二</div>
-                    <div class="cal-day-header">三</div>
-                    <div class="cal-day-header">四</div>
-                    <div class="cal-day-header">五</div>
-                    <div class="cal-day-header text-red-600">六</div>
-                    <div v-for="n in month.startDay" :key="'e'+n" class="cal-cell bg-gray-50 print:bg-white"></div>
-                    <div v-for="day in month.days" :key="day.dateStr" 
-                         class="cal-cell" 
-                         :class="{ 'holiday': day.isHoliday || day.isWeekend }">
-                        <span>{{ day.dayNum }}</span>
-                        <div v-if="day.dateStr === form.contractDate" class="cal-marker marker-sign">簽</div>
-                        <div v-if="day.dateStr === form.sealDate" class="cal-marker marker-seal">用</div>
-                        <div v-if="day.dateStr === form.taxDate" class="cal-marker marker-tax">完</div>
-                        <div v-if="day.dateStr === form.closingDate" class="cal-marker marker-close">結</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>
@@ -816,6 +765,28 @@
         '2026-06-19', '2026-06-20', '2026-06-21',
         '2026-09-25', '2026-09-26', '2026-09-27'
     ];
+
+    // --- Roadmap Data ---
+    const constructionSteps = [
+        { title: "Phase 1: 地政保存登記", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (正影本)", "3. 使用執照竣工平面圖 (正影本)", "4. 建物測量成果圖 (影本)", "5. 分坪表、公告稿、公設分配書"] },
+        { title: "Phase 2: 稅務局設立稅籍", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (影本) & 竣工平面圖 (影本)", "3. 建物謄本 (影本)", "4. 建物測量成果圖 (影本)", "5. 確認影本皆蓋公司大小章與正本相符章"] },
+        { title: "Phase 3: 銀行貸款 & 驗屋 & 設定清查", type: "critical", tasks: ["1. 銀貸：確認建商專案細節", "2. 初驗：核准後進行對保、差額、預收調整", "3. 修繕：針對初驗瑕疵進行修繕", "4. <span class='important-red'>[重點] 謄本設定清查 (Check 私人/銀行)</span>", "5. 複驗：確認過戶與撥款順序"], note: "設定清查：連帶擔保需辦理分塗或拋棄；個別設定務必辦理直接塗銷。" },
+        { title: "Phase 4: 抵押權設定 & 結案", type: "construction", tasks: ["1. 製作設定契約書及抵押權變更契約書", "2. 公司變更登記事項表 (正本 + 影本x2)", "3. 建物權狀 (正本) & 印鑑章備用", "4. <span class='important-red'>[確認] 實價登錄複查 (價金/車位)</span>", "5. 地政連件送 (內容變更/設定/塗銷)"], note: "實價登錄錯誤罰款 3~15 萬元，務必複查。" }
+    ];
+    const landSteps = [
+        { title: "Phase 1: 簽約 & 用印 (土地專用)", type: "critical", tasks: ["1. 核對雙方身分證、印鑑章", "2. 簽署不動產買賣契約書", "<span class='important-red'>3. [特] 確認土地分區 (Zoning)</span>", "<span class='important-red'>4. [特] 確認無套繪管制 (No Overlay)</span>", "<span class='important-red'>5. [特] 申請鑑界 (Boundary Verify)</span>", "6. [特] 農地農用勘查 (若為農地)"], note: "土地風險極高，務必確認使用分區與有無套繪管制。" },
+        { title: "Phase 2: 稅務申報 (增值稅)", type: "normal", tasks: ["1. 土地增值稅申報 (一般/自用/農用)", "2. 查詢欠稅 (地價稅/工程受益費)", "3. 印花稅開立", "4. 若申請農用證明 (不課土增稅)"] },
+        { title: "Phase 3: 完稅 & 移轉 & 結案", type: "normal", tasks: ["1. 繳納土增稅", "2. <span class='important-red'>[重點] 實價登錄複查 (價金正確?)</span>", "3. 地政事務所送件 (移轉登記)", "4. 領取新權狀", "5. 點交土地 (鑑界釘樁確認)"] }
+    ];
+    const standardSteps = [
+        { title: "Phase 1: 簽約 & 用印", type: "normal", tasks: ["1. 核對雙方身分證、印鑑章", "2. 簽署不動產買賣契約書", "3. 申報登錄 (實價登錄 - 初步申報)", "4. 收取第一期款 (簽約金)"] },
+        { title: "Phase 2: 稅務申報 (增/契)", type: "normal", tasks: ["1. 土地增值稅申報 (一般/自用)", "2. 契稅申報 (建物移轉)", "3. 印花稅開立", "4. 查詢是否有欠稅 (地價/房屋)"] },
+        { title: "Phase 3: 銀行貸款 & 對保", type: "critical", calcType: "pre_pay", tasks: ["1. 買方提供財力證明 & 銀行鑑價", "2. 核貸金額確認 & 對保", "3. 設定抵押權書類用印", "4. <span class='important-red'>[重點] 實價登錄資料最終複核</span>"], note: "過戶前請務必確認「成交價金」與「車位」是否正確。" },
+        { title: "Phase 4: 完稅 & 移轉 & 結案", type: "normal", tasks: ["1. 繳納土增稅、契稅", "2. <span class='important-red'>[最後防線] 確認實價登錄無誤</span>", "3. 地政事務所送件 (移轉登記)", "4. 領取新權狀 & 銀行撥款代償", "5. 點交房屋 (水電/鑰匙)"] }
+    ];
+    const privateLienStep = {
+        title: "⚠️ Phase X: 私人設定拆彈", type: "private", tasks: ["1. <span class='important-red'>[查核] 擋拍檢查 (確認是否遭法拍)</span>", "2. 確認資金方案：代墊 vs 動撥", "3. 簽署動撥同意書 / 借據 / 本票", "4. 聯繫私人債權人 (確認塗銷條件)", "5. 取得清償證明/塗銷同意書"], note: "【高風險】務必確認金主配合塗銷，資金流向需透明。"
+    };
 
     createApp({
         setup() {
@@ -835,6 +806,12 @@
             const cases = ref([]);
             const currentCaseIndex = ref(-1); 
             const csvHeaders = ref([]); 
+
+            // Roadmap State
+            const roadmapType = ref('house');
+            const showPrivateLien = ref(false);
+            const calcDeed = ref('');
+            const calcLoan = ref('');
 
             // Escrow Options
             const escrowOptions = ref({
@@ -900,6 +877,33 @@
                 if (type === 'banks' && !escrowOptions.value.banks.includes(val)) escrowOptions.value.banks.push(val);
                 if (type === 'names' && !escrowOptions.value.names.includes(val)) escrowOptions.value.names.push(val);
                 localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
+            };
+
+            // Roadmap Computed Logic
+            const currentRoadmapSteps = computed(() => {
+                let steps = [];
+                if (roadmapType.value === 'construction') steps = [...constructionSteps];
+                else if (roadmapType.value === 'land') steps = [...landSteps];
+                else steps = [...standardSteps];
+
+                if (showPrivateLien.value) {
+                    // Insert Private Lien step usually after Phase 2 (index 2)
+                    let insertIdx = steps.findIndex(s => s.title.includes("Phase 2"));
+                    if (insertIdx === -1) insertIdx = 1;
+                    steps.splice(insertIdx + 1, 0, privateLienStep);
+                }
+                return steps;
+            });
+
+            const calcResult = computed(() => {
+                const d = parseFloat(calcDeed.value) || 0;
+                const l = parseFloat(calcLoan.value) || 0;
+                // Formula: Deed + (LoanWan * 12 * 1) + 25000 (Simplified fee estimation: 1.2 setting * 0.1%) -> actually Loan * 1.2 / 1000 * 10000 = Loan * 12
+                return Math.round(d + (l * 12) + 25000).toLocaleString();
+            });
+
+            const toggleTask = (event) => {
+                event.currentTarget.classList.toggle('checked');
             };
 
             // Dynamic Person/Agent Logic
@@ -984,9 +988,9 @@
 
                 if(!form.value.sellers.length) { // Fallback for old data
                      const names = c['客戶姓名(買/賣方)'] || '';
-                     const parts = names.split(/[、,]/);
-                     form.value.sellers = [{name: parts[0]||'', phone:'', role:'本人'}];
-                     form.value.buyers = [{name: parts[1]||'', phone:'', role:'本人'}];
+                     const namesParts = names.split(/[、,]/);
+                     form.value.sellers = [{name: namesParts[0]||'', phone:'', role:'本人'}];
+                     form.value.buyers = [{name: namesParts[1]||'', phone:'', role:'本人'}];
                 }
 
                 const staffStr = c['承辦'] || '';
@@ -1210,7 +1214,10 @@ ${staffTxt}`;
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
                 // Removed syncState, syncStatusClass, forceCloudSync, forceCloudUpload
                 priceSum, priceMismatch,
-                escrowOptions, availableBanks, availableNames, checkAndAddOption
+                escrowOptions, availableBanks, availableNames, checkAndAddOption,
+                // Roadmap
+                roadmapType, showPrivateLien, currentRoadmapSteps, toggleTask,
+                calcDeed, calcLoan, calcResult
             };
         }
     }).mount('#app');
