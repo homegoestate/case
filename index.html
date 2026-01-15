@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.24 (Print Optimization)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.25 (Compact Layout)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -292,7 +292,7 @@
             .agent-input-group { display: none !important; } 
             .agent-print-view { display: flex !important; width: 100%; align-items: center; justify-content: space-between; }
 
-            /* Escrow */
+            /* Escrow & Staff Combined */
             .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 2px; }
             .escrow-section div { margin-bottom: 2px; }
             .escrow-section input, .escrow-section select { width: 100% !important; margin-bottom: 0 !important; }
@@ -401,7 +401,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.24</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.25</p>
                     </div>
                 </div>
             </div>
@@ -472,8 +472,8 @@
                 </div>
             </div>
             <div class="card bg-white border border-gray-200 rounded p-3 mt-2 md:mt-0">
-                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">履約保證</h3>
-                <div class="escrow-section">
+                <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">履約保證 & 承辦</h3>
+                <div class="escrow-section mb-3">
                     <div class="flex gap-1 print-escrow-id-row">
                         <div class="w-1/3">
                             <label class="text-xs text-gray-400 block print:text-black">編號(前)</label>
@@ -491,7 +491,7 @@
                     </div>
                     
                     <div>
-                        <label class="text-xs text-gray-400 block print:text-black">銀行別 (可直接輸入新增)</label>
+                        <label class="text-xs text-gray-400 block print:text-black">銀行別</label>
                         <input list="bank-list" v-model="form.escrowBank" @change="checkAndAddOption('banks', form.escrowBank)" class="nexus-input text-sm w-full" placeholder="選擇或輸入銀行">
                         <datalist id="bank-list">
                              <option v-for="b in availableBanks" :key="b" :value="b">{{b}}</option>
@@ -499,11 +499,24 @@
                     </div>
 
                     <div>
-                         <label class="text-xs text-gray-400 block print:text-black">戶名 (可直接輸入新增)</label>
+                         <label class="text-xs text-gray-400 block print:text-black">戶名</label>
                          <input list="name-list" v-model="form.escrowName" @change="checkAndAddOption('names', form.escrowName)" class="nexus-input text-sm w-full" placeholder="選擇或輸入戶名">
                          <datalist id="name-list">
                              <option v-for="n in availableNames" :key="n" :value="n">{{n}}</option>
                          </datalist>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-sm font-bold text-navy print:text-base">承辦團隊</h3>
+                        <div class="no-print text-xs flex gap-1"><input v-model="newStaff.name" class="border w-10 text-center" placeholder="名"><input v-model="newStaff.phone" class="border w-16 text-center" placeholder="電"><button @click="addStaff" class="bg-gray-200 px-2 rounded">+</button></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 relative z-0">
+                        <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
+                            <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
+                            <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -567,58 +580,47 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-2">
-                <div class="card bg-white border border-gray-200 rounded p-3">
-                    <div class="flex justify-between items-center mb-1"><h3 class="text-sm font-bold text-navy print:text-base">承辦團隊</h3><div class="no-print text-xs flex gap-1"><input v-model="newStaff.name" class="border w-10 text-center" placeholder="名"><input v-model="newStaff.phone" class="border w-16 text-center" placeholder="電"><button @click="addStaff" class="bg-gray-200 px-2 rounded">+</button></div></div>
-                    <div class="flex flex-wrap gap-3 relative z-0">
-                        <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
-                            <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
-                            <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="card bg-white border border-gray-200 rounded p-3 flex-1">
-                    <div class="flex justify-between"><h3 class="text-sm font-bold text-navy print:text-base">銷售/開發</h3><span v-if="contactsLoaded" class="text-xs text-green-600 no-print">OK</span></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1 agent-print-grid">
-                        <div class="relative group">
-                             <div class="flex justify-between items-center mb-1 no-print">
-                                <label class="text-xs font-bold text-gray-500 block">銷售方 Sales</label>
-                                <button @click="addAgent('salesAgents')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+            <div class="card bg-white border border-gray-200 rounded p-3 flex-1">
+                <div class="flex justify-between"><h3 class="text-sm font-bold text-navy print:text-base">銷售/開發</h3><span v-if="contactsLoaded" class="text-xs text-green-600 no-print">OK</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1 agent-print-grid">
+                    <div class="relative group">
+                            <div class="flex justify-between items-center mb-1 no-print">
+                            <label class="text-xs font-bold text-gray-500 block">銷售方 Sales</label>
+                            <button @click="addAgent('salesAgents')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(agent, idx) in form.salesAgents" :key="'sa'+idx" class="agent-item">
+                            <div class="agent-print-view print-only">
+                                <span class="agent-name-print">銷售{{idx+1}}: {{agent.name}}</span>
+                                <span class="agent-details-print">{{agent.store}} {{agent.phone}}</span>
                             </div>
-                            <div v-for="(agent, idx) in form.salesAgents" :key="'sa'+idx" class="agent-item">
-                                <div class="agent-print-view print-only">
-                                    <span class="agent-name-print">銷售{{idx+1}}: {{agent.name}}</span>
-                                    <span class="agent-details-print">{{agent.store}} {{agent.phone}}</span>
+                            <div class="w-full no-print">
+                                <div class="relative">
+                                    <input type="text" v-model="agent.name" @input="searchContacts($event,'sales', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'銷售 ' + (idx+1)">
+                                    <div v-if="suggestions.target==='sales' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('salesAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                                 </div>
-                                <div class="w-full no-print">
-                                    <div class="relative">
-                                        <input type="text" v-model="agent.name" @input="searchContacts($event,'sales', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'銷售 ' + (idx+1)">
-                                        <div v-if="suggestions.target==='sales' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('salesAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
-                                    </div>
-                                    <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
-                                    <div v-if="form.salesAgents.length > 1" class="text-right"><button @click="removeAgent('salesAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
-                                </div>
+                                <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                                <div v-if="form.salesAgents.length > 1" class="text-right"><button @click="removeAgent('salesAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="relative group">
-                            <div class="flex justify-between items-center mb-1 no-print">
-                                <label class="text-xs font-bold text-gray-500 block">開發方 Dev</label>
-                                <button @click="addAgent('devAgents')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                    <div class="relative group">
+                        <div class="flex justify-between items-center mb-1 no-print">
+                            <label class="text-xs font-bold text-gray-500 block">開發方 Dev</label>
+                            <button @click="addAgent('devAgents')" class="no-print text-xs bg-white border px-1 rounded hover:bg-gray-100 text-blue-600 font-bold">+增加</button>
+                        </div>
+                        <div v-for="(agent, idx) in form.devAgents" :key="'da'+idx" class="agent-item">
+                                <div class="agent-print-view print-only">
+                                <span class="agent-name-print">開發{{idx+1}}: {{agent.name}}</span>
+                                <span class="agent-details-print">{{agent.store}} {{agent.phone}}</span>
                             </div>
-                            <div v-for="(agent, idx) in form.devAgents" :key="'da'+idx" class="agent-item">
-                                 <div class="agent-print-view print-only">
-                                    <span class="agent-name-print">開發{{idx+1}}: {{agent.name}}</span>
-                                    <span class="agent-details-print">{{agent.store}} {{agent.phone}}</span>
+                            <div class="w-full no-print">
+                                <div class="relative">
+                                    <input type="text" v-model="agent.name" @input="searchContacts($event,'dev', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'開發 ' + (idx+1)">
+                                    <div v-if="suggestions.target==='dev' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('devAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                                 </div>
-                                <div class="w-full no-print">
-                                    <div class="relative">
-                                        <input type="text" v-model="agent.name" @input="searchContacts($event,'dev', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'開發 ' + (idx+1)">
-                                        <div v-if="suggestions.target==='dev' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('devAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
-                                    </div>
-                                    <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
-                                    <div v-if="form.devAgents.length > 1" class="text-right"><button @click="removeAgent('devAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
-                                </div>
+                                <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                                <div v-if="form.devAgents.length > 1" class="text-right"><button @click="removeAgent('devAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
                             </div>
                         </div>
                     </div>
