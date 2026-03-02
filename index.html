@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.27 (2-Page Lock)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.28 (Weekly Report Engine)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -81,8 +81,9 @@
         .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.9rem; }
 
         /* Manager Styles */
-        .manager-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
+        .manager-overlay, .report-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
         .manager-panel { width: 100%; md:width: 90%; max-width: 900px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .report-panel { width: 100%; max-width: 500px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .case-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .case-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; }
         .case-table td { padding: 10px; border-bottom: 1px solid #eee; }
@@ -284,7 +285,7 @@
             .cal-header { border-bottom: 2px solid #000 !important; background: #eee !important; color: #000 !important; font-size: 10pt !important; padding: 2px 0 !important; }
             .cal-marker { border: 1px solid #000; color: #000 !important; background: white !important; font-weight: 900; font-size: 8pt !important; bottom: 1px !important; }
 
-            .preview-card, .db-control-btn, .manager-overlay, .add-option-btn, .no-print-force, .agent-remove-btn { display: none !important; }
+            .preview-card, .db-control-btn, .manager-overlay, .report-overlay, .add-option-btn, .no-print-force, .agent-remove-btn { display: none !important; }
         }
     </style>
 </head>
@@ -303,7 +304,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.27</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.28</p>
                     </div>
                 </div>
             </div>
@@ -316,6 +317,11 @@
                     <i class="fas fa-file-export mr-1"></i> 匯出交接檔
                 </button>
                 <div class="w-px bg-gray-300 mx-1"></div>
+                
+                <button @click="showReporter = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 text-sm shadow-sm transition-colors border border-indigo-600 font-bold">
+                    <i class="fas fa-clipboard-list mr-1"></i> 週報
+                </button>
+
                 <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
                     <i class="fas fa-folder-open mr-1"></i> 後台
                 </button>
@@ -705,6 +711,42 @@
         </div>
     </div>
 
+    <div v-if="showReporter" class="report-overlay no-print" @click.self="showReporter = false">
+        <div class="report-panel">
+            <div class="manager-header flex justify-between items-center p-4 bg-indigo-800 text-white shadow-md z-10">
+                <h2 class="text-lg font-bold"><i class="fas fa-clipboard-list mr-2"></i>週報智能彙整艙</h2>
+                <button @click="showReporter = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-4 bg-gray-50 flex-1 overflow-y-auto flex flex-col gap-4">
+                
+                <div class="bg-white p-3 rounded shadow-sm border border-gray-200">
+                    <label class="text-sm font-bold text-gray-700 mb-2">1. 選擇承辦人員 (自動撈取進行中案件)</label>
+                    <select v-model="reportStaffFilter" class="nexus-select w-full font-bold text-indigo-700">
+                        <option value="">-- 顯示全公司所有進行中案件 --</option>
+                        <option v-for="staff in staffList" :key="staff.name" :value="staff.name">{{staff.name}}</option>
+                    </select>
+                </div>
+
+                <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex-1 flex flex-col">
+                    <label class="text-sm font-bold text-gray-700 mb-2 flex justify-between items-center">
+                        <span>2. 本週重點備註 (自動存檔)</span>
+                        <span class="text-[10px] text-green-600 bg-green-100 px-2 py-1 rounded"><i class="fas fa-check-circle"></i> 已同步記憶</span>
+                    </label>
+                    <textarea v-model="reportNotes" class="nexus-input flex-1 min-h-[100px] text-sm" placeholder="請輸入本週行政進度、需主管協助事項、或休假公告... (打字即自動存檔)"></textarea>
+                </div>
+
+                <div class="bg-indigo-50 p-3 rounded shadow-sm border border-indigo-200 flex-1 flex flex-col relative">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-bold text-indigo-900">3. 週報預覽與複製</label>
+                        <button @click="copyWeeklyReport" class="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700 shadow"><i class="fas fa-copy mr-1"></i>複製週報</button>
+                    </div>
+                    <div class="bg-white flex-1 p-3 rounded border border-indigo-100 text-xs font-mono whitespace-pre-wrap overflow-y-auto leading-relaxed">{{ generatedWeeklyReport }}</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
         <div class="manager-panel">
             <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
@@ -802,6 +844,16 @@
             const showManager = ref(false);
             const autoLoadedMsg = ref(null);
             
+            // 🌟 NEXUS: 週報系統狀態
+            const showReporter = ref(false);
+            const reportStaffFilter = ref('');
+            const reportNotes = ref(localStorage.getItem('nexus_report_notes_v33') || '');
+
+            // 🌟 NEXUS: 監聽週報備註並實時存檔 (自動記憶)
+            watch(reportNotes, (newVal) => {
+                localStorage.setItem('nexus_report_notes_v33', newVal);
+            });
+
             // Database State
             const cases = ref([]);
             const currentCaseIndex = ref(-1); 
@@ -1153,6 +1205,44 @@
                 return months;
             });
             
+            // 🌟 NEXUS: 週報產生器邏輯
+            const generatedWeeklyReport = computed(() => {
+                let report = `📊 宏國x易丞地政 每週進度回報\n日期：${new Date().toLocaleDateString('zh-TW')}\n回報人：${reportStaffFilter.value || '全體'}\n`;
+                report += `=====================\n\n`;
+
+                // 1. 本週備註
+                if(reportNotes.value) {
+                    report += `📌【本週重點與主管協助事項】\n${reportNotes.value}\n\n`;
+                }
+
+                // 2. 篩選目前進行中，且符合承辦人的案件
+                let activeCases = cases.value.filter(c => !c['結案時間']);
+                if (reportStaffFilter.value) {
+                    activeCases = activeCases.filter(c => (c['承辦'] || '').includes(reportStaffFilter.value));
+                }
+
+                report += `📁【目前進行中案件：共 ${activeCases.length} 筆】\n`;
+                
+                if(activeCases.length === 0) {
+                    report += `(目前無進行中案件)\n`;
+                } else {
+                    activeCases.forEach((c, index) => {
+                        report += `\n[案件 ${index + 1}] ${c['地址'] || '無地址資訊'}\n`;
+                        report += ` ▸ 買/賣方：${c['客戶姓名(買/賣方)'] || '未建立'}\n`;
+                        report += ` ▸ 簽約日：${c['簽約日'] || '未定'}\n`;
+                        if(c['預收款']) report += ` ▸ 預收款：${c['預收款']}\n`;
+                        if(c['貸款銀行+承辦']) report += ` ▸ 銀行/核貸：${c['貸款銀行+承辦']} / ${c['核貸金額'] || '無'}\n`;
+                    });
+                }
+
+                report += `\n=====================\n以上回報。`;
+                return report;
+            });
+
+            const copyWeeklyReport = () => { 
+                navigator.clipboard.writeText(generatedWeeklyReport.value).then(() => alert('✅ 週報已成功複製！請直接至 LINE 貼上。')); 
+            };
+
             const previewText = computed(() => { 
                 let staffTxt = "";
                 selectedStaff.value.forEach(name => {
@@ -1187,10 +1277,10 @@ ${form.value.notes}
 
 💰 價金明細：
 總價：${form.value.totalPrice} 萬元
-1️簽約款：${form.value.paymentContract || 0} 萬
-2備證款：${form.value.paymentSeal || 0} 萬
-3完稅款：${form.value.paymentTax || 0} 萬
-4貸款：${form.value.paymentBalance || 0} 萬
+1️⃣簽約款：${form.value.paymentContract || 0} 萬
+2️⃣備證款：${form.value.paymentSeal || 0} 萬
+3️⃣完稅款：${form.value.paymentTax || 0} 萬
+4️⃣貸款：${form.value.paymentBalance || 0} 萬
 
 ⏰ 最後點交日：${closing}
 🏦 履保編號：${fullEscrow}
@@ -1212,12 +1302,13 @@ ${staffTxt}`;
                 addPerson, removePerson, addAgent, removeAgent,
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveLocal, exportCases,
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
-                // Removed syncState, syncStatusClass, forceCloudSync, forceCloudUpload
                 priceSum, priceMismatch,
                 escrowOptions, availableBanks, availableNames, checkAndAddOption,
                 // Roadmap
                 roadmapType, showPrivateLien, currentRoadmapSteps, toggleTask,
-                calcDeed, calcLoan, calcResult
+                calcDeed, calcLoan, calcResult,
+                // Nexus Weekly Report Features
+                showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport
             };
         }
     }).mount('#app');
