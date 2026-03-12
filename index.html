@@ -201,10 +201,6 @@
             .nexus-input { border: none !important; border-bottom: 1px solid #555 !important; }
             input[type="number"], .font-mono { font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
 
-            /* Header Grid */
-            .print-grid-4 { display: grid; grid-template-columns: 2.2fr 4.1fr 2.4fr 1.3fr; gap: 8px; align-items: center; margin-bottom: 4px; }
-            .print-grid-4 input { padding-top: 2px !important; padding-bottom: 0px !important; }
-
             /* Finance */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
             .print-finance-grid input.font-mono { text-align: right; width: 100% !important; padding-right: 20px !important; }
@@ -232,8 +228,7 @@
             .escrow-section div { margin-bottom: 2px; }
             .escrow-section input, .escrow-section select { width: 100% !important; margin-bottom: 0 !important; }
             .print-escrow-id-row { display: flex !important; gap: 4px; }
-            .print-escrow-id-row select { width: 80px !important; }
-            .print-escrow-id-row input { flex-grow: 1; }
+            .print-escrow-id-row select, .print-escrow-id-row input { flex-grow: 1; }
             
             /* Admin & Doc */
             .admin-card { flex-grow: 1; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
@@ -276,7 +271,7 @@
             .task-checkbox { border-color: #000 !important; width: 12px !important; height: 12px !important; margin-top: 2px !important; }
             .important-red { color: #000 !important; text-decoration: underline; }
             
-            .calc-box { display: none !important; } /* Hide calculator on print */
+            .calc-box { display: none !important; }
 
             /* Compact Calendar */
             .calendar-section { margin-top: 5mm !important; } 
@@ -339,6 +334,31 @@
             <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 whitespace-nowrap ml-2">退出</button>
         </div>
 
+        <div class="print-only border-[2px] border-black mb-2 p-1 break-inside-avoid shadow-none">
+            <div class="flex items-end gap-2 border-b-2 border-black pb-1 mb-1">
+                <span class="text-[14pt] font-black whitespace-nowrap">案名：</span>
+                <span class="text-[18pt] font-black flex-1 border-b border-gray-400 tracking-wider pb-1">{{ form.propertyName || '&nbsp;' }}</span>
+            </div>
+            <div class="flex items-center justify-between border-b-2 border-black pb-1 mb-1">
+                <div class="flex items-center gap-2">
+                    <span class="text-[12pt] font-black">立約日：</span>
+                    <span class="text-[14pt] font-black tracking-widest">{{ form.contractDate ? toROC(form.contractDate) : '____.__.__' }}</span>
+                </div>
+                <div class="flex items-center gap-2 mr-2">
+                    <span class="text-[12pt] font-black">成交總價：</span>
+                    <span class="text-[16pt] font-black">{{ form.totalPrice || '____' }} 萬</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-1 pb-1">
+                <div class="flex items-start gap-2">
+                    <span class="text-[12pt] font-black whitespace-nowrap">標的：</span>
+                    <span class="text-[13pt] font-black leading-tight flex-1">{{ form.address || '________________________________________' }}</span>
+                </div>
+                <div class="pl-12 mt-[2px]">
+                    <span class="text-[10pt] font-bold">({{ form.landBuildNo || '________________________________________' }})</span>
+                </div>
+            </div>
+        </div>
         <div class="card bg-white border border-gray-200 rounded p-4 mb-2">
             <div class="timeline-wrapper">
                 <div class="timeline-line-bg"></div>
@@ -349,7 +369,8 @@
                     <div class="step-item" :class="{ active: form.closingDate }"><div class="step-icon"><i class="fas fa-home"></i></div><div class="step-title">4.結案</div><div class="step-date">{{ formatDate(form.closingDate) }}</div></div>
                 </div>
             </div>
-            <div class="print-grid-4 mt-2 pt-2 border-t border-gray-100">
+            
+            <div class="print-grid-4 mt-2 pt-2 border-t border-gray-100 no-print-force print:hidden">
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">案件名稱</label><input v-model="form.propertyName" class="nexus-input font-bold text-navy" placeholder="輸入案名"></div>
                 <div><label class="text-xs font-bold text-gray-500 uppercase block">地址</label><input v-model="form.address" class="nexus-input" placeholder="地址"></div>
                 <div class="relative"><label class="text-xs font-bold text-gray-500 uppercase block">地號/建號</label><input v-model="form.landBuildNo" class="nexus-input" placeholder="地號、建號"></div>
@@ -386,10 +407,10 @@
                         <div class="w-1/3">
                             <label class="text-xs text-gray-400 block print:text-black">編號(前)</label>
                             <div class="relative">
-                                <select v-model="form.escrowIdPrefix" class="nexus-select text-sm font-mono text-blue-800 print:text-black font-bold p-1">
-                                    <option value="">選擇...</option>
+                                <input list="prefix-list" v-model="form.escrowIdPrefix" @change="checkAndAddOption('prefixes', form.escrowIdPrefix)" class="nexus-input text-sm font-mono text-blue-800 print:text-black font-bold p-1 w-full" placeholder="選擇或輸入">
+                                <datalist id="prefix-list">
                                     <option v-for="opt in escrowOptions.prefixes" :key="opt" :value="opt">{{opt}}</option>
-                                </select>
+                                </datalist>
                             </div>
                         </div>
                         <div class="flex-1">
@@ -402,7 +423,7 @@
                         <label class="text-xs text-gray-400 block print:text-black">銀行別</label>
                         <input list="bank-list" v-model="form.escrowBank" @change="checkAndAddOption('banks', form.escrowBank)" class="nexus-input text-sm w-full" placeholder="選擇或輸入銀行">
                         <datalist id="bank-list">
-                             <option v-for="b in availableBanks" :key="b" :value="b">{{b}}</option>
+                             <option v-for="b in escrowOptions.banks" :key="b" :value="b">{{b}}</option>
                         </datalist>
                     </div>
 
@@ -410,7 +431,7 @@
                          <label class="text-xs text-gray-400 block print:text-black">戶名</label>
                          <input list="name-list" v-model="form.escrowName" @change="checkAndAddOption('names', form.escrowName)" class="nexus-input text-sm w-full" placeholder="選擇或輸入戶名">
                          <datalist id="name-list">
-                             <option v-for="n in availableNames" :key="n" :value="n">{{n}}</option>
+                             <option v-for="n in escrowOptions.names" :key="n" :value="n">{{n}}</option>
                          </datalist>
                     </div>
                 </div>
@@ -753,6 +774,31 @@
                 <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>案件管理後台 (共 {{cases.length}} 筆)</h2>
                 <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
             </div>
+            
+            <div class="p-4 bg-gray-200 border-b border-gray-300">
+                <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-book"></i> 資料字典管理 (點擊 <i class="fas fa-times text-red-500"></i> 即可刪除不常用的記憶)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="bg-white p-2 rounded shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保編號 (前綴)</h4>
+                        <div class="flex flex-wrap gap-1">
+                            <span v-for="(opt, i) in escrowOptions.prefixes" :key="'p'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('prefixes', i)" title="刪除"></i></span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保銀行</h4>
+                        <div class="flex flex-wrap gap-1">
+                            <span v-for="(opt, i) in escrowOptions.banks" :key="'b'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('banks', i)" title="刪除"></i></span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-2 rounded shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保戶名</h4>
+                        <div class="flex flex-wrap gap-1">
+                            <span v-for="(opt, i) in escrowOptions.names" :key="'n'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('names', i)" title="刪除"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="p-4 bg-gray-50 flex-1 overflow-y-auto">
                 <table class="case-table bg-white shadow-sm">
                     <thead>
@@ -808,7 +854,6 @@
         '2026-09-25', '2026-09-26', '2026-09-27'
     ];
 
-    // --- Roadmap Data ---
     const constructionSteps = [
         { title: "Phase 1: 地政保存登記", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (正影本)", "3. 使用執照竣工平面圖 (正影本)", "4. 建物測量成果圖 (影本)", "5. 分坪表、公告稿、公設分配書"] },
         { title: "Phase 2: 稅務局設立稅籍", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (影本) & 竣工平面圖 (影本)", "3. 建物謄本 (影本)", "4. 建物測量成果圖 (影本)", "5. 確認影本皆蓋公司大小章與正本相符章"] },
@@ -844,30 +889,25 @@
             const showManager = ref(false);
             const autoLoadedMsg = ref(null);
             
-            // 🌟 NEXUS: 週報系統狀態
             const showReporter = ref(false);
             const reportStaffFilter = ref('');
             const reportNotes = ref(localStorage.getItem('nexus_report_notes_v33') || '');
 
-            // 🌟 NEXUS: 監聽週報備註並實時存檔 (自動記憶)
             watch(reportNotes, (newVal) => {
                 localStorage.setItem('nexus_report_notes_v33', newVal);
             });
 
-            // Database State
             const cases = ref([]);
             const currentCaseIndex = ref(-1); 
             const csvHeaders = ref([]); 
 
-            // Roadmap State
             const roadmapType = ref('house');
             const showPrivateLien = ref(false);
             const calcDeed = ref('');
             const calcLoan = ref('');
 
-            // Escrow Options
             const escrowOptions = ref({
-                prefixes: ['997975-', '55006-', '96866-', '28500-'],
+                prefixes: ['997975-', '55006-', '96866-', '28500-', '98688-'],
                 banks: ['永豐商業銀行~東台南分行', '第一商業銀行~城東分行', '台新國際商業銀行~建北分行', '第一商業銀行~安和分行'],
                 names: ['永豐商業銀行受託信託財產專戶', '第一商業銀行受託信託財產專戶', '台新國際商業銀行受託信託財產專戶', '第一商業銀行受託信託財產專戶-僑馥價金履約保證']
             });
@@ -881,10 +921,8 @@
                 escrowName: '', escrowBank: '', escrowBranch: '', 
                 totalPrice: '', loanPrice: '',
                 
-                // Dynamic Arrays
                 sellers: [{ name: '', phone: '', role: '本人' }],
                 buyers: [{ name: '', phone: '', role: '本人' }],
-                // New Dynamic Agents
                 salesAgents: [{ name: '', phone: '', store: '' }],
                 devAgents: [{ name: '', phone: '', store: '' }],
 
@@ -899,7 +937,6 @@
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
 
-            // Logic Helpers
             const priceSum = computed(() => {
                 return (parseFloat(form.value.paymentContract)||0) + (parseFloat(form.value.paymentSeal)||0) + (parseFloat(form.value.paymentTax)||0) + (parseFloat(form.value.paymentBalance)||0);
             });
@@ -909,29 +946,26 @@
                 return Math.abs(total - priceSum.value) > 0.01;
             });
 
-            const getUniqueFromCases = (key) => {
-                const set = new Set();
-                cases.value.forEach(c => { if (c[key]) set.add(c[key]); });
-                return Array.from(set);
-            };
-            const availableBanks = computed(() => {
-                const base = new Set(escrowOptions.value.banks);
-                getUniqueFromCases('履保銀行').forEach(b => base.add(b));
-                return Array.from(base);
-            });
-            const availableNames = computed(() => {
-                const base = new Set(escrowOptions.value.names);
-                getUniqueFromCases('履保戶名').forEach(n => base.add(n));
-                return Array.from(base);
-            });
             const checkAndAddOption = (type, val) => {
                 if(!val) return;
-                if (type === 'banks' && !escrowOptions.value.banks.includes(val)) escrowOptions.value.banks.push(val);
-                if (type === 'names' && !escrowOptions.value.names.includes(val)) escrowOptions.value.names.push(val);
-                localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
+                let isUpdated = false;
+                if (type === 'prefixes' && !escrowOptions.value.prefixes.includes(val)) { escrowOptions.value.prefixes.push(val); isUpdated = true; }
+                if (type === 'banks' && !escrowOptions.value.banks.includes(val)) { escrowOptions.value.banks.push(val); isUpdated = true; }
+                if (type === 'names' && !escrowOptions.value.names.includes(val)) { escrowOptions.value.names.push(val); isUpdated = true; }
+                
+                if (isUpdated) {
+                    localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
+                }
             };
 
-            // Roadmap Computed Logic
+            // 🌟 NEXUS: 資料字典刪除功能
+            const removeOption = (type, idx) => {
+                if(confirm('確定要刪除這個常用選項嗎？')) {
+                    escrowOptions.value[type].splice(idx, 1);
+                    localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
+                }
+            };
+
             const currentRoadmapSteps = computed(() => {
                 let steps = [];
                 if (roadmapType.value === 'construction') steps = [...constructionSteps];
@@ -939,7 +973,6 @@
                 else steps = [...standardSteps];
 
                 if (showPrivateLien.value) {
-                    // Insert Private Lien step usually after Phase 2 (index 2)
                     let insertIdx = steps.findIndex(s => s.title.includes("Phase 2"));
                     if (insertIdx === -1) insertIdx = 1;
                     steps.splice(insertIdx + 1, 0, privateLienStep);
@@ -950,7 +983,6 @@
             const calcResult = computed(() => {
                 const d = parseFloat(calcDeed.value) || 0;
                 const l = parseFloat(calcLoan.value) || 0;
-                // Formula: Deed + (LoanWan * 12 * 1) + 25000 (Simplified fee estimation: 1.2 setting * 0.1%) -> actually Loan * 1.2 / 1000 * 10000 = Loan * 12
                 return Math.round(d + (l * 12) + 25000).toLocaleString();
             });
 
@@ -958,15 +990,23 @@
                 event.currentTarget.classList.toggle('checked');
             };
 
-            // Dynamic Person/Agent Logic
             const addPerson = (type) => { form.value[type].push({ name: '', phone: '', role: '本人' }); };
             const removePerson = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
             
             const addAgent = (type) => { form.value[type].push({ name: '', phone: '', store: '' }); };
             const removeAgent = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
 
-            // Startup
             onMounted(() => {
+                const savedEscrow = localStorage.getItem('nexus_escrow_options');
+                if (savedEscrow) {
+                    try {
+                        const parsedEscrow = JSON.parse(savedEscrow);
+                        if(parsedEscrow.prefixes) escrowOptions.value.prefixes = Array.from(new Set([...escrowOptions.value.prefixes, ...parsedEscrow.prefixes]));
+                        if(parsedEscrow.banks) escrowOptions.value.banks = Array.from(new Set([...escrowOptions.value.banks, ...parsedEscrow.banks]));
+                        if(parsedEscrow.names) escrowOptions.value.names = Array.from(new Set([...escrowOptions.value.names, ...parsedEscrow.names]));
+                    } catch(e) {}
+                }
+
                 const savedForm = localStorage.getItem('nexus_form_v33');
                 if (savedForm) {
                     const parsed = JSON.parse(savedForm);
@@ -974,7 +1014,7 @@
                     if(!parsed.buyers || parsed.buyers.length===0) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
                     if(!parsed.salesAgents || parsed.salesAgents.length===0) parsed.salesAgents = [{ name: '', phone: '', store: '' }];
                     if(!parsed.devAgents || parsed.devAgents.length===0) parsed.devAgents = [{ name: '', phone: '', store: '' }];
-                    form.value = parsed;
+                    form.value = Object.assign({}, defaultForm, parsed);
                 }
                 const savedStaff = localStorage.getItem('nexus_staff_v33');
                 if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
@@ -989,7 +1029,7 @@
                 if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
             });
 
-            // Form Logic
+            // 🌟 NEXUS: 民國年轉換函式 (已提供給列印面板使用)
             const toROC = (d) => d ? `${new Date(d).getFullYear()-1911}.${(new Date(d).getMonth()+1).toString().padStart(2,'0')}.${new Date(d).getDate().toString().padStart(2,'0')}` : '';
             const fromROC = (d) => { if(!d) return ''; const p = d.split(/[./]/); return p.length>=3 ? `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}` : ''; };
 
@@ -1038,7 +1078,7 @@
                 if (c['_salesAgents_json']) try { form.value.salesAgents = JSON.parse(c['_salesAgents_json']); } catch(e){}
                 if (c['_devAgents_json']) try { form.value.devAgents = JSON.parse(c['_devAgents_json']); } catch(e){}
 
-                if(!form.value.sellers.length) { // Fallback for old data
+                if(!form.value.sellers.length) {
                      const names = c['客戶姓名(買/賣方)'] || '';
                      const namesParts = names.split(/[、,]/);
                      form.value.sellers = [{name: namesParts[0]||'', phone:'', role:'本人'}];
@@ -1090,7 +1130,6 @@
                     '履保銀行': form.value.escrowBank,
                     '履保戶名': form.value.escrowName,
                     
-                    // JSON Storage
                     '_sellers_json': JSON.stringify(form.value.sellers),
                     '_buyers_json': JSON.stringify(form.value.buyers),
                     '_salesAgents_json': JSON.stringify(form.value.salesAgents),
@@ -1098,7 +1137,6 @@
                     ...(currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {}) 
                 };
 
-                // Explicit Overwrite
                 rowData['簽約日'] = toROC(form.value.contractDate);
                 rowData['客戶姓名(買/賣方)'] = `${sellerDisplay}、${buyerDisplay}`;
                 rowData['地址'] = form.value.address;
@@ -1138,7 +1176,6 @@
                 link.click();
             };
 
-            // Contacts
             const contactsDB = ref([]);
             const contactsLoaded = ref(false);
             const suggestions = ref({ target: null, list: [], idx: null });
@@ -1205,17 +1242,14 @@
                 return months;
             });
             
-            // 🌟 NEXUS: 週報產生器邏輯
             const generatedWeeklyReport = computed(() => {
                 let report = `📊 宏國x易丞地政 每週進度回報\n日期：${new Date().toLocaleDateString('zh-TW')}\n回報人：${reportStaffFilter.value || '全體'}\n`;
                 report += `=====================\n\n`;
 
-                // 1. 本週備註
                 if(reportNotes.value) {
                     report += `📌【本週重點與主管協助事項】\n${reportNotes.value}\n\n`;
                 }
 
-                // 2. 篩選目前進行中，且符合承辦人的案件
                 let activeCases = cases.value.filter(c => !c['結案時間']);
                 if (reportStaffFilter.value) {
                     activeCases = activeCases.filter(c => (c['承辦'] || '').includes(reportStaffFilter.value));
@@ -1253,7 +1287,6 @@
                 const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
                 const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
                 
-                // Helper to format name with role
                 const formatPerson = (p) => {
                     const name = p.name.trim();
                     if (!name) return null;
@@ -1264,38 +1297,13 @@
                 const buyerTxt = form.value.buyers.map(formatPerson).filter(n => n).join('、');
                 const fullEscrow = form.value.escrowIdPrefix + form.value.escrowIdSuffix;
 
-                return `簽約案件：${d}
-案名：${form.value.propertyName}
-🏠 住址：${form.value.address}
-地建號：${form.value.landBuildNo}
-
-👤 買方：${buyerTxt}
-👤 賣方：${sellerTxt}
-
-⚠️ 特殊事項 ：
-${form.value.notes}
-
-💰 價金明細：
-總價：${form.value.totalPrice} 萬元
-1️⃣簽約款：${form.value.paymentContract || 0} 萬
-2️⃣備證款：${form.value.paymentSeal || 0} 萬
-3️⃣完稅款：${form.value.paymentTax || 0} 萬
-4️⃣貸款：${form.value.paymentBalance || 0} 萬
-
-⏰ 最後點交日：${closing}
-🏦 履保編號：${fullEscrow}
-戶名：${form.value.escrowName}
-分行：${form.value.escrowBank}
-
-📞 案件相關問題請聯繫：
-宏國x易丞地政:06-2582589
-承辦：
-${staffTxt}`; 
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
 
             return {
+                toROC, // 🌟 暴露給版面使用
                 staffList, selectedStaff, newStaff, addStaff, form,
                 handleFileUpload, contactsLoaded, handleImportCases, handleContactUpload,
                 searchContacts, suggestions, selectContact, selectAgent,
@@ -1303,11 +1311,9 @@ ${staffTxt}`;
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveLocal, exportCases,
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
                 priceSum, priceMismatch,
-                escrowOptions, availableBanks, availableNames, checkAndAddOption,
-                // Roadmap
+                escrowOptions, checkAndAddOption, removeOption, // 🌟 暴露刪除功能
                 roadmapType, showPrivateLien, currentRoadmapSteps, toggleTask,
                 calcDeed, calcLoan, calcResult,
-                // Nexus Weekly Report Features
                 showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport
             };
         }
