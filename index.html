@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.29 (Stable Core)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.30 (Interactive Status)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,9 +87,10 @@
         .case-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .case-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; }
         .case-table td { padding: 10px; border-bottom: 1px solid #eee; }
-        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .status-badge.active { background-color: #dbeafe; color: #1e40af; }
-        .status-badge.closed { background-color: #dcfce7; color: #166534; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; display: inline-flex; items-center; transition: all 0.2s; }
+        .status-badge.active { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .status-badge.closed { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-badge:hover { transform: scale(1.05); filter: brightness(0.95); }
 
         /* Suggestions */
         .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; max-height: 180px; overflow-y: auto; z-index: 50; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -303,7 +304,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.29</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.30</p>
                         <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
                             <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
                             <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
@@ -853,7 +854,7 @@
                             <th>簽約日</th>
                             <th>客戶姓名</th>
                             <th class="hidden md:table-cell">地址</th>
-                            <th>狀態</th>
+                            <th>狀態 (點擊切換)</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -864,8 +865,10 @@
                             <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
                             <td class="text-xs truncate max-w-[120px] hidden md:table-cell" :title="c['地址']">{{ c['地址'] }}</td>
                             <td>
-                                <span v-if="c['結案時間']" class="status-badge closed">已結案</span>
-                                <span v-else class="status-badge active">進行中</span>
+                                <button @click="toggleCaseStatus(c.originalIndex)" title="點擊快速切換狀態" class="transition-transform hover:scale-105">
+                                    <span v-if="c['結案時間']" class="status-badge closed cursor-pointer shadow-sm"><i class="fas fa-check-circle mr-1"></i>已結案</span>
+                                    <span v-else class="status-badge active cursor-pointer shadow-sm"><i class="fas fa-spinner fa-spin mr-1"></i>進行中</span>
+                                </button>
                             </td>
                             <td>
                                 <button @click="editCase(c.originalIndex)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 px-2 py-1 rounded font-bold" title="編輯"><i class="fas fa-edit"></i> 檢視/編輯</button>
@@ -1069,10 +1072,12 @@
             const addAgent = (type) => { form.value[type].push({ name: '', phone: '', store: '' }); };
             const removeAgent = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
 
-            // 🌟 NEXUS: 修復時間戳計算當機問題 (The String Crash Bug Fix)
+            const toROC = (d) => d ? `${new Date(d).getFullYear()-1911}.${(new Date(d).getMonth()+1).toString().padStart(2,'0')}.${new Date(d).getDate().toString().padStart(2,'0')}` : '';
+            const fromROC = (d) => { if(!d) return ''; const p = d.split(/[./]/); return p.length>=3 ? `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}` : ''; };
+
             const rocToTimestamp = (val) => {
                 if (!val) return 9999999999999;
-                const rocStr = String(val); // 強制安全轉型，防止任何數字或物件導致 .includes 報錯
+                const rocStr = String(val); 
                 if (rocStr.includes('_') || rocStr.trim() === '') return 9999999999999; 
                 const p = rocStr.split(/[./-]/);
                 if (p.length >= 3) {
@@ -1096,6 +1101,43 @@
                 });
 
                 cases.value = [...active, ...closed];
+            };
+
+            // 🌟 NEXUS: 後台一鍵切換狀態引擎
+            const toggleCaseStatus = (idx) => {
+                // 防呆機制：如果正在編輯這筆案子，提醒先存檔
+                if (currentCaseIndex.value === idx) {
+                    alert('⚠️ 您目前正在「編輯」這筆案件。\n請先點選上方的「存檔」或「退出」後，再來切換狀態！');
+                    return;
+                }
+
+                const c = cases.value[idx];
+                if(!c) return;
+
+                const isCurrentlyClosed = !!c['結案時間'];
+                const targetStatus = isCurrentlyClosed ? '進行中' : '已結案';
+
+                if(confirm(`【狀態切換】\n確定要將此案件標記為「${targetStatus}」嗎？`)) {
+                    if (isCurrentlyClosed) {
+                        // 切換為進行中 (清空結案日)
+                        c['結案時間'] = '';
+                    } else {
+                        // 切換為已結案 (填入今日)
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        c['結案時間'] = toROC(todayStr);
+                    }
+                    
+                    // 執行自動洗牌與重編號
+                    sortAndRenumberCases();
+                    
+                    // 寫入本地與雲端
+                    localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    if(GAS_URL) {
+                        syncToCloud().then(() => alert(`✅ 狀態已更新為「${targetStatus}」並同步至雲端！`));
+                    } else {
+                        alert(`✅ 狀態已更新為「${targetStatus}」！`);
+                    }
+                }
             };
 
             const loadFromCloud = async () => {
@@ -1197,9 +1239,6 @@
                 }
             });
 
-            const toROC = (d) => d ? `${new Date(d).getFullYear()-1911}.${(new Date(d).getMonth()+1).toString().padStart(2,'0')}.${new Date(d).getDate().toString().padStart(2,'0')}` : '';
-            const fromROC = (d) => { if(!d) return ''; const p = d.split(/[./]/); return p.length>=3 ? `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}` : ''; };
-
             const handleImportCases = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -1288,7 +1327,6 @@
                 if(switchToNew) showManager.value = false;
             };
 
-            // 🌟 NEXUS: 修復資料覆蓋矛盾，確保新資料正確寫入 (The Overwrite Bug Fix)
             const saveLocal = () => {
                 const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
                 const buyerDisplay = form.value.buyers.map(b => b.name).join('、');
@@ -1300,7 +1338,7 @@
                 const oldData = currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {};
 
                 const rowData = {
-                    ...oldData, // 舊資料先鋪底，再讓下方的新資料蓋上去
+                    ...oldData, 
                     '編號': currentCaseIndex.value > -1 ? oldData['編號'] : '', 
                     '簽約日': toROC(form.value.contractDate),
                     '客戶姓名(買/賣方)': `${sellerDisplay}、${buyerDisplay}`,
@@ -1329,7 +1367,6 @@
                     currentCaseIndex.value = cases.value.length - 1;
                 }
                 
-                // 存檔後立即呼叫排序，並找回剛剛那個案件的新位置
                 const targetCase = cases.value[currentCaseIndex.value];
                 sortAndRenumberCases();
                 currentCaseIndex.value = cases.value.indexOf(targetCase);
@@ -1536,7 +1573,9 @@
                 calcDeed, calcLoan, calcResult,
                 showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport,
                 managerTab, activeCasesList, closedCasesList,
-                quickReportStep, quickReportMsg, sendLineProgressReport, copyLineProgressReport
+                quickReportStep, quickReportMsg, sendLineProgressReport, copyLineProgressReport,
+                // 🌟 綁定切換狀態功能
+                toggleCaseStatus
             };
         }
     }).mount('#app');
