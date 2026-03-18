@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.28 (Weekly Report Engine)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.28 (Cloud Engine)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -201,6 +201,10 @@
             .nexus-input { border: none !important; border-bottom: 1px solid #555 !important; }
             input[type="number"], .font-mono { font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
 
+            /* Header Grid */
+            .print-grid-4 { display: grid; grid-template-columns: 2.2fr 4.1fr 2.4fr 1.3fr; gap: 8px; align-items: center; margin-bottom: 4px; }
+            .print-grid-4 input { padding-top: 2px !important; padding-bottom: 0px !important; }
+
             /* Finance */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 2px !important; }
             .print-finance-grid input.font-mono { text-align: right; width: 100% !important; padding-right: 20px !important; }
@@ -300,6 +304,12 @@
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
                         <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.28</p>
+                        <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
+                            <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
+                            <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
+                            <i v-else-if="syncStatus === 'error'" class="fas fa-exclamation-triangle text-red-600 mr-1"></i>
+                            {{ syncStatus === 'syncing' ? '雲端同步中...' : (syncStatus === 'success' ? '雲端已連線' : '雲端連線失敗') }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -320,8 +330,8 @@
                 <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
                     <i class="fas fa-folder-open mr-1"></i> 後台
                 </button>
-                <button @click="saveLocal" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors">
-                    <i class="fas fa-save mr-1"></i> 存檔
+                <button @click="saveLocal" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors relative">
+                    <i class="fas fa-save mr-1"></i> 存檔<span v-if="GAS_URL" class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping-absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-400"></span></span>
                 </button>
                 <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
                     <i class="fas fa-print mr-1"></i> 列印
@@ -645,6 +655,34 @@
             </div>
         </div>
 
+        <div class="card bg-green-50 border border-green-200 rounded p-3 mt-2 no-print">
+            <div class="flex justify-between items-center mb-1 border-b border-green-200 pb-1">
+                <h3 class="text-xs font-bold text-green-800"><i class="fab fa-line mr-1"></i> LINE 案件進度回報快傳</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                <div>
+                    <label class="text-xs font-bold text-gray-600 block">選擇目前進度</label>
+                    <select v-model="quickReportStep" class="nexus-select text-sm font-bold text-green-900">
+                        <option value="已順利簽約">已順利簽約</option>
+                        <option value="用印完成">用印完成</option>
+                        <option value="稅單已核發，準備完稅">稅單已核發，準備完稅</option>
+                        <option value="完稅完成，送件過戶中">完稅完成，送件過戶中</option>
+                        <option value="過戶完成，準備結案點交">過戶完成，準備結案點交</option>
+                        <option value="案件卡關/需要協助">案件卡關/需要協助</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-xs font-bold text-gray-600 block">回報內容說明 (選填)</label>
+                    <div class="flex gap-2">
+                        <input v-model="quickReportMsg" class="nexus-input text-sm flex-1" placeholder="例如：買方已匯款、預計下週二點交...">
+                        <button @click="sendLineProgressReport" class="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold hover:bg-green-700 whitespace-nowrap transition-colors shadow-sm">
+                            <i class="fas fa-paper-plane mr-1"></i>跳轉 LINE 傳送
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="preview-card card bg-navy text-white rounded p-3 mt-2 no-print">
             <div class="flex justify-between items-center mb-1 border-b border-gray-600 pb-1">
                 <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
@@ -877,6 +915,9 @@
 
     createApp({
         setup() {
+            // 🌟 雲端連線設定：請在下方的引號中填入您部署的 GAS 網址
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbzklmeXsH2PVLtDNvhWYZsgxy0glSd2Tiyj6uxkHXU6uFhs7i0KOa0drOIQig_qb80/exec"; 
+
             const staffList = [
                 { name: "宜婷", phone: "0910-854-444" },
                 { name: "淑玲", phone: "0910-111-088" },
@@ -892,10 +933,15 @@
             const showReporter = ref(false);
             const reportStaffFilter = ref('');
             const reportNotes = ref(localStorage.getItem('nexus_report_notes_v33') || '');
+            
+            const syncStatus = ref(''); // 同步狀態
 
             watch(reportNotes, (newVal) => {
                 localStorage.setItem('nexus_report_notes_v33', newVal);
             });
+
+            const quickReportStep = ref('已順利簽約');
+            const quickReportMsg = ref('');
 
             const cases = ref([]);
             const currentCaseIndex = ref(-1); 
@@ -937,6 +983,15 @@
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
 
+            watch(() => form.value, (newVal) => {
+                localStorage.setItem('nexus_form_draft_v33', JSON.stringify(newVal));
+            }, { deep: true });
+
+            watch(() => selectedStaff.value, (newVal) => {
+                localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal));
+            }, { deep: true });
+
+
             const priceSum = computed(() => {
                 return (parseFloat(form.value.paymentContract)||0) + (parseFloat(form.value.paymentSeal)||0) + (parseFloat(form.value.paymentTax)||0) + (parseFloat(form.value.paymentBalance)||0);
             });
@@ -958,7 +1013,6 @@
                 }
             };
 
-            // 🌟 NEXUS: 資料字典刪除功能
             const removeOption = (type, idx) => {
                 if(confirm('確定要刪除這個常用選項嗎？')) {
                     escrowOptions.value[type].splice(idx, 1);
@@ -996,6 +1050,41 @@
             const addAgent = (type) => { form.value[type].push({ name: '', phone: '', store: '' }); };
             const removeAgent = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
 
+            // 🌟 雲端讀取引擎
+            const loadFromCloud = async () => {
+                if (!GAS_URL) return;
+                try {
+                    syncStatus.value = 'syncing';
+                    const response = await fetch(GAS_URL);
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        cases.value = data;
+                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    }
+                    syncStatus.value = 'success';
+                } catch (error) {
+                    console.error("雲端讀取失敗:", error);
+                    syncStatus.value = 'error';
+                }
+            };
+
+            // 🌟 雲端寫入引擎
+            const syncToCloud = async () => {
+                if (!GAS_URL) return;
+                try {
+                    syncStatus.value = 'syncing';
+                    const payload = { action: 'sync', cases: cases.value };
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    syncStatus.value = 'success';
+                } catch (error) {
+                    console.error("雲端寫入失敗:", error);
+                    syncStatus.value = 'error';
+                }
+            };
+
             onMounted(() => {
                 const savedEscrow = localStorage.getItem('nexus_escrow_options');
                 if (savedEscrow) {
@@ -1007,17 +1096,29 @@
                     } catch(e) {}
                 }
 
+                const savedDraft = localStorage.getItem('nexus_form_draft_v33');
                 const savedForm = localStorage.getItem('nexus_form_v33');
-                if (savedForm) {
-                    const parsed = JSON.parse(savedForm);
+                
+                let targetDataToLoad = null;
+                if (savedDraft) {
+                    targetDataToLoad = savedDraft;
+                } else if (savedForm) {
+                    targetDataToLoad = savedForm;
+                }
+
+                if (targetDataToLoad) {
+                    const parsed = JSON.parse(targetDataToLoad);
                     if(!parsed.sellers || parsed.sellers.length===0) parsed.sellers = [{ name: '', phone: '', role: '本人' }];
                     if(!parsed.buyers || parsed.buyers.length===0) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
                     if(!parsed.salesAgents || parsed.salesAgents.length===0) parsed.salesAgents = [{ name: '', phone: '', store: '' }];
                     if(!parsed.devAgents || parsed.devAgents.length===0) parsed.devAgents = [{ name: '', phone: '', store: '' }];
                     form.value = Object.assign({}, defaultForm, parsed);
                 }
+                
+                const savedStaffDraft = localStorage.getItem('nexus_staff_draft_v33');
                 const savedStaff = localStorage.getItem('nexus_staff_v33');
-                if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
+                if (savedStaffDraft) selectedStaff.value = JSON.parse(savedStaffDraft);
+                else if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
                 const savedCases = localStorage.getItem('nexus_cases_db');
                 if (savedCases) {
@@ -1025,11 +1126,16 @@
                     autoLoadedMsg.value = `已載入 ${cases.value.length} 筆案件`;
                     setTimeout(() => autoLoadedMsg.value = null, 3000);
                 }
+
                 const savedHeaders = localStorage.getItem('nexus_csv_headers');
                 if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
+
+                // 嘗試從雲端拿最新資料覆蓋本地
+                if(GAS_URL) {
+                    loadFromCloud();
+                }
             });
 
-            // 🌟 NEXUS: 民國年轉換函式 (已提供給列印面板使用)
             const toROC = (d) => d ? `${new Date(d).getFullYear()-1911}.${(new Date(d).getMonth()+1).toString().padStart(2,'0')}.${new Date(d).getDate().toString().padStart(2,'0')}` : '';
             const fromROC = (d) => { if(!d) return ''; const p = d.split(/[./]/); return p.length>=3 ? `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}` : ''; };
 
@@ -1047,6 +1153,7 @@
                         return obj;
                     }).filter(c => c['編號']);
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    if(GAS_URL) syncToCloud(); // 匯入後也同步到雲端
                     alert(`匯入成功！共 ${cases.value.length} 筆資料。`);
                 }});
             };
@@ -1095,6 +1202,7 @@
                     cases.value.splice(idx, 1);
                     if(currentCaseIndex.value === idx) resetForm();
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    if(GAS_URL) syncToCloud(); // 刪除後也同步到雲端
                 }
             };
 
@@ -1102,6 +1210,8 @@
                 currentCaseIndex.value = -1;
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
                 selectedStaff.value = [];
+                localStorage.removeItem('nexus_form_draft_v33');
+                localStorage.removeItem('nexus_staff_draft_v33');
                 if(switchToNew) showManager.value = false;
             };
 
@@ -1160,7 +1270,14 @@
                 else { cases.value.push(rowData); currentCaseIndex.value = cases.value.length - 1; }
                 
                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                alert('已儲存於本機！若需移轉給同事，請點選「匯出交接檔」。');
+                localStorage.setItem('nexus_form_draft_v33', JSON.stringify(form.value));
+                
+                // 🌟 NEXUS: 若有綁定雲端網址，則自動雲端備份，否則提示單機儲存
+                if (GAS_URL) {
+                    syncToCloud().then(() => alert('已成功儲存並同步至雲端資料庫！'));
+                } else {
+                    alert('已儲存於本機！若需移轉給同事，請點選「匯出交接檔」。');
+                }
             };
 
             const exportCases = () => {
@@ -1302,8 +1419,45 @@
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
 
+            // 🌟 NEXUS: LINE 進度快傳核心邏輯 (升級版)
+            const sendLineProgressReport = () => {
+                if (!form.value.address && !form.value.propertyName) {
+                    alert('⚠️ 請先填寫「案件名稱」或「地址」再送出回報！');
+                    return;
+                }
+                
+                const caseName = form.value.propertyName || form.value.address || '未命名案件';
+                const staff = selectedStaff.value.length > 0 ? selectedStaff.value.join('、') : '未指定承辦';
+                
+                // 1. 整理買賣方
+                const formatPerson = (p) => p.name.trim() ? (p.role === '本人' ? p.name : `${p.name}(${p.role})`) : null;
+                const buyers = form.value.buyers.map(formatPerson).filter(n => n).join('、') || '未填寫';
+                const sellers = form.value.sellers.map(formatPerson).filter(n => n).join('、') || '未填寫';
+
+                // 2. 整理仲介方 (銷售與開發)
+                const salesTxt = form.value.salesAgents.map(a => a.name.trim() ? `${a.name}(${a.store||'銷售'})` : null).filter(n=>n).join('、');
+                const devTxt = form.value.devAgents.map(a => a.name.trim() ? `${a.name}(${a.store||'開發'})` : null).filter(n=>n).join('、');
+                const agentsArray = [salesTxt, devTxt].filter(n => n);
+                // 若有仲介，則加入排版
+                const agentSection = agentsArray.length > 0 ? `\n🤝 仲介：${agentsArray.join(' / ')}` : '';
+
+                // 3. 整理備註說明
+                const msg = quickReportMsg.value ? `\n\n📝 備註說明：\n${quickReportMsg.value}` : '';
+
+                // 4. 組合最終字串
+                const text = `📋【案件進度即時回報】\n案名：${caseName}\n📍 目前進度：${quickReportStep.value}\n\n👤 買方：${buyers}\n👤 賣方：${sellers}${agentSection}\n\n🏢 承辦地政：${staff}${msg}`;
+
+                // 將文字進行 URL 安全編碼
+                const encodedText = encodeURIComponent(text);
+                const lineUrl = `https://line.me/R/share?text=${encodedText}`;
+                
+                // 開啟 LINE
+                window.open(lineUrl, '_blank');
+            };
+
             return {
-                toROC, // 🌟 暴露給版面使用
+                GAS_URL, syncStatus, // 🌟 暴露給版面使用
+                toROC, 
                 staffList, selectedStaff, newStaff, addStaff, form,
                 handleFileUpload, contactsLoaded, handleImportCases, handleContactUpload,
                 searchContacts, suggestions, selectContact, selectAgent,
@@ -1311,10 +1465,11 @@
                 showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveLocal, exportCases,
                 formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
                 priceSum, priceMismatch,
-                escrowOptions, checkAndAddOption, removeOption, // 🌟 暴露刪除功能
+                escrowOptions, checkAndAddOption, removeOption, 
                 roadmapType, showPrivateLien, currentRoadmapSteps, toggleTask,
                 calcDeed, calcLoan, calcResult,
-                showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport
+                showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport,
+                quickReportStep, quickReportMsg, sendLineProgressReport
             };
         }
     }).mount('#app');
