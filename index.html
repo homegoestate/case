@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.31 (Cloning Engine)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.32 (Snapshot Engine)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -304,7 +304,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.31</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.32</p>
                         <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
                             <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
                             <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
@@ -315,12 +315,12 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 no-print w-full md:w-auto">
-                <label class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm shadow-sm transition-colors border border-blue-200 cursor-pointer font-bold">
-                    <i class="fas fa-file-import mr-1"></i> 匯入交接檔
+                <label class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 cursor-pointer font-bold" title="匯入交接檔">
+                    <i class="fas fa-file-import"></i>
                     <input type="file" class="hidden" accept=".csv" @change="handleImportCases">
                 </label>
-                <button @click="exportCases" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm shadow-sm transition-colors border border-blue-700 font-bold">
-                    <i class="fas fa-file-export mr-1"></i> 匯出交接檔
+                <button @click="exportCases" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 font-bold" title="匯出交接檔">
+                    <i class="fas fa-file-export"></i>
                 </button>
                 <div class="w-px bg-gray-300 mx-1"></div>
                 
@@ -408,6 +408,12 @@
             <div class="card bg-white border border-gray-200 rounded p-3">
                 <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
                 <div class="print-finance-grid">
+                    
+                    <template v-if="roadmapType === 'construction'">
+                        <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">0. 訂金</label><div class="relative w-full"><input v-model="form.paymentDeposit" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                        <div class="relative"><input type="date" v-model="form.depositDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    </template>
+
                     <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">1. 簽約</label><div class="relative w-full"><input v-model="form.paymentContract" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
                     <div class="relative"><input type="date" v-model="form.contractDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
                     
@@ -419,6 +425,11 @@
                     
                     <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">4. 尾款</label><div class="relative w-full"><input v-model="form.paymentBalance" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
                     <div class="relative"><input type="date" v-model="form.closingDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+
+                    <template v-if="roadmapType === 'construction'">
+                        <div class="relative border border-gray-100 rounded px-2 bg-gray-50 print:bg-white print:border-gray-300"><label class="text-xs text-gray-400 font-bold block print:text-black">5. 交屋款</label><div class="relative w-full"><input v-model="form.paymentHandover" class="nexus-input font-mono text-center p-1 bg-transparent" placeholder="金額"><span class="unit-tag">萬</span></div></div>
+                        <div class="relative"><input type="date" v-model="form.handoverDate" class="nexus-input text-xs bg-transparent w-full p-1 font-bold text-blue-800 print:text-black"></div>
+                    </template>
                 </div>
             </div>
             <div class="card bg-white border border-gray-200 rounded p-3 mt-2 md:mt-0">
@@ -936,7 +947,6 @@
 
     createApp({
         setup() {
-            // 🌟 雲端連線設定：已為您自動載入專屬網址
             const GAS_URL = "https://script.google.com/macros/s/AKfycbzRVeVVLJT4btxFjg2yMctdViZ6FK72ewOnqT7FjNNgcPfZjsKm7QXaTLlXrRjlGj3F/exec"; 
 
             const staffList = [
@@ -994,7 +1004,11 @@
             const form = ref({
                 contractDate: new Date().toISOString().split('T')[0],
                 sealDate: '', taxDate: '', closingDate: '',
+                // 🌟 NEXUS: 新增動態款項欄位
+                paymentDeposit: '', depositDate: '',
                 paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '',
+                paymentHandover: '', handoverDate: '',
+
                 propertyName: '', address: '', landBuildNo: '',
                 escrowIdPrefix: '', escrowIdSuffix: '', 
                 escrowName: '', escrowBank: '', escrowBranch: '', 
@@ -1024,8 +1038,17 @@
                 localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal));
             }, { deep: true });
 
+            watch(() => roadmapType.value, (newVal) => {
+                localStorage.setItem('nexus_roadmap_type_v33', newVal);
+            });
+
             const priceSum = computed(() => {
-                return (parseFloat(form.value.paymentContract)||0) + (parseFloat(form.value.paymentSeal)||0) + (parseFloat(form.value.paymentTax)||0) + (parseFloat(form.value.paymentBalance)||0);
+                return (parseFloat(form.value.paymentDeposit)||0) + 
+                       (parseFloat(form.value.paymentContract)||0) + 
+                       (parseFloat(form.value.paymentSeal)||0) + 
+                       (parseFloat(form.value.paymentTax)||0) + 
+                       (parseFloat(form.value.paymentBalance)||0) + 
+                       (parseFloat(form.value.paymentHandover)||0);
             });
             const priceMismatch = computed(() => {
                 const total = parseFloat(form.value.totalPrice);
@@ -1227,6 +1250,9 @@
                 if (savedStaffDraft) selectedStaff.value = JSON.parse(savedStaffDraft);
                 else if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
                 
+                const savedRoadmap = localStorage.getItem('nexus_roadmap_type_v33');
+                if (savedRoadmap) roadmapType.value = savedRoadmap;
+
                 const savedCases = localStorage.getItem('nexus_cases_db');
                 if (savedCases) {
                     cases.value = JSON.parse(savedCases);
@@ -1264,38 +1290,55 @@
                 }});
             };
 
+            // 🌟 NEXUS: 升級版讀取，若有 _form_json 則 100% 覆蓋還原
             const editCase = (idx) => {
                 currentCaseIndex.value = idx;
                 const c = cases.value[idx];
+                
+                // 先將畫面歸零回預設值
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
 
-                form.value.contractDate = fromROC(c['簽約日']);
-                form.value.closingDate = fromROC(c['結案時間']);
-                form.value.address = c['地址'];
-                form.value.totalPrice = (c['售價(萬)']||'').replace(/[^\d.]/g,'');
-                form.value.loanPrice = (c['銀行貸款金額']||'').replace(/[^\d.]/g,'');
-                form.value.buyerBankAmount = c['核貸金額'] || '';
-                form.value.buyerBank = c['貸款銀行+承辦'] || '';
-                form.value.buyerPrePay = c['預收款'] || '';
-                form.value.waterId = c['水電、瓦斯、管理費'] || '';
+                if (c['_roadmapType']) roadmapType.value = c['_roadmapType'];
+                if (c['_showPrivateLien'] !== undefined) showPrivateLien.value = (c['_showPrivateLien'] === true || c['_showPrivateLien'] === 'true');
 
-                const escrowNum = c['履保編號'] || '';
-                const prefix = escrowOptions.value.prefixes.find(p => escrowNum.startsWith(p));
-                form.value.escrowIdPrefix = prefix || '';
-                form.value.escrowIdSuffix = prefix ? escrowNum.replace(prefix, '') : escrowNum;
-                form.value.escrowBank = c['履保銀行'] || '';
-                form.value.escrowName = c['履保戶名'] || '';
+                if (c['_form_json']) {
+                    try {
+                        const savedForm = JSON.parse(c['_form_json']);
+                        Object.assign(form.value, savedForm);
+                    } catch(e) {
+                        console.error("解析全息快照失敗", e);
+                    }
+                } else {
+                    // 若是舊版沒有 _form_json 的資料，啟動傳統對接模式
+                    form.value.contractDate = fromROC(c['簽約日']);
+                    form.value.closingDate = fromROC(c['結案時間']);
+                    form.value.address = c['地址'] || '';
+                    form.value.totalPrice = (c['售價(萬)']||'').replace(/[^\d.]/g,'');
+                    form.value.loanPrice = (c['銀行貸款金額']||'').replace(/[^\d.]/g,'');
+                    form.value.buyerBankAmount = c['核貸金額'] || '';
+                    form.value.buyerBank = c['貸款銀行+承辦'] || '';
+                    form.value.buyerPrePay = c['預收款'] || '';
+                    form.value.waterId = c['水電、瓦斯、管理費'] || '';
 
-                if (c['_sellers_json']) try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){}
-                if (c['_buyers_json']) try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
-                if (c['_salesAgents_json']) try { form.value.salesAgents = JSON.parse(c['_salesAgents_json']); } catch(e){}
-                if (c['_devAgents_json']) try { form.value.devAgents = JSON.parse(c['_devAgents_json']); } catch(e){}
+                    const escrowNum = c['履保編號'] || '';
+                    const prefix = escrowOptions.value.prefixes.find(p => escrowNum.startsWith(p));
+                    form.value.escrowIdPrefix = prefix || '';
+                    form.value.escrowIdSuffix = prefix ? escrowNum.replace(prefix, '') : escrowNum;
+                    form.value.escrowBank = c['履保銀行'] || '';
+                    form.value.escrowName = c['履保戶名'] || '';
 
-                if(!form.value.sellers.length) {
-                     const names = c['客戶姓名(買/賣方)'] || '';
-                     const namesParts = names.split(/[、,]/);
-                     form.value.sellers = [{name: namesParts[0]||'', phone:'', role:'本人'}];
-                     form.value.buyers = [{name: namesParts[1]||'', phone:'', role:'本人'}];
+                    if (c['_sellers_json']) try { form.value.sellers = JSON.parse(c['_sellers_json']); } catch(e){}
+                    if (c['_buyers_json']) try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
+                    if (c['_salesAgents_json']) try { form.value.salesAgents = JSON.parse(c['_salesAgents_json']); } catch(e){}
+                    if (c['_devAgents_json']) try { form.value.devAgents = JSON.parse(c['_devAgents_json']); } catch(e){}
+
+                    // 修復舊版客戶名稱抓取
+                    if(form.value.sellers.length === 1 && !form.value.sellers[0].name) {
+                         const names = c['客戶姓名(買/賣方)'] || '';
+                         const namesParts = names.split(/[、,]/);
+                         form.value.sellers[0].name = namesParts[0] || '';
+                         if(namesParts[1]) form.value.buyers[0].name = namesParts[1] || '';
+                    }
                 }
 
                 const staffStr = c['承辦'] || '';
@@ -1331,23 +1374,21 @@
                 if(switchToNew) showManager.value = false;
             };
 
-            // 🌟 NEXUS: 新建案件功能 (一鍵清空畫面)
             const addNewCase = () => {
                 if(confirm('確定要清空畫面，建立一筆全新的案件嗎？\n(未存檔的資料將會遺失)')) {
                     resetForm(false);
                 }
             };
 
-            // 🌟 NEXUS: 另存新案功能 (克隆引擎)
             const saveAsNew = () => {
                 if(confirm('確定要將目前畫面上的資料「另存為新案件」嗎？\n(系統將自動清除結案日期，設為進行中)')) {
-                    currentCaseIndex.value = -1; // 脫離舊案綁定
-                    form.value.closingDate = ''; // 強制變更為進行中
-                    saveLocal(true); // 執行存檔
+                    currentCaseIndex.value = -1; 
+                    form.value.closingDate = ''; 
+                    saveLocal(true); 
                 }
             };
 
-            // 🌟 NEXUS: 強化存檔機制
+            // 🌟 NEXUS: 全息快照存檔機制
             const saveLocal = (isSaveAsNew = false) => {
                 const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
                 const buyerDisplay = form.value.buyers.map(b => b.name).join('、');
@@ -1357,8 +1398,6 @@
                 localStorage.setItem('nexus_staff_v33', JSON.stringify(selectedStaff.value));
 
                 const oldData = currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {};
-                
-                // 為了避免排序後抓不到正確索引，加上一個暫時的唯一標記
                 const tempId = Date.now().toString() + Math.random().toString();
 
                 const rowData = {
@@ -1382,7 +1421,12 @@
                     '_sellers_json': JSON.stringify(form.value.sellers),
                     '_buyers_json': JSON.stringify(form.value.buyers),
                     '_salesAgents_json': JSON.stringify(form.value.salesAgents),
-                    '_devAgents_json': JSON.stringify(form.value.devAgents)
+                    '_devAgents_json': JSON.stringify(form.value.devAgents),
+                    
+                    // 新增系統欄位，確保一切完美還原
+                    '_roadmapType': roadmapType.value,
+                    '_showPrivateLien': showPrivateLien.value,
+                    '_form_json': JSON.stringify(form.value)
                 };
 
                 if (currentCaseIndex.value > -1) {
@@ -1394,11 +1438,10 @@
                 
                 sortAndRenumberCases();
                 
-                // 透過唯一標記找回正確的新索引
                 const newIdx = cases.value.findIndex(c => c._tempId === tempId);
                 if (newIdx > -1) {
                     currentCaseIndex.value = newIdx;
-                    delete cases.value[newIdx]._tempId; // 清除暫時標記
+                    delete cases.value[newIdx]._tempId; 
                 }
                 
                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
@@ -1414,7 +1457,10 @@
             const exportCases = () => {
                 const titleRow = ["宏國地政 | 易丞地政 案件"];
                 const headerRow = csvHeaders.value.length ? csvHeaders.value : ['編號','簽約日','客戶姓名(買/賣方)','地址','承辦','售價(萬)','銀行貸款金額','核貸金額','貸款不足額','貸款銀行+承辦','貸款狀況','稅單核下','預收款','買服','室內格局','可送過戶','代償','水電、瓦斯、管理費','結案時間','履保編號','履保銀行','履保戶名'];
-                const exportHeader = headerRow.filter(k => !k.startsWith('_'));
+                
+                // 為了保護完整備份，匯出時也加入系統隱藏欄位
+                const exportHeader = [...headerRow.filter(k => !k.startsWith('_')), '_sellers_json', '_buyers_json', '_salesAgents_json', '_devAgents_json', '_form_json', '_roadmapType', '_showPrivateLien'];
+                
                 const dataRows = cases.value.map(c => exportHeader.map(h => c[h] || ''));
                 const csvContent = Papa.unparse([titleRow, exportHeader, ...dataRows]);
                 const blob = new Blob(["\uFEFF"+csvContent], {type: 'text/csv;charset=utf-8;'});
@@ -1544,8 +1590,12 @@
                 const sellerTxt = form.value.sellers.map(formatPerson).filter(n => n).join('、');
                 const buyerTxt = form.value.buyers.map(formatPerson).filter(n => n).join('、');
                 const fullEscrow = form.value.escrowIdPrefix + form.value.escrowIdSuffix;
+                
+                // 🌟 NEXUS: 動態加入建商款項
+                const depositTxt = (roadmapType.value === 'construction' && form.value.paymentDeposit) ? `👉訂金：${form.value.paymentDeposit} 萬\n` : '';
+                const handoverTxt = (roadmapType.value === 'construction' && form.value.paymentHandover) ? `👉交屋款：${form.value.paymentHandover} 萬\n` : '';
 
-                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n${depositTxt}1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n${handoverTxt}\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
