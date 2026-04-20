@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.42 (One-Page Print Layout)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v33.43 (Omni-Aegis Ultimate)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,13 +29,11 @@
             -webkit-user-select: none;
         }
 
-        /* 品牌色 */
         .text-navy { color: var(--nexus-navy); }
         .bg-navy { background-color: var(--nexus-navy); }
         .text-gold { color: var(--nexus-gold); }
         .bg-gold { background-color: var(--nexus-gold); }
 
-        /* 輸入框通用 */
         .nexus-input, .nexus-select {
             width: 100%;
             padding: 0.4rem 0.5rem; 
@@ -60,7 +58,6 @@
         label { display: block; margin-bottom: 2px; font-size: 0.9rem; color: #4b5563; font-weight: 600; }
         .unit-tag { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.85rem; font-weight: bold; pointer-events: none; }
 
-        /* Timeline (Page 1) */
         .timeline-wrapper { position: relative; padding: 10px 0; margin-bottom: 5px; overflow-x: auto; }
         .timeline-line-bg { position: absolute; top: 20px; left: 40px; right: 40px; height: 4px; background: #e5e7eb; z-index: 0; min-width: 300px; }
         .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 10; min-width: 300px; }
@@ -70,17 +67,14 @@
         .step-title { font-weight: 700; color: var(--nexus-navy); font-size: 0.9rem; margin-bottom: 1px; }
         .step-date { font-family: 'Michroma', monospace; font-size: 0.8rem; color: #666; background: #eef2f6; padding: 1px 6px; border-radius: 4px; min-height: 20px; min-width: 80px; }
 
-        /* Document Checkbox Styling */
         .doc-flex-container { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
         .doc-check-item { display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
         .doc-check-item input[type="checkbox"] { transform: scale(1.2); margin-right: 6px; cursor: pointer; }
         .doc-check-item span { font-weight: bold; color: #374151; font-size: 0.95rem; }
 
-        /* Detail Grid */
         .detail-grid { display: grid; grid-template-columns: 70px 1fr; gap: 8px; font-size: 0.95rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px; }
         .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.9rem; }
 
-        /* Manager Styles */
         .manager-overlay, .report-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
         .manager-panel { width: 100%; md:width: 90%; max-width: 1000px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
         .report-panel { width: 100%; max-width: 500px; background: white; height: 100%; box-shadow: -4px 0 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
@@ -92,12 +86,10 @@
         .status-badge.closed { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .status-badge:hover { transform: scale(1.05); filter: brightness(0.95); }
 
-        /* Suggestions */
         .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; max-height: 180px; overflow-y: auto; z-index: 50; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
         .suggestion-item:hover { background-color: #f0f9ff; }
 
-        /* ================= STRATEGIC MAP STYLES (Page 2 Top) ================= */
         .roadmap-container { padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 20px; }
         .roadmap-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--nexus-navy); padding-bottom: 10px; margin-bottom: 10px; }
         .roadmap-title { font-size: 1.2rem; font-weight: 900; color: var(--nexus-navy); }
@@ -125,12 +117,10 @@
         .task-item.checked span { color: #aaa; text-decoration: line-through; }
         .important-red { color: #c0392b; font-weight: bold; }
 
-        /* Calc Box inside Roadmap */
         .calc-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 8px; border-radius: 4px; margin-top: 5px; font-size: 0.85rem; }
         .calc-row { display: flex; gap: 5px; align-items: center; margin-bottom: 4px; }
         .calc-input { width: 60px; padding: 2px; border: 1px solid #ccc; text-align: right; }
 
-        /* Calendar */
         .calendar-section { margin-top: 20px; }
         .calendar-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 768px) { .calendar-container { grid-template-columns: repeat(2, 1fr); } }
@@ -147,7 +137,6 @@
         .marker-tax { background-color: #9333ea; }
         .marker-close { background-color: #dc2626; }
 
-        /* ================= INPUT MODE STYLES (Screen) ================= */
         .person-input-card { background: #fff; border-bottom: 1px dashed #eee; margin-bottom: 8px; padding-bottom: 8px; }
         .person-input-row-1 { display: flex; gap: 4px; margin-bottom: 4px; }
         .person-input-row-2 { display: flex; }
@@ -157,7 +146,6 @@
 
         .print-only { display: none; }
 
-        /* ================= RWD Grid Systems ================= */
         .print-grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 768px) { .print-grid-4 { grid-template-columns: repeat(4, 1fr); } }
         .print-finance-row { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -168,7 +156,6 @@
         .print-admin-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media (min-width: 1024px) { .print-admin-row { grid-template-columns: 1.25fr 0.95fr 1.05fr; } }
 
-        /* ================= 極限單頁版面舒適列印 (One-Page Final Print Mode) ================= */
         @media print {
             @page { margin: 3mm 5mm; size: A4 portrait; }
             body { background: white; font-size: 8.5pt; line-height: 1.1; color: #000; user-select: auto; }
@@ -180,20 +167,17 @@
             .page-one-container { display: block; width: 100%; page-break-after: always; break-after: page; margin-bottom: 0; }
             .page-two-container { display: block; width: 100%; page-break-before: always; break-before: page; margin-top: 0; padding-top: 5mm; }
 
-            /* Header 壓縮 */
             header { margin-bottom: 1px !important; padding-bottom: 1px !important; border-bottom: 1px solid #000 !important; }
             header h1 { font-size: 1.2rem !important; margin-bottom: 0; }
             header .text-xs { font-size: 8pt !important; }
             .w-12.h-12 { width: 28px !important; height: 28px !important; font-size: 12pt !important; }
             
-            /* Timeline 壓縮 */
             .timeline-wrapper { padding: 1px 0 !important; margin-bottom: 1px !important; overflow: hidden; }
             .timeline-line-bg { top: 12px !important; height: 2px !important; }
             .step-icon { width: 20px !important; height: 20px !important; border-width: 1px !important; font-size: 8pt !important; margin-bottom: 1px !important; }
             .step-title { font-size: 8pt !important; color: #000 !important; margin-bottom: 0; }
             .step-date { border: 1px solid #000; background: white !important; color: #000; font-size: 7pt !important; padding: 0 1px; font-weight: bold; min-height: auto !important; }
 
-            /* Card & Input 壓縮 */
             .card { box-shadow: none !important; border: 1px solid #555 !important; margin-bottom: 1px !important; padding: 1px 3px !important; break-inside: avoid; border-radius: 0 !important;}
             h3 { font-size: 9pt !important; margin-bottom: 1px !important; border-width: 2px !important;}
             
@@ -205,18 +189,15 @@
             .nexus-input { border: none !important; border-bottom: 1px solid #777 !important; }
             input[type="number"], .font-mono { font-family: 'Courier New', monospace !important; font-weight: 800 !important; }
 
-            /* 標題區塊壓縮 */
             .text-\[18pt\] { font-size: 14pt !important; }
             .text-\[14pt\] { font-size: 11pt !important; }
             .text-\[16pt\] { font-size: 12pt !important; }
             .text-\[13pt\] { font-size: 10pt !important; }
             .text-\[12pt\] { font-size: 9.5pt !important; }
 
-            /* Header Grid */
             .print-grid-4 { display: grid; grid-template-columns: 2.2fr 4.1fr 2.4fr 1.3fr; gap: 4px; align-items: center; margin-bottom: 2px; }
             .print-grid-4 input { padding-top: 1px !important; padding-bottom: 0px !important; }
 
-            /* Finance Grid (保證建商6欄也能塞下) */
             .print-finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 1px !important; }
             .print-finance-grid { display: grid; grid-template-columns: 45% 53% !important; gap: 1px 2% !important; align-items: end; }
             .print-finance-grid > div { margin-bottom: 0 !important; }
@@ -224,7 +205,6 @@
             .unit-tag { color: #000; font-size: 8pt; right: 0; top: 40%; }
             .print-finance-grid input[type="date"] { width: 100% !important; text-align: center; font-size: 8.5pt !important; }
 
-            /* People Row */
             .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 1px !important; }
             .person-input-card { border: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; display: grid !important; grid-template-columns: 30px 1fr 85px !important; gap: 2px !important; align-items: center; border-bottom: 1px dotted #ccc !important;}
             .person-input-row-1 { display: contents !important; }
@@ -232,7 +212,6 @@
             .role-select { display: none !important; } 
             .person-phone-input { width: 100% !important; text-align: right; font-family: 'Courier New', monospace; font-size: 8.5pt !important; }
 
-            /* Agents Grid */
             .agent-print-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 2px 8px !important; }
             .agent-item { border-bottom: 1px dotted #ccc !important; padding-bottom: 1px !important; margin-bottom: 0 !important; font-size: 8.5pt !important; display: flex; align-items: center; gap: 4px; }
             .agent-name-print { font-weight: bold; width: 35%; flex-shrink: 0; }
@@ -240,14 +219,12 @@
             .agent-input-group { display: none !important; } 
             .agent-print-view { display: flex !important; width: 100%; align-items: center; justify-content: space-between; }
 
-            /* Escrow & Staff Combined */
             .escrow-section { display: flex; flex-direction: column; justify-content: flex-start; gap: 1px; }
             .escrow-section div { margin-bottom: 1px !important; }
             .escrow-section input, .escrow-section select { width: 100% !important; margin-bottom: 0 !important; }
             .print-escrow-id-row { display: flex !important; gap: 4px; }
             .print-escrow-id-row select, .print-escrow-id-row input { flex-grow: 1; }
             
-            /* Admin & Doc */
             .admin-card { flex-grow: 1; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
             .print-doc-header { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 2px; margin-bottom: 2px; }
             .print-doc-col { display: flex; align-items: center; flex-wrap: wrap; }
@@ -262,14 +239,11 @@
             .detail-label { font-size: 8pt !important; width: 40px !important; font-weight: 900; color: #000; }
             .detail-grid { grid-template-columns: 40px 1fr !important; gap: 2px !important; margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 1px dotted #aaa !important; }
 
-            /* Footer */
             footer { border-top: 1px solid #000 !important; padding-top: 1px; font-size: 7pt !important; margin-top: 1px !important; font-weight: bold; }
 
-            /* Notes - 彈性縮放以保證一頁 */
             .print-notes-container textarea { display: none !important; }
             .print-notes-display { display: block !important; white-space: pre-wrap; font-size: 8.5pt; font-weight: 500; min-height: 40px !important; border-bottom: 1px solid #000; line-height: 1.2; padding-top: 1px !important; }
 
-            /* === PAGE 2 PRINT STYLES === */
             .roadmap-container { border: none !important; margin-top: 0 !important; padding: 0 !important; }
             .roadmap-header { border-bottom: 2px solid #000 !important; padding-bottom: 5px; margin-bottom: 8px; }
             .roadmap-title { color: #000 !important; font-size: 13pt !important; }
@@ -313,7 +287,7 @@
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.42</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.43</p>
                         <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
                             <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
                             <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
@@ -680,8 +654,9 @@
                     </div>
                 </div>
             </div>
+            
             <div class="mt-1 border-t border-gray-100 pt-1 print-notes-container">
-                <textarea v-model="form.notes" rows="2" class="nexus-input w-full text-sm no-print-force" placeholder="備註：交屋細節、特殊約定..."></textarea>
+                <textarea v-model="form.notes" rows="4" class="nexus-input w-full text-sm no-print-force resize-y min-h-[80px]" placeholder="備註：交屋細節、特殊約定..."></textarea>
                 <div class="print-notes-display print-only">{{ form.notes }}</div>
             </div>
         </div>
@@ -722,7 +697,7 @@
                 <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
                 <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600">複製</button>
             </div>
-            <div class="text-xs font-mono whitespace-pre-wrap h-40 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
+            <div class="text-xs font-mono whitespace-pre-wrap h-56 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
         </div>
 
         <footer class="mt-auto text-center text-[9px] text-gray-400 font-bold tracking-[0.2em] pt-2 border-t no-print">
@@ -731,7 +706,6 @@
     </div>
 
     <div class="page-two-container">
-        
         <div class="roadmap-container">
             <div class="roadmap-header">
                 <div class="roadmap-title"><i class="fas fa-map-signs mr-2"></i>案件標準作業戰略地圖 (SOP)</div>
@@ -956,7 +930,7 @@
 
     createApp({
         setup() {
-            // 🌟 核心通訊閘道 (已精準鎖定您的伺服器)
+            // 請替換為您自己發布的 Google Apps Script 網址
             const GAS_URL = "https://script.google.com/macros/s/AKfycbwheYGYqWcALKIMokH7SHuaxbhju-mkiADmLQMdhg_g45AolLmP1Zcwl1mDe9b48wPG/exec"; 
             const COMPANY_CONTACT_GAS_URL = "https://script.google.com/macros/s/AKfycbx8wGTj53stwodq95x05pFJ61twBS_Yvy3sE3h0aYtKjoe0Z6HnAH9_4h5n3ElMODlE/exec"; 
 
@@ -1207,6 +1181,7 @@
                 }
             };
 
+            // ================= Omni-Aegis 錯誤攔截升級 =================
             const syncToCloud = async (currentSavedData = null) => {
                 if (!GAS_URL) return;
                 try {
@@ -1250,7 +1225,12 @@
                 } catch (error) {
                     console.error("雲端寫入失敗:", error);
                     syncStatus.value = 'error';
-                    alert('⚠️ 雲端寫入失敗：\n' + error.message);
+                    // 攔截並轉譯舊版錯誤
+                    if (error.message && error.message.includes('ContactsApp')) {
+                        alert('✅ 【系統通知】資料已安全存檔於您的電腦中！\n\n⚠️ 但後端發生錯誤：\n您的 Google Apps Script 包含了已停用的「ContactsApp」程式碼，導致雲端聯絡人同步失敗。\n👉 請依照指示升級為 People API！');
+                    } else {
+                        alert('⚠️ 雲端寫入失敗 (但資料已存於您的本機)：\n' + error.message);
+                    }
                 }
             };
 
@@ -1308,7 +1288,6 @@
                 }
             });
 
-            // 🌟 NEXUS: 終極病毒除錯匯入引擎，自動過濾 CSV 的空白欄位與被截斷的錯誤
             const handleImportCases = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -1324,7 +1303,6 @@
                         let obj = {};
                         rawHeaders.forEach((h, i) => {
                             const cleanH = h ? String(h).trim() : '';
-                            // 嚴格排除空字串與無效欄位
                             if (cleanH !== '') {
                                 obj[cleanH] = row[i] !== undefined ? row[i] : '';
                             }
@@ -1539,7 +1517,6 @@
                 }
             };
 
-            // 🌟 NEXUS: 修復 PapaParse 匯出截斷，確保 _form_json 完美輸出
             const exportCases = () => {
                 if(cases.value.length === 0) return alert('沒有資料可以匯出！');
                 
@@ -1665,6 +1642,7 @@
                 navigator.clipboard.writeText(generatedWeeklyReport.value).then(() => alert('✅ 週報已成功複製！請直接至 LINE 貼上。')); 
             };
 
+            // ================= Omni-Aegis 小背表映射強化 =================
             const previewText = computed(() => { 
                 let staffTxt = "";
                 selectedStaff.value.forEach(name => {
@@ -1688,7 +1666,23 @@
                 const depositTxt = (roadmapType.value === 'construction' && form.value.paymentDeposit) ? `👉訂金：${form.value.paymentDeposit} 萬\n` : '';
                 const handoverTxt = (roadmapType.value === 'construction' && form.value.paymentHandover) ? `👉交屋款：${form.value.paymentHandover} 萬\n` : '';
 
-                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n${depositTxt}1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n${handoverTxt}\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
+                let sellerDocs = [];
+                if(form.value.docSellerDeed) sellerDocs.push('權狀');
+                if(form.value.docSellerSeal) sellerDocs.push('印鑑');
+                if(form.value.docSellerOrdSeal) sellerDocs.push('便章');
+                if(form.value.docSellerID) sellerDocs.push('身分證');
+                if(form.value.docSellerStamp) sellerDocs.push('其他');
+                const sellerDocTxt = sellerDocs.length > 0 ? `📄 賣方應備：${sellerDocs.join('、')}` : '';
+
+                let buyerDocs = [];
+                if(form.value.docBuyerSeal) buyerDocs.push('印章');
+                if(form.value.docBuyerID) buyerDocs.push('身分證');
+                const buyerDocTxt = buyerDocs.length > 0 ? `📄 買方應備：${buyerDocs.join('、')}` : '';
+
+                const buyerBankTxt = form.value.buyerBank ? `🏦 買方貸款：${form.value.buyerBank} (${form.value.buyerBankAmount || '未填額度'})` : '';
+                const sellerBankTxt = form.value.sellerBank ? `🏦 賣方塗銷：${form.value.sellerBank} (${form.value.sellerMortgage || '未填金額'})` : '';
+
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n${buyerDocTxt ? buyerDocTxt + '\n' : ''}${sellerDocTxt ? sellerDocTxt + '\n' : ''}${buyerBankTxt ? buyerBankTxt + '\n' : ''}${sellerBankTxt ? sellerBankTxt + '\n' : ''}\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n${depositTxt}1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n${handoverTxt}\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
