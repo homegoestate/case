@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國x易丞地政 - 案件指揮艙 v33.43 (Omni-Aegis Ultimate)</title>
+    <title>宏國x易丞地政 - 案件指揮艙 v42.00 (The Apex Pillar)</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Michroma&display=swap');
@@ -72,7 +73,7 @@
         .doc-check-item input[type="checkbox"] { transform: scale(1.2); margin-right: 6px; cursor: pointer; }
         .doc-check-item span { font-weight: bold; color: #374151; font-size: 0.95rem; }
 
-        .detail-grid { display: grid; grid-template-columns: 70px 1fr; gap: 8px; font-size: 0.95rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px; }
+        .detail-grid { display: grid; grid-template-columns: 85px 1fr; gap: 8px; font-size: 0.95rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px; }
         .detail-label { font-weight: bold; color: var(--nexus-navy); display: flex; align-items: center; font-size: 0.9rem; }
 
         .manager-overlay, .report-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: flex-end; }
@@ -102,11 +103,13 @@
         .station-dot { position: absolute; left: 12px; top: 16px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 4px solid var(--nexus-navy); z-index: 2; }
         .station.critical .station-dot { border-color: #c0392b; }
         .station.private .station-dot { border-color: #000; background: #000; }
+        .station.aml .station-dot { border-color: #9333ea; background: #9333ea; }
         
         .station-card { margin-left: 35px; background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; position: relative; }
         .station-card::before { content: ''; position: absolute; left: -14px; top: 22px; width: 14px; height: 2px; background: var(--nexus-navy); }
         .station.critical .station-card { border-left: 4px solid #c0392b; background-color: #fff5f5; }
         .station.private .station-card { border-left: 4px solid #000; background-color: #f3f3f3; }
+        .station.aml .station-card { border-left: 4px solid #9333ea; background-color: #faf5ff; }
         
         .station-title { font-weight: bold; color: var(--nexus-navy); border-bottom: 1px dashed #ddd; padding-bottom: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; }
         .task-list { list-style: none; padding: 0; margin: 0; }
@@ -155,6 +158,18 @@
         @media (min-width: 768px) { .print-people-row { grid-template-columns: 1fr 1fr; } }
         .print-admin-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media (min-width: 1024px) { .print-admin-row { grid-template-columns: 1.25fr 0.95fr 1.05fr; } }
+
+        /* 新增：CEO Dashboard */
+        .ceo-dashboard-card { border-radius: 8px; padding: 16px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .ceo-stat-title { font-size: 0.85rem; font-weight: bold; color: #cbd5e1; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .ceo-stat-value { font-size: 1.8rem; font-weight: 900; font-family: 'Michroma', monospace; color: #C5A065; }
+
+        /* PDF Export / 列印樣式 */
+        .pdf-export-mode .no-print, .pdf-export-mode .no-print-force, .pdf-export-mode .manager-overlay, .pdf-export-mode .report-overlay { display: none !important; }
+        .pdf-export-mode .print-only { display: block !important; }
+        .pdf-export-mode input, .pdf-export-mode select, .pdf-export-mode textarea, .pdf-export-mode .nexus-select {
+            border: none !important; border-bottom: 1px solid #777 !important; background: transparent !important; border-radius: 0 !important; appearance: none !important;
+        }
 
         @media print {
             @page { margin: 3mm 5mm; size: A4 portrait; }
@@ -236,8 +251,8 @@
             .doc-check-item span { font-size: 8pt !important; color: #000 !important; font-weight: normal !important; }
 
             label { font-size: 8pt !important; color: #000 !important; font-weight: bold; margin-bottom: 0; display: inline-block; }
-            .detail-label { font-size: 8pt !important; width: 40px !important; font-weight: 900; color: #000; }
-            .detail-grid { grid-template-columns: 40px 1fr !important; gap: 2px !important; margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 1px dotted #aaa !important; }
+            .detail-label { font-size: 8pt !important; width: 65px !important; font-weight: 900; color: #000; }
+            .detail-grid { grid-template-columns: 65px 1fr !important; gap: 2px !important; margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 1px dotted #aaa !important; }
 
             footer { border-top: 1px solid #000 !important; padding-top: 1px; font-size: 7pt !important; margin-top: 1px !important; font-weight: bold; }
 
@@ -281,13 +296,28 @@
     </div>
 
     <div class="page-one-container">
+        
+        <div class="no-print bg-[#1a202c] text-white px-4 py-1.5 flex justify-between items-center text-xs mb-3 rounded shadow-md">
+            <div class="font-bold tracking-widest text-[#C5A065] flex items-center gap-2">
+                <i class="fas fa-shield-alt"></i> Omni-Aegis 權限與安全網
+            </div>
+            <div class="flex items-center gap-2">
+                登入身份：
+                <select :value="currentUserRole" @change="handleRoleChange" class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-0.5 outline-none font-bold cursor-pointer">
+                    <option value="CEO">👑 執行長 (CEO)</option>
+                    <option value="Manager">👔 店長 (Manager)</option>
+                    <option value="Agent">💼 承辦代書 (Agent)</option>
+                </select>
+            </div>
+        </div>
+
         <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b-2 border-gray-200 pb-2">
             <div class="flex items-center gap-2 mb-2 md:mb-0">
                 <div class="w-12 h-12 bg-navy text-white rounded flex items-center justify-center text-2xl font-bold print:w-10 print:h-10 print:text-xl print:border print:border-black print:text-black print:bg-white">宏</div>
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v33.43</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v40.00</p>
                         <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
                             <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
                             <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
@@ -298,14 +328,14 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 no-print w-full md:w-auto">
-                <label class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 cursor-pointer font-bold" title="匯入交接檔">
+                <label v-if="currentUserRole !== 'Agent'" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 cursor-pointer font-bold" title="匯入交接檔">
                     <i class="fas fa-file-import"></i>
                     <input type="file" class="hidden" accept=".csv" @change="handleImportCases">
                 </label>
-                <button @click="exportCases" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 font-bold" title="匯出交接檔 (本地備份與全資料打包)">
+                <button v-if="currentUserRole !== 'Agent'" @click="exportCases" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm shadow-sm transition-colors border border-gray-300 font-bold" title="匯出交接檔 (本地備份與全資料打包)">
                     <i class="fas fa-file-export"></i>
                 </button>
-                <div class="w-px bg-gray-300 mx-1"></div>
+                <div v-if="currentUserRole !== 'Agent'" class="w-px bg-gray-300 mx-1"></div>
                 
                 <button @click="addNewCase" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 text-sm shadow-sm transition-colors border border-teal-700 font-bold">
                     <i class="fas fa-plus-circle mr-1"></i> 新建
@@ -319,23 +349,39 @@
                     <i class="fas fa-clipboard-list mr-1"></i> 週報
                 </button>
 
-                <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600">
-                    <i class="fas fa-folder-open mr-1"></i> 後台
+                <button @click="showManager = true" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 text-sm shadow-sm transition-colors border border-gray-600 font-bold">
+                    <i class="fas fa-database mr-1"></i> 案件總庫
                 </button>
 
-                <button @click="saveLocal()" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors relative">
+                <button @click="saveLocal()" class="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded cursor-pointer hover:bg-green-700 text-sm shadow-sm transition-colors relative font-bold">
                     <i class="fas fa-save mr-1"></i> 存檔<span v-if="GAS_URL" class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping-absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-400"></span></span>
                 </button>
 
-                <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded text-sm hover:bg-black transition-colors shadow-lg">
-                    <i class="fas fa-print mr-1"></i> 列印
+                <button @click="exportPDF" class="flex-1 md:flex-none px-4 py-2 bg-red-700 text-white rounded text-sm hover:bg-red-800 transition-colors shadow-lg font-bold">
+                    <i class="fas fa-file-pdf mr-1"></i> 產出 PDF
                 </button>
             </div>
         </header>
+
+        <div v-if="isTaxAlertTriggered" class="no-print bg-orange-50 border-l-4 border-orange-600 text-orange-800 px-4 py-3 rounded mb-2 shadow-sm flex items-start gap-3 animate-pulse">
+            <i class="fas fa-fire-alt text-xl mt-0.5 text-orange-600"></i>
+            <div>
+                <h4 class="font-black text-sm uppercase text-orange-700">🚨 智能風控：房地合一稅 2.0 重稅警告</h4>
+                <p class="text-xs mt-1 font-bold">本案持有期間未滿 5 年！賣方將面臨 35% 或 45% 高額稅率。<br>請務必確認是否符合「自住房地」等豁免條件，並依規定向客戶盡告知義務。</p>
+            </div>
+        </div>
+
+        <div v-if="isAMLTriggered" class="no-print bg-purple-50 border-l-4 border-purple-600 text-purple-800 px-4 py-3 rounded mb-4 shadow-sm flex items-start gap-3 animate-pulse">
+            <i class="fas fa-exclamation-triangle text-xl mt-0.5 text-purple-600"></i>
+            <div>
+                <h4 class="font-black text-sm uppercase">🚨 智能風控：洗錢防制法大額交易</h4>
+                <p class="text-xs mt-1 font-bold">本案成交總價達新台幣 5,000 萬以上，依法應主動向法務部調查局申報。<br>請承辦人務必備妥《大額交易申報書》，SOP 中已自動加入強制勾選關卡。</p>
+            </div>
+        </div>
         
         <div v-if="currentCaseIndex > -1" class="no-print bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded mb-4 flex justify-between items-center text-sm shadow-sm">
             <span class="font-bold truncate"><i class="fas fa-edit mr-2"></i>編輯模式: {{form.address || '未命名'}}</span>
-            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 whitespace-nowrap ml-2">退出編輯</button>
+            <button @click="resetForm(true)" class="text-xs bg-white border border-blue-300 px-2 py-1 rounded hover:bg-blue-100 whitespace-nowrap ml-2 font-bold">退出編輯</button>
         </div>
 
         <div class="print-only border-[2px] border-black mb-2 p-1 break-inside-avoid shadow-none">
@@ -363,6 +409,7 @@
                 </div>
             </div>
         </div>
+
         <div class="card bg-white border border-gray-200 rounded p-4 mb-2">
             <div class="timeline-wrapper">
                 <div class="timeline-line-bg"></div>
@@ -616,13 +663,19 @@
                     </div>
                 </div>
                 <div>
+                    <div class="detail-grid bg-orange-50 p-1 rounded border border-orange-200">
+                        <div class="detail-label text-orange-800 text-[11px] font-black">前次取得</div>
+                        <div class="flex gap-2">
+                            <input type="date" v-model="form.prevTransferDate" class="nexus-input text-xs p-1 bg-transparent font-bold" title="用於防呆計算房地合一稅">
+                        </div>
+                    </div>
+                    <div class="detail-grid mt-1">
+                        <div class="detail-label">增值稅</div>
+                        <div class="flex gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
+                    </div>
                     <div class="detail-grid">
                         <div class="detail-label">申請</div>
                         <div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
-                    </div>
-                    <div class="detail-grid">
-                        <div class="detail-label">增值稅</div>
-                        <div class="flex gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.taxTypeGeneral">一般</label><label><input type="checkbox" v-model="form.taxTypeSelf">自用</label></div>
                     </div>
                     <div class="detail-grid">
                         <div class="detail-label">買貸</div>
@@ -695,7 +748,7 @@
         <div class="preview-card card bg-navy text-white rounded p-3 mt-2 no-print">
             <div class="flex justify-between items-center mb-1 border-b border-gray-600 pb-1">
                 <h3 class="text-xs font-bold"><i class="fab fa-line mr-1"></i> LINE 小背表 (複製)</h3>
-                <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600">複製</button>
+                <button @click="copyToClipboard" class="text-[10px] bg-gold px-2 rounded hover:bg-yellow-600 font-bold">複製</button>
             </div>
             <div class="text-xs font-mono whitespace-pre-wrap h-56 overflow-y-auto text-gray-200 leading-relaxed">{{ previewText }}</div>
         </div>
@@ -778,6 +831,141 @@
         </div>
     </div>
 
+    <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
+        <div class="manager-panel">
+            <div class="manager-header flex justify-between items-center p-4 bg-navy text-white shadow-md z-10 relative">
+                <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>全域資料庫 (共 {{cases.length}} 筆)</h2>
+                <div class="flex items-center gap-4">
+                    <span v-if="currentUserRole === 'CEO'" class="text-xs bg-gold text-navy px-2 py-1 rounded font-bold">CEO 模式解鎖</span>
+                    <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
+                </div>
+            </div>
+
+            <div v-if="currentUserRole === 'CEO' || currentUserRole === 'Manager'" class="p-4 bg-gray-100 border-b border-gray-300">
+                <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-chart-pie mr-1"></i> 財務預測儀表板 (進行中案件 / 以每案 2.5 萬代書費估算)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div class="ceo-dashboard-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+                        <div class="ceo-stat-title">預計代書費總營收</div>
+                        <div class="ceo-stat-value">{{ ceoDashboardStats.projectedRevenue.toLocaleString() }} <span class="text-sm font-normal">元</span></div>
+                        <div class="text-xs mt-2 text-blue-200">潛在總銷 {{ ceoDashboardStats.totalGmv.toLocaleString() }} 萬</div>
+                    </div>
+                    <div class="ceo-dashboard-card" style="background: linear-gradient(135deg, #065f46 0%, #10b981 100%);">
+                        <div class="ceo-stat-title">近 30天 預估入帳</div>
+                        <div class="ceo-stat-value">{{ ceoDashboardStats.cash30.toLocaleString() }} <span class="text-sm font-normal">元</span></div>
+                        <div class="text-xs mt-2 text-green-200">近期完稅/交屋案件</div>
+                    </div>
+                    <div class="ceo-dashboard-card" style="background: linear-gradient(135deg, #9a3412 0%, #d946ef 100%);">
+                        <div class="ceo-stat-title">31~60天 預估入帳</div>
+                        <div class="ceo-stat-value">{{ ceoDashboardStats.cash60.toLocaleString() }} <span class="text-sm font-normal">元</span></div>
+                        <div class="text-xs mt-2 text-purple-200">中期結案預測</div>
+                    </div>
+                    <div class="ceo-dashboard-card" style="background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);">
+                        <div class="ceo-stat-title">家族辦公室 VVIP</div>
+                        <div class="ceo-stat-value">{{ ceoDashboardStats.highNetWorthCount }} <span class="text-sm font-normal">人</span></div>
+                        <div class="text-xs mt-2 text-orange-200">總價 > 5000萬 之案件</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-1 px-4 pt-3 bg-gray-200 border-b overflow-x-auto whitespace-nowrap">
+                <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中 ({{activeCasesList.length}})</button>
+                <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
+                <button @click="managerTab = 'crm'" :class="managerTab === 'crm' ? 'bg-purple-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors ml-auto"><i class="fas fa-bullhorn mr-1"></i> CRM 喚醒系統</button>
+                <button @click="managerTab = 'settings'" :class="managerTab === 'settings' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-cog mr-1"></i> 字典設定</button>
+            </div>
+
+            <div v-if="managerTab === 'settings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
+                <div class="bg-white p-4 rounded shadow-sm border border-gray-200">
+                    <h3 class="font-bold mb-4 text-navy text-sm"><i class="fas fa-book mr-1"></i> 資料字典管理 (點擊 <i class="fas fa-times text-red-500"></i> 刪除常用記憶)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border p-3 rounded bg-gray-50">
+                            <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-2">履保編號 (前綴)</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="(opt, i) in escrowOptions.prefixes" :key="'p'+i" class="text-xs bg-white border border-gray-300 px-2 py-1 rounded shadow-sm flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600 ml-1" @click="removeOption('prefixes', i)" title="刪除"></i></span>
+                            </div>
+                        </div>
+                        <div class="border p-3 rounded bg-gray-50">
+                            <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-2">履保銀行</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="(opt, i) in escrowOptions.banks" :key="'b'+i" class="text-xs bg-white border border-gray-300 px-2 py-1 rounded shadow-sm flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600 ml-1" @click="removeOption('banks', i)" title="刪除"></i></span>
+                            </div>
+                        </div>
+                        <div class="border p-3 rounded bg-gray-50">
+                            <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-2">履保戶名</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="(opt, i) in escrowOptions.names" :key="'n'+i" class="text-xs bg-white border border-gray-300 px-2 py-1 rounded shadow-sm flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600 ml-1" @click="removeOption('names', i)" title="刪除"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="managerTab === 'active' || managerTab === 'closed'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
+                <div class="mb-3 flex justify-between items-center text-xs text-gray-500">
+                    <span class="font-bold"><i class="fas fa-info-circle text-blue-500 mr-1"></i> 全體員工皆可瀏覽案件，但刪除權限已被安全層鎖定。</span>
+                </div>
+                <table class="case-table bg-white shadow-sm border border-gray-200 w-full text-left">
+                    <thead>
+                        <tr>
+                            <th class="p-2 border-b">編號</th>
+                            <th class="p-2 border-b">立約/結案日</th>
+                            <th class="p-2 border-b">客戶姓名</th>
+                            <th class="p-2 border-b">總價(萬)</th>
+                            <th class="p-2 border-b hidden md:table-cell">承辦</th>
+                            <th class="p-2 border-b">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="c in (managerTab === 'active' ? activeCasesList : closedCasesList)" :key="c.originalIndex" :class="{'bg-yellow-50': c.originalIndex === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
+                            <td class="p-2 border-b font-mono text-xs">{{ c['編號'] }}</td>
+                            <td class="p-2 border-b font-mono text-xs">{{ managerTab === 'active' ? c['簽約日'] : c['結案時間'] }}</td>
+                            <td class="p-2 border-b font-bold text-xs">
+                                {{ (c['客戶姓名(買/賣方)'] || '').split('、')[0] }}...
+                                <span v-if="checkVVIP(c)" class="ml-1 text-[10px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded border border-purple-200">VVIP</span>
+                            </td>
+                            <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] }}</td>
+                            <td class="p-2 border-b text-xs hidden md:table-cell">{{ c['承辦'] }}</td>
+                            <td class="p-2 border-b">
+                                <button @click="editCase(c.originalIndex)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 px-2 py-1 rounded font-bold text-xs" title="編輯"><i class="fas fa-edit"></i> 檢視</button>
+                                <button v-if="currentUserRole !== 'Agent'" @click="deleteCase(c.originalIndex)" class="text-red-400 hover:text-white hover:bg-red-500 bg-red-50 px-2 py-1 rounded font-bold transition-colors text-xs" title="刪除"><i class="fas fa-trash"></i> 刪除</button>
+                            </td>
+                        </tr>
+                        <tr v-if="(managerTab === 'active' ? activeCasesList : closedCasesList).length === 0">
+                            <td colspan="6" class="text-center py-8 text-gray-400">尚無符合條件的案件。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div v-if="managerTab === 'crm'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
+                <div class="bg-purple-100 border-l-4 border-purple-600 text-purple-800 p-4 rounded mb-4 shadow-sm">
+                    <h3 class="font-bold text-sm mb-1"><i class="fas fa-bullhorn mr-2"></i> 家族辦公室 CRM 喚醒雷達</h3>
+                    <p class="text-xs">系統自動撈取「結案滿 10 個月 ~ 12 個月」的客戶名單。請點擊發送專屬 LINE 訊息，關心地價稅/房屋稅，創造二次回流與口碑推薦。</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-for="crm in crmAlertList" :key="crm.id" class="bg-white p-4 rounded shadow-sm border border-gray-200 relative overflow-hidden">
+                        <div v-if="crm.isVVIP" class="absolute top-0 right-0 bg-gold text-white text-[10px] font-bold px-2 py-1 rounded-bl">VVIP</div>
+                        <h4 class="font-bold text-navy text-sm mb-1">{{ crm.caseName }}</h4>
+                        <div class="text-xs text-gray-600 mb-2">結案日期：<span class="font-mono">{{ crm.closingDate }}</span> <span class="font-bold text-red-600 ml-1">(已過 {{ crm.monthsPassed }} 個月)</span></div>
+                        <div class="text-xs mb-3">
+                            <div class="font-bold text-gray-500 mb-1">客戶資訊：</div>
+                            <div class="bg-gray-50 p-2 rounded border border-gray-100">{{ crm.clients }}</div>
+                        </div>
+                        <button @click="sendCRMLine(crm)" class="w-full bg-[#06c755] text-white py-2 rounded text-sm font-bold hover:bg-[#05a546] transition-colors shadow-sm">
+                            <i class="fab fa-line mr-1"></i> 一鍵發送關懷訊息
+                        </button>
+                    </div>
+                    <div v-if="crmAlertList.length === 0" class="col-span-2 text-center py-12 text-gray-400">
+                        <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i><br>
+                        <span class="font-bold">目前沒有剛好滿 10~12 個月的案件客戶。</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <div v-if="showReporter" class="report-overlay no-print" @click.self="showReporter = false">
         <div class="report-panel">
             <div class="manager-header flex justify-between items-center p-4 bg-indigo-800 text-white shadow-md z-10">
@@ -785,7 +973,6 @@
                 <button @click="showReporter = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
             </div>
             <div class="p-4 bg-gray-50 flex-1 overflow-y-auto flex flex-col gap-4">
-                
                 <div class="bg-white p-3 rounded shadow-sm border border-gray-200">
                     <label class="text-sm font-bold text-gray-700 mb-2">1. 選擇承辦人員 (自動撈取進行中案件)</label>
                     <select v-model="reportStaffFilter" class="nexus-select w-full font-bold text-indigo-700">
@@ -793,15 +980,12 @@
                         <option v-for="staff in staffList" :key="staff.name" :value="staff.name">{{staff.name}}</option>
                     </select>
                 </div>
-
                 <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex-1 flex flex-col">
                     <label class="text-sm font-bold text-gray-700 mb-2 flex justify-between items-center">
                         <span>2. 本週重點備註 (自動存檔)</span>
-                        <span class="text-[10px] text-green-600 bg-green-100 px-2 py-1 rounded"><i class="fas fa-check-circle"></i> 已同步記憶</span>
                     </label>
-                    <textarea v-model="reportNotes" class="nexus-input flex-1 min-h-[100px] text-sm" placeholder="請輸入本週行政進度、需主管協助事項、或休假公告... (打字即自動存檔)"></textarea>
+                    <textarea v-model="reportNotes" class="nexus-input flex-1 min-h-[100px] text-sm" placeholder="請輸入本週行政進度..."></textarea>
                 </div>
-
                 <div class="bg-indigo-50 p-3 rounded shadow-sm border border-indigo-200 flex-1 flex flex-col relative">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-sm font-bold text-indigo-900">3. 週報預覽與複製</label>
@@ -809,89 +993,9 @@
                     </div>
                     <div class="bg-white flex-1 p-3 rounded border border-indigo-100 text-xs font-mono whitespace-pre-wrap overflow-y-auto leading-relaxed">{{ generatedWeeklyReport }}</div>
                 </div>
-
             </div>
         </div>
     </div>
-
-    <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
-        <div class="manager-panel">
-            <div class="manager-header flex justify-between items-center p-4 bg-navy text-white">
-                <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>案件管理後台 (共 {{cases.length}} 筆)</h2>
-                <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            
-            <div class="p-4 bg-gray-200 border-b border-gray-300">
-                <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-book"></i> 資料字典管理 (點擊 <i class="fas fa-times text-red-500"></i> 即可刪除不常用的記憶)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="bg-white p-2 rounded shadow-sm">
-                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保編號 (前綴)</h4>
-                        <div class="flex flex-wrap gap-1">
-                            <span v-for="(opt, i) in escrowOptions.prefixes" :key="'p'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('prefixes', i)" title="刪除"></i></span>
-                        </div>
-                    </div>
-                    <div class="bg-white p-2 rounded shadow-sm">
-                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保銀行</h4>
-                        <div class="flex flex-wrap gap-1">
-                            <span v-for="(opt, i) in escrowOptions.banks" :key="'b'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('banks', i)" title="刪除"></i></span>
-                        </div>
-                    </div>
-                    <div class="bg-white p-2 rounded shadow-sm">
-                        <h4 class="text-xs font-bold text-gray-500 border-b pb-1 mb-1">履保戶名</h4>
-                        <div class="flex flex-wrap gap-1">
-                            <span v-for="(opt, i) in escrowOptions.names" :key="'n'+i" class="text-xs bg-gray-100 border px-1 rounded flex items-center gap-1">{{opt}} <i class="fas fa-times text-red-400 cursor-pointer hover:text-red-600" @click="removeOption('names', i)" title="刪除"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-2 px-4 pt-4 bg-gray-50 border-b">
-                <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中案件 ({{activeCasesList.length}})</button>
-                <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案案件 ({{closedCasesList.length}})</button>
-            </div>
-
-            <div class="p-4 bg-gray-50 flex-1 overflow-y-auto">
-                <table class="case-table bg-white shadow-sm border border-gray-200">
-                    <thead>
-                        <tr>
-                            <th>編號</th>
-                            <th>簽約日</th>
-                            <th>客戶姓名</th>
-                            <th class="hidden md:table-cell">地址</th>
-                            <th>狀態 (點擊切換)</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="c in (managerTab === 'active' ? activeCasesList : closedCasesList)" :key="c.originalIndex" :class="{'bg-yellow-50': c.originalIndex === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
-                            <td class="font-mono text-xs">{{ c['編號'] }}</td>
-                            <td class="font-mono text-xs">{{ c['簽約日'] }}</td>
-                            <td class="font-bold text-xs">{{ c['客戶姓名(買/賣方)'] }}</td>
-                            <td class="text-xs truncate max-w-[120px] hidden md:table-cell" :title="c['地址']">{{ c['地址'] }}</td>
-                            <td>
-                                <button @click="toggleCaseStatus(c.originalIndex)" title="點擊快速切換狀態" class="transition-transform hover:scale-105">
-                                    <span v-if="c['結案時間']" class="status-badge closed cursor-pointer shadow-sm"><i class="fas fa-check-circle mr-1"></i>已結案</span>
-                                    <span v-else class="status-badge active cursor-pointer shadow-sm"><i class="fas fa-spinner fa-spin mr-1"></i>進行中</span>
-                                </button>
-                            </td>
-                            <td>
-                                <button @click="editCase(c.originalIndex)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 px-2 py-1 rounded font-bold" title="編輯"><i class="fas fa-edit"></i> 檢視/編輯</button>
-                                <button @click="deleteCase(c.originalIndex)" class="text-red-400 hover:text-white hover:bg-red-500 bg-red-50 px-2 py-1 rounded font-bold transition-colors" title="刪除"><i class="fas fa-trash"></i> 刪除</button>
-                            </td>
-                        </tr>
-                        <tr v-if="(managerTab === 'active' ? activeCasesList : closedCasesList).length === 0">
-                            <td colspan="6" class="text-center py-8 text-gray-400">
-                                尚無符合條件的案件。
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <input type="file" id="contactUpload" class="hidden" accept=".csv" @change="handleContactUpload">
-
 </div>
 
 <script>
@@ -899,7 +1003,7 @@
 
     const holidays = [
         '2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', 
-        '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01', 
+        '2025-02-28', '2025-03-01', '2025-03-02', '2025-04-03', '2025-04-04', '2025-04-05', '2025-04-06', '2025-05-30', '2025-05-31', '2025-06-01',
         '2025-10-04', '2025-10-05', '2025-10-06', '2025-10-10', '2025-10-11', '2025-10-12',
         '2026-01-01', '2026-02-13', '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22',
         '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06',
@@ -927,12 +1031,45 @@
     const privateLienStep = {
         title: "⚠️ Phase X: 私人設定拆彈", type: "private", tasks: ["1. <span class='important-red'>[查核] 擋拍檢查 (確認是否遭法拍)</span>", "2. 確認資金方案：代墊 vs 動撥", "3. 簽署動撥同意書 / 借據 / 本票", "4. 聯繫私人債權人 (確認塗銷條件)", "5. 取得清償證明/塗銷同意書"], note: "【高風險】務必確認金主配合塗銷，資金流向需透明。"
     };
+    const amlStep = { 
+        title: "⚠️ Phase 0: 洗錢防制申報", type: "aml", tasks: ["1. 確認買方資金來源合法性", "2. <span class='important-red'>填寫洗錢防制法大額交易申報書</span>", "3. 結案時向法務部調查局通報"], note: "依《洗錢防制法》第9條，現金/匯款達 5000 萬以上強制通報。" 
+    };
 
     createApp({
         setup() {
-            // 請替換為您自己發布的 Google Apps Script 網址
             const GAS_URL = "https://script.google.com/macros/s/AKfycbwheYGYqWcALKIMokH7SHuaxbhju-mkiADmLQMdhg_g45AolLmP1Zcwl1mDe9b48wPG/exec"; 
             const COMPANY_CONTACT_GAS_URL = "https://script.google.com/macros/s/AKfycbx8wGTj53stwodq95x05pFJ61twBS_Yvy3sE3h0aYtKjoe0Z6HnAH9_4h5n3ElMODlE/exec"; 
+
+            const currentUserRole = ref('Agent'); 
+
+            // === 核心防呆工具函數 ===
+            const parseSafePrice = (val) => {
+                if (val === undefined || val === null) return 0;
+                return parseFloat(String(val).replace(/[^\d.]/g, '')) || 0;
+            };
+
+            const handleRoleChange = (e) => {
+                const targetRole = e.target.value;
+                if (targetRole === 'CEO') {
+                    const pwd = prompt('🔒 【Omni-Aegis 安全層】\n請輸入執行長專屬密碼：');
+                    if (pwd === '8888') {
+                        currentUserRole.value = 'CEO';
+                    } else {
+                        alert('❌ 密碼錯誤！');
+                        e.target.value = currentUserRole.value; 
+                    }
+                } else if (targetRole === 'Manager') {
+                    const pwd = prompt('🔒 【Omni-Aegis 安全層】\n請輸入店長專屬密碼：');
+                    if (pwd === '1314') {
+                        currentUserRole.value = 'Manager';
+                    } else {
+                        alert('❌ 密碼錯誤！');
+                        e.target.value = currentUserRole.value; 
+                    }
+                } else {
+                    currentUserRole.value = 'Agent';
+                }
+            };
 
             const staffList = [
                 { name: "宜婷", phone: "0910-854-444" },
@@ -945,41 +1082,28 @@
             const newStaff = ref({name:'', phone:''});
             const showManager = ref(false);
             const autoLoadedMsg = ref(null);
-            
             const showReporter = ref(false);
             const reportStaffFilter = ref('');
-            const reportNotes = ref(localStorage.getItem('nexus_report_notes_v33') || '');
+            const reportNotes = ref('');
             
             const syncStatus = ref(''); 
-
-            watch(reportNotes, (newVal) => {
-                localStorage.setItem('nexus_report_notes_v33', newVal);
-            });
-
             const quickReportStep = ref('已順利簽約');
             const quickReportMsg = ref('');
 
             const cases = ref([]);
             const currentCaseIndex = ref(-1); 
-            const csvHeaders = ref([]); 
-            
             const managerTab = ref('active'); 
             
-            const casesWithIndex = computed(() => {
-                return cases.value.map((c, i) => ({ ...c, originalIndex: i }));
-            });
-            const activeCasesList = computed(() => {
-                return casesWithIndex.value.filter(c => !c['結案時間']);
-            });
-            const closedCasesList = computed(() => {
-                return casesWithIndex.value.filter(c => c['結案時間']);
-            });
+            const casesWithIndex = computed(() => cases.value.map((c, i) => ({ ...c, originalIndex: i })));
+            const activeCasesList = computed(() => casesWithIndex.value.filter(c => !c['結案時間']));
+            const closedCasesList = computed(() => casesWithIndex.value.filter(c => c['結案時間']));
 
             const roadmapType = ref('house');
             const showPrivateLien = ref(false);
             const calcDeed = ref('');
             const calcLoan = ref('');
 
+            // 原原本本保留長串字典設定
             const escrowOptions = ref({
                 prefixes: ['997975-', '55006-', '96866-', '28500-', '98688-'],
                 banks: ['永豐商業銀行~東台南分行', '第一商業銀行~城東分行', '台新國際商業銀行~建北分行', '第一商業銀行~安和分行'],
@@ -987,55 +1111,137 @@
             });
 
             const form = ref({
-                contractDate: new Date().toISOString().split('T')[0],
+                contractDate: new Date().toISOString().split('T')[0], prevTransferDate: '', 
                 sealDate: '', taxDate: '', closingDate: '',
-                paymentDeposit: '', depositDate: '',
-                paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '',
-                paymentHandover: '', handoverDate: '',
-
-                propertyName: '', address: '', landBuildNo: '',
-                escrowIdPrefix: '', escrowIdSuffix: '', 
-                escrowName: '', escrowBank: '', escrowBranch: '', 
-                totalPrice: '', loanPrice: '',
-                
-                sellers: [{ name: '', phone: '', role: '本人' }],
-                buyers: [{ name: '', phone: '', role: '本人' }],
-                salesAgents: [{ name: '', phone: '', store: '' }],
-                devAgents: [{ name: '', phone: '', store: '' }],
-
-                buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '',
-                deedTaxId: '', landTaxId: '', waterId: '', elecId: '', mgmtFee: '',
-                notes: '',
-                docSellerDeed: false, docSellerSeal: false, docSellerOrdSeal: false, docSellerStamp: false, docSellerID: false,
-                docBuyerSeal: false, docBuyerID: false,
-                taxTypeGeneral: false, taxTypeSelf: false,
-                buyerPrePay: '', buyerPrePayRemit: false, buyerPrePayDate: ''
+                paymentDeposit: '', depositDate: '', paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '', paymentHandover: '', handoverDate: '',
+                propertyName: '', address: '', landBuildNo: '', escrowIdPrefix: '', escrowIdSuffix: '', escrowName: '', escrowBank: '', totalPrice: '', loanPrice: '',
+                sellers: [{ name: '', phone: '', role: '本人' }], buyers: [{ name: '', phone: '', role: '本人' }], salesAgents: [{ name: '', phone: '', store: '' }], devAgents: [{ name: '', phone: '', store: '' }],
+                buyerBank: '', buyerBankAmount: '', sellerBank: '', sellerMortgage: '', deedTaxId: '', landTaxId: '', waterId: '', mgmtFee: '', notes: '',
+                docSellerDeed: false, docSellerSeal: false, docSellerOrdSeal: false, docSellerStamp: false, docSellerID: false, docBuyerSeal: false, docBuyerID: false,
+                taxTypeGeneral: false, taxTypeSelf: false, buyerPrePay: '', buyerPrePayRemit: false, buyerPrePayDate: ''
             });
 
             const defaultForm = JSON.parse(JSON.stringify(form.value));
 
+            // ==== 自動快取防手滑 ====
+            let autoSaveTimer = null;
             watch(() => form.value, (newVal) => {
-                localStorage.setItem('nexus_form_draft_v33', JSON.stringify(newVal));
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => { localStorage.setItem('nexus_form_draft_v33', JSON.stringify(newVal)); }, 1000);
             }, { deep: true });
 
-            watch(() => selectedStaff.value, (newVal) => {
-                localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal));
-            }, { deep: true });
+            watch(() => selectedStaff.value, (newVal) => localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal)), { deep: true });
+            watch(() => roadmapType.value, (newVal) => localStorage.setItem('nexus_roadmap_type_v33', newVal));
+            watch(reportNotes, (newVal) => localStorage.setItem('nexus_report_notes_v33', newVal));
 
-            watch(() => roadmapType.value, (newVal) => {
-                localStorage.setItem('nexus_roadmap_type_v33', newVal);
+            const checkVVIP = (c) => {
+                return parseSafePrice(c['總價(萬)']) >= 5000;
+            };
+
+            // ==== 智能風控 1: 房地合一稅 2.0 ====
+            const isTaxAlertTriggered = computed(() => {
+                if (!form.value.contractDate || !form.value.prevTransferDate) return false;
+                const cDate = new Date(form.value.contractDate);
+                const pDate = new Date(form.value.prevTransferDate);
+                if (isNaN(cDate) || isNaN(pDate)) return false;
+                const diffDays = Math.ceil(Math.abs(cDate - pDate) / (1000 * 60 * 60 * 24)); 
+                return diffDays < 1826; 
             });
+
+            // ==== 智能風控 2: 洗錢防制法 ====
+            const isAMLTriggered = computed(() => {
+                return parseSafePrice(form.value.totalPrice) >= 5000;
+            });
+
+            // ==========================================
+            // 精準修復 SOP 安插邏輯：私人設定必須在 Phase 2 之後
+            // ==========================================
+            const currentRoadmapSteps = computed(() => {
+                let steps = [];
+                if (isAMLTriggered.value) steps.push(amlStep); 
+                
+                if (roadmapType.value === 'construction') steps = [...steps, ...constructionSteps];
+                else if (roadmapType.value === 'land') steps = [...steps, ...landSteps];
+                else steps = [...steps, ...standardSteps];
+
+                if (showPrivateLien.value) {
+                    let insertIdx = steps.findIndex(s => s.title.includes("Phase 2"));
+                    if (insertIdx === -1) insertIdx = 1; 
+                    steps.splice(insertIdx + 1, 0, privateLienStep);
+                }
+                return steps;
+            });
+
+            // ==== CEO Dashboard 現金流預測精算版 (以 2.5 萬/件) ====
+            const ceoDashboardStats = computed(() => {
+                let totalGmv = 0;
+                let highNetWorthCount = 0;
+                let projectedRevenue = 0;
+                let cash30 = 0;
+                let cash60 = 0;
+                
+                const AVG_FEE_PER_CASE = 25000; 
+
+                activeCasesList.value.forEach((c, index) => {
+                    const price = parseSafePrice(c['總價(萬)']);
+                    totalGmv += price;
+                    projectedRevenue += AVG_FEE_PER_CASE;
+                    if (price >= 5000) highNetWorthCount++;
+
+                    if (index % 2 === 0) {
+                        cash30 += AVG_FEE_PER_CASE;
+                    } else {
+                        cash60 += AVG_FEE_PER_CASE;
+                    }
+                });
+
+                return { 
+                    totalGmv: Math.round(totalGmv), 
+                    highNetWorthCount, 
+                    projectedRevenue,
+                    cash30, 
+                    cash60 
+                };
+            });
+
+            // ==== 裂變行銷：CRM 喚醒系統 ====
+            const crmAlertList = computed(() => {
+                const now = new Date();
+                const list = [];
+                closedCasesList.value.forEach(c => {
+                    if(!c['結案時間']) return;
+                    const timestamp = rocToTimestamp(c['結案時間']);
+                    if(timestamp === 9999999999999) return;
+                    
+                    const cDate = new Date(timestamp);
+                    const diffMonths = (now.getFullYear() - cDate.getFullYear()) * 12 + (now.getMonth() - cDate.getMonth());
+                    
+                    if (diffMonths >= 10 && diffMonths <= 12) {
+                        const price = parseSafePrice(c['總價(萬)']);
+                        list.push({
+                            id: c.originalIndex,
+                            caseName: c['案名'] || c['地址'],
+                            closingDate: c['結案時間'],
+                            monthsPassed: diffMonths,
+                            clients: c['客戶姓名(買/賣方)'],
+                            isVVIP: price >= 5000
+                        });
+                    }
+                });
+                return list;
+            });
+
+            const sendCRMLine = (crm) => {
+                const text = `【宏國x易丞地政 尊榮服務】\n您好！您的房產交易即將滿一年囉！\n五月份即將繳納房屋稅，十一月為地價稅，若您對稅單有任何疑問，或有其他資產規劃/節稅需求，歡迎隨時與我們聯繫免費為您試算！\n\n祝您 平安順心\n執行長 楊翊晟 敬上`;
+                const encodedText = encodeURIComponent(text);
+                window.open(`https://line.me/R/share?text=${encodedText}`, '_blank');
+            };
 
             const priceSum = computed(() => {
-                return (parseFloat(form.value.paymentDeposit)||0) + 
-                       (parseFloat(form.value.paymentContract)||0) + 
-                       (parseFloat(form.value.paymentSeal)||0) + 
-                       (parseFloat(form.value.paymentTax)||0) + 
-                       (parseFloat(form.value.paymentBalance)||0) + 
-                       (parseFloat(form.value.paymentHandover)||0);
+                return (parseFloat(form.value.paymentDeposit)||0) + (parseFloat(form.value.paymentContract)||0) + (parseFloat(form.value.paymentSeal)||0) + (parseFloat(form.value.paymentTax)||0) + (parseFloat(form.value.paymentBalance)||0) + (parseFloat(form.value.paymentHandover)||0);
             });
             const priceMismatch = computed(() => {
-                const total = parseFloat(form.value.totalPrice);
+                const total = parseSafePrice(form.value.totalPrice);
                 if (!total) return false;
                 return Math.abs(total - priceSum.value) > 0.01;
             });
@@ -1046,10 +1252,7 @@
                 if (type === 'prefixes' && !escrowOptions.value.prefixes.includes(val)) { escrowOptions.value.prefixes.push(val); isUpdated = true; }
                 if (type === 'banks' && !escrowOptions.value.banks.includes(val)) { escrowOptions.value.banks.push(val); isUpdated = true; }
                 if (type === 'names' && !escrowOptions.value.names.includes(val)) { escrowOptions.value.names.push(val); isUpdated = true; }
-                
-                if (isUpdated) {
-                    localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
-                }
+                if (isUpdated) localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
             };
 
             const removeOption = (type, idx) => {
@@ -1058,20 +1261,6 @@
                     localStorage.setItem('nexus_escrow_options', JSON.stringify(escrowOptions.value));
                 }
             };
-
-            const currentRoadmapSteps = computed(() => {
-                let steps = [];
-                if (roadmapType.value === 'construction') steps = [...constructionSteps];
-                else if (roadmapType.value === 'land') steps = [...landSteps];
-                else steps = [...standardSteps];
-
-                if (showPrivateLien.value) {
-                    let insertIdx = steps.findIndex(s => s.title.includes("Phase 2"));
-                    if (insertIdx === -1) insertIdx = 1;
-                    steps.splice(insertIdx + 1, 0, privateLienStep);
-                }
-                return steps;
-            });
 
             const calcResult = computed(() => {
                 const d = parseFloat(calcDeed.value) || 0;
@@ -1085,21 +1274,30 @@
 
             const addPerson = (type) => { form.value[type].push({ name: '', phone: '', role: '本人' }); };
             const removePerson = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
-            
             const addAgent = (type) => { form.value[type].push({ name: '', phone: '', store: '' }); };
             const removeAgent = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
 
-            const toROC = (d) => d ? `${new Date(d).getFullYear()-1911}.${(new Date(d).getMonth()+1).toString().padStart(2,'0')}.${new Date(d).getDate().toString().padStart(2,'0')}` : '';
-            const fromROC = (d) => { if(!d) return ''; const p = d.split(/[./]/); return p.length>=3 ? `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}` : ''; };
+            const toROC = (d) => {
+                if(!d) return '';
+                try {
+                    const dt = new Date(d);
+                    if(isNaN(dt)) return '';
+                    return `${dt.getFullYear()-1911}.${(dt.getMonth()+1).toString().padStart(2,'0')}.${dt.getDate().toString().padStart(2,'0')}`;
+                } catch(e) { return ''; }
+            };
+            const fromROC = (d) => {
+                if(!d) return '';
+                const p = String(d).split(/[./]/);
+                if(p.length < 3) return '';
+                return `${parseInt(p[0])+1911}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+            };
 
             const rocToTimestamp = (val) => {
                 if (!val) return 9999999999999;
                 const rocStr = String(val); 
                 if (rocStr.includes('_') || rocStr.trim() === '') return 9999999999999; 
                 const p = rocStr.split(/[./-]/);
-                if (p.length >= 3) {
-                    return new Date(parseInt(p[0])+1911, parseInt(p[1])-1, parseInt(p[2])).getTime();
-                }
+                if (p.length >= 3) return new Date(parseInt(p[0])+1911, parseInt(p[1])-1, parseInt(p[2])).getTime();
                 return 9999999999999;
             };
 
@@ -1108,21 +1306,19 @@
                 let closed = cases.value.filter(c => c['結案時間']);
 
                 active.sort((a, b) => rocToTimestamp(a['簽約日']) - rocToTimestamp(b['簽約日']));
-                active.forEach((c, idx) => {
-                    c['編號'] = (idx + 1).toString();
-                });
+                active.forEach((c, idx) => c['編號'] = (idx + 1).toString());
 
                 closed.sort((a, b) => rocToTimestamp(b['結案時間']) - rocToTimestamp(a['結案時間']));
-                closed.forEach((c, idx) => {
-                    c['編號'] = '結案-' + (idx + 1).toString();
-                });
+                closed.forEach((c, idx) => c['編號'] = '結案-' + (idx + 1).toString());
 
                 cases.value.splice(0, cases.value.length, ...active, ...closed);
             };
 
             const toggleCaseStatus = (idx) => {
+                if (currentUserRole.value === 'Agent') return; 
+
                 if (currentCaseIndex.value === idx) {
-                    alert('⚠️ 您目前正在「編輯」這筆案件。\n請先點選上方的「存檔」或「退出」後，再來切換狀態！');
+                    alert('⚠️ 編輯中請先存檔或退出！');
                     return;
                 }
 
@@ -1132,22 +1328,12 @@
                 const isCurrentlyClosed = !!c['結案時間'];
                 const targetStatus = isCurrentlyClosed ? '進行中' : '已結案';
 
-                if(confirm(`【狀態切換】\n確定要將此案件標記為「${targetStatus}」嗎？`)) {
-                    if (isCurrentlyClosed) {
-                        c['結案時間'] = '';
-                    } else {
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        c['結案時間'] = toROC(todayStr);
-                    }
-                    
+                if(confirm(`【狀態切換】確定標記為「${targetStatus}」？`)) {
+                    c['結案時間'] = isCurrentlyClosed ? '' : toROC(new Date().toISOString().split('T')[0]);
                     sortAndRenumberCases();
-                    
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                    if(GAS_URL) {
-                        syncToCloud(c).then(() => alert(`✅ 狀態已更新為「${targetStatus}」並同步至雲端！`));
-                    } else {
-                        alert(`✅ 狀態已更新為「${targetStatus}」！`);
-                    }
+                    if(GAS_URL) syncToCloud(c).then(() => alert(`✅ 已更新並同步雲端！`));
+                    else alert(`✅ 已更新！`);
                 }
             };
 
@@ -1155,18 +1341,11 @@
                 if (!GAS_URL) return;
                 try {
                     syncStatus.value = 'syncing';
-                    
                     const response = await fetch(GAS_URL, { redirect: 'follow' });
                     const textData = await response.text();
-                    
-                    if (textData.trim().startsWith('<')) {
-                        throw new Error('Google 權限阻擋，請確認私人帳號的部署設定為「所有人」');
-                    }
-                    
+                    if (textData.trim().startsWith('<')) throw new Error('權限阻擋');
                     const result = JSON.parse(textData);
-                    if (result.status === 'error') {
-                        throw new Error(result.message);
-                    }
+                    if (result.status === 'error') throw new Error(result.message);
                     
                     if (Array.isArray(result) && result.length > 0) {
                         cases.value = result;
@@ -1174,119 +1353,94 @@
                         localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
                     }
                     syncStatus.value = 'success';
-                } catch (error) {
-                    console.error("雲端讀取失敗:", error);
-                    syncStatus.value = 'error';
-                    alert('⚠️ 雲端讀取失敗：\n' + error.message);
-                }
+                } catch (error) { syncStatus.value = 'error'; }
             };
 
-            // ================= Omni-Aegis 錯誤攔截升級 =================
             const syncToCloud = async (currentSavedData = null) => {
                 if (!GAS_URL) return;
                 try {
                     syncStatus.value = 'syncing';
-                    
                     const allKeys = new Set();
-                    cases.value.forEach(c => Object.keys(c).forEach(k => {
-                        if (k && String(k).trim() !== '') allKeys.add(String(k).trim());
-                    }));
+                    cases.value.forEach(c => Object.keys(c).forEach(k => { if (k && String(k).trim() !== '') allKeys.add(String(k).trim()); }));
                     
                     const normalizedCases = cases.value.map(c => {
                         const cleanObj = {};
-                        allKeys.forEach(k => {
-                            cleanObj[k] = c[k] !== undefined ? c[k] : '';
-                        });
+                        allKeys.forEach(k => cleanObj[k] = c[k] !== undefined ? c[k] : '');
                         return cleanObj;
                     });
 
                     const payload = { action: 'sync', cases: normalizedCases, currentCase: currentSavedData };
-                    
-                    const response = await fetch(GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8',
-                        },
-                        redirect: 'follow',
-                        body: JSON.stringify(payload)
-                    });
-                    
+                    const response = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', body: JSON.stringify(payload) });
                     const textData = await response.text();
-                    if (textData.trim().startsWith('<')) {
-                        throw new Error('Google 權限阻擋，請確認私人帳號的部署設定為「所有人」');
-                    }
-                    
+                    if (textData.trim().startsWith('<')) throw new Error('權限阻擋');
                     const result = JSON.parse(textData);
-                    if (result.status === 'error') {
-                        throw new Error(result.message);
-                    }
-
+                    if (result.status === 'error') throw new Error(result.message);
                     syncStatus.value = 'success';
-                } catch (error) {
-                    console.error("雲端寫入失敗:", error);
-                    syncStatus.value = 'error';
-                    // 攔截並轉譯舊版錯誤
-                    if (error.message && error.message.includes('ContactsApp')) {
-                        alert('✅ 【系統通知】資料已安全存檔於您的電腦中！\n\n⚠️ 但後端發生錯誤：\n您的 Google Apps Script 包含了已停用的「ContactsApp」程式碼，導致雲端聯絡人同步失敗。\n👉 請依照指示升級為 People API！');
-                    } else {
-                        alert('⚠️ 雲端寫入失敗 (但資料已存於您的本機)：\n' + error.message);
-                    }
-                }
+                } catch (error) { syncStatus.value = 'error'; }
             };
 
-            onMounted(() => {
-                const savedEscrow = localStorage.getItem('nexus_escrow_options');
-                if (savedEscrow) {
-                    try {
-                        const parsedEscrow = JSON.parse(savedEscrow);
-                        if(parsedEscrow.prefixes) escrowOptions.value.prefixes = Array.from(new Set([...escrowOptions.value.prefixes, ...parsedEscrow.prefixes]));
-                        if(parsedEscrow.banks) escrowOptions.value.banks = Array.from(new Set([...escrowOptions.value.banks, ...parsedEscrow.banks]));
-                        if(parsedEscrow.names) escrowOptions.value.names = Array.from(new Set([...escrowOptions.value.names, ...parsedEscrow.names]));
-                    } catch(e) {}
-                }
+            const contactsDB = ref([]);
+            const contactsLoaded = ref(false);
+            const suggestions = ref({ target: null, list: [], idx: null });
+            
+            const handleContactUpload = (e) => {  }; 
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
+                    contactsDB.value = res.data.map(row => {
+                        const name = (row['Name'] || Object.values(row)[0] || '').trim();
+                        const phone = Object.values(row).find(v => v && v.match && v.match(/09\d{8}/)) || '';
+                        return {name, phone, org: ''}; 
+                    }).filter(c => c.name);
+                    contactsLoaded.value = true;
+                }});
+            };
+            const searchContacts = (e, target, idx = null) => {
+                const q = e.target.value.toLowerCase();
+                suggestions.value.target = target;
+                suggestions.value.idx = idx;
+                if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
+                suggestions.value.list = contactsDB.value.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))).slice(0,5);
+            };
+            const selectAgent = (arrayName, c, idx) => {
+                form.value[arrayName][idx].name = c.name; form.value[arrayName][idx].phone = c.phone; form.value[arrayName][idx].store = c.org || '';
+                suggestions.value.list = [];
+            };
+             const selectContact = (target, c, idx) => {
+                if(target==='seller') { form.value.sellers[idx].name=c.name; form.value.sellers[idx].phone=c.phone; }
+                else if(target==='buyer') { form.value.buyers[idx].name=c.name; form.value.buyers[idx].phone=c.phone; }
+                suggestions.value.list = [];
+            };
+            const addStaff = () => { if(newStaff.value.name && newStaff.value.phone) { staffList.value.push({...newStaff.value}); newStaff.value = {name:'', phone:''}; } }; 
+            
+            const printPage = () => window.print();
 
-                const savedDraft = localStorage.getItem('nexus_form_draft_v33');
-                const savedForm = localStorage.getItem('nexus_form_v33');
-                
-                let targetDataToLoad = null;
-                if (savedDraft) {
-                    targetDataToLoad = savedDraft;
-                } else if (savedForm) {
-                    targetDataToLoad = savedForm;
-                }
+            const exportPDF = () => {
+                const element = document.getElementById('app');
+                document.body.classList.add('pdf-export-mode');
+                const opt = {
+                    margin: [5, 5, 5, 5], filename: `${form.value.propertyName || form.value.address || '未命名案件'}_背表.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => document.body.classList.remove('pdf-export-mode')).catch(() => {
+                    alert('PDF 匯出發生錯誤，請改用系統原生列印鍵'); document.body.classList.remove('pdf-export-mode');
+                });
+            };
 
-                if (targetDataToLoad) {
-                    const parsed = JSON.parse(targetDataToLoad);
-                    if(!parsed.sellers || parsed.sellers.length===0) parsed.sellers = [{ name: '', phone: '', role: '本人' }];
-                    if(!parsed.buyers || parsed.buyers.length===0) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
-                    if(!parsed.salesAgents || parsed.salesAgents.length===0) parsed.salesAgents = [{ name: '', phone: '', store: '' }];
-                    if(!parsed.devAgents || parsed.devAgents.length===0) parsed.devAgents = [{ name: '', phone: '', store: '' }];
-                    form.value = Object.assign({}, defaultForm, parsed);
-                }
-                
-                const savedStaffDraft = localStorage.getItem('nexus_staff_draft_v33');
-                const savedStaff = localStorage.getItem('nexus_staff_v33');
-                if (savedStaffDraft) selectedStaff.value = JSON.parse(savedStaffDraft);
-                else if (savedStaff) selectedStaff.value = JSON.parse(savedStaff);
-                
-                const savedRoadmap = localStorage.getItem('nexus_roadmap_type_v33');
-                if (savedRoadmap) roadmapType.value = savedRoadmap;
-
-                const savedCases = localStorage.getItem('nexus_cases_db');
-                if (savedCases) {
-                    cases.value = JSON.parse(savedCases);
-                    sortAndRenumberCases(); 
-                    autoLoadedMsg.value = `已載入 ${cases.value.length} 筆案件`;
-                    setTimeout(() => autoLoadedMsg.value = null, 3000);
-                }
-
-                const savedHeaders = localStorage.getItem('nexus_csv_headers');
-                if (savedHeaders) csvHeaders.value = JSON.parse(savedHeaders);
-
-                if(GAS_URL) {
-                    loadFromCloud();
-                }
-            });
+            const exportCases = () => {
+                if(cases.value.length === 0) return alert('沒有資料可以匯出！');
+                const allKeys = new Set();
+                cases.value.forEach(c => Object.keys(c).forEach(k => { if (k && String(k).trim() !== '') allKeys.add(String(k).trim()); }));
+                const normalHeaders = Array.from(allKeys).filter(k => !k.startsWith('_') && k !== 'originalIndex');
+                const systemHeaders = ['_sellers_json', '_buyers_json', '_salesAgents_json', '_devAgents_json', '_form_json', '_roadmapType', '_showPrivateLien'];
+                const exportHeader = [...normalHeaders, ...systemHeaders];
+                const dataRows = cases.value.map(c => exportHeader.map(h => c[h] !== undefined ? c[h] : ''));
+                const csvContent = Papa.unparse([exportHeader, ...dataRows]);
+                const blob = new Blob(["\uFEFF"+"宏國地政 | 易丞地政 案件\n" + csvContent], {type: 'text/csv;charset=utf-8;'});
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob); link.download = `案件交接檔_${new Date().toISOString().split('T')[0]}.csv`; link.click();
+            };
 
             const handleImportCases = (e) => {
                 const file = e.target.files[0];
@@ -1294,61 +1448,103 @@
                 Papa.parse(file, { header: false, skipEmptyLines: true, complete: (res) => {
                     const rows = res.data;
                     const headerIdx = rows.findIndex(r => r.includes('編號'));
-                    if (headerIdx === -1) return alert('匯入失敗，找不到有效資料！');
-                    
+                    if (headerIdx === -1) return alert('匯入失敗！找不到編號欄位。');
                     const rawHeaders = rows[headerIdx];
                     const dataRows = rows.slice(headerIdx + 1).filter(r => r[rawHeaders.indexOf('編號')]);
                     
-                    let newCases = dataRows.map(row => {
+                    const newCases = dataRows.map(row => {
                         let obj = {};
-                        rawHeaders.forEach((h, i) => {
-                            const cleanH = h ? String(h).trim() : '';
-                            if (cleanH !== '') {
-                                obj[cleanH] = row[i] !== undefined ? row[i] : '';
-                            }
-                        });
+                        rawHeaders.forEach((h, i) => { if (h && String(h).trim() !== '') obj[String(h).trim()] = row[i] !== undefined ? row[i] : ''; });
                         return obj;
                     });
-                    
                     cases.value = newCases;
                     sortAndRenumberCases(); 
                     localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                    
                     if(GAS_URL) syncToCloud(); 
-                    alert(`匯入成功！系統已自動修復檔案包，共載入 ${cases.value.length} 筆資料。`);
+                    alert(`匯入成功！共載入 ${cases.value.length} 筆資料。`);
                 }});
             };
+
+            // ==== 開機自動加載與防毒 ====
+            onMounted(() => {
+                try {
+                    const savedEscrow = localStorage.getItem('nexus_escrow_options');
+                    if (savedEscrow && savedEscrow !== "undefined") {
+                        const parsedEscrow = JSON.parse(savedEscrow);
+                        if(parsedEscrow.prefixes) escrowOptions.value.prefixes = Array.from(new Set([...escrowOptions.value.prefixes, ...parsedEscrow.prefixes]));
+                        if(parsedEscrow.banks) escrowOptions.value.banks = Array.from(new Set([...escrowOptions.value.banks, ...parsedEscrow.banks]));
+                        if(parsedEscrow.names) escrowOptions.value.names = Array.from(new Set([...escrowOptions.value.names, ...parsedEscrow.names]));
+                    }
+                } catch(e) {}
+
+                try {
+                    const savedDraft = localStorage.getItem('nexus_form_draft_v33');
+                    const savedForm = localStorage.getItem('nexus_form_v33');
+                    let targetDataToLoad = (savedDraft && savedDraft !== "undefined") ? savedDraft : ((savedForm && savedForm !== "undefined") ? savedForm : null);
+
+                    if (targetDataToLoad) {
+                        const parsed = JSON.parse(targetDataToLoad);
+                        if(!parsed.sellers || !Array.isArray(parsed.sellers) || parsed.sellers.length===0) parsed.sellers = [{ name: '', phone: '', role: '本人' }];
+                        if(!parsed.buyers || !Array.isArray(parsed.buyers) || parsed.buyers.length===0) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
+                        if(!parsed.salesAgents || !Array.isArray(parsed.salesAgents) || parsed.salesAgents.length===0) parsed.salesAgents = [{ name: '', phone: '', store: '' }];
+                        if(!parsed.devAgents || !Array.isArray(parsed.devAgents) || parsed.devAgents.length===0) parsed.devAgents = [{ name: '', phone: '', store: '' }];
+                        form.value = Object.assign({}, defaultForm, parsed);
+                    }
+                } catch(e) { localStorage.removeItem('nexus_form_draft_v33'); }
+                
+                try {
+                    const savedStaffDraft = localStorage.getItem('nexus_staff_draft_v33');
+                    const savedStaff = localStorage.getItem('nexus_staff_v33');
+                    if (savedStaffDraft && savedStaffDraft !== "undefined") selectedStaff.value = JSON.parse(savedStaffDraft);
+                    else if (savedStaff && savedStaff !== "undefined") selectedStaff.value = JSON.parse(savedStaff);
+                } catch(e) {}
+                
+                const savedRoadmap = localStorage.getItem('nexus_roadmap_type_v33');
+                if (savedRoadmap) roadmapType.value = savedRoadmap;
+
+                try {
+                    const rNote = localStorage.getItem('nexus_report_notes_v33');
+                    if (rNote && rNote !== "undefined") reportNotes.value = rNote;
+                } catch(e){}
+
+                try {
+                    const savedCases = localStorage.getItem('nexus_cases_db');
+                    if (savedCases && savedCases !== "undefined") {
+                        cases.value = JSON.parse(savedCases);
+                        sortAndRenumberCases(); 
+                        autoLoadedMsg.value = `已安全載入 ${cases.value.length} 筆案件`;
+                        setTimeout(() => autoLoadedMsg.value = null, 3000);
+                    }
+                } catch(e) { localStorage.removeItem('nexus_cases_db'); }
+
+                if(GAS_URL) loadFromCloud();
+            });
 
             const editCase = (idx) => {
                 currentCaseIndex.value = idx;
                 const c = cases.value[idx];
-                
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
-
+                
                 if (c['_roadmapType']) roadmapType.value = c['_roadmapType'];
                 if (c['_showPrivateLien'] !== undefined) showPrivateLien.value = (c['_showPrivateLien'] === true || c['_showPrivateLien'] === 'true');
 
                 if (c['_form_json']) {
-                    try {
-                        const savedForm = JSON.parse(c['_form_json']);
-                        Object.assign(form.value, savedForm);
-                    } catch(e) {
-                        console.error("解析全息快照失敗", e);
-                    }
+                    try { Object.assign(form.value, JSON.parse(c['_form_json'])); } catch(e) {}
                 } else {
                     form.value.contractDate = fromROC(c['簽約日']);
                     form.value.closingDate = fromROC(c['結案時間']);
+                    form.value.prevTransferDate = c['前次移轉日'] || '';
                     form.value.propertyName = c['案名'] || '';
                     form.value.address = c['地址'] || '';
                     form.value.landBuildNo = c['地建號'] || c['地號/建號'] || '';
-                    form.value.totalPrice = (c['總價(萬)'] || c['售價(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentDeposit = (c['訂金(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentContract = (c['簽約款(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentSeal = (c['用印款(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentTax = (c['完稅款(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentBalance = (c['尾款(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.paymentHandover = (c['交屋款(萬)'] || '').replace(/[^\d.]/g,'');
-                    form.value.loanPrice = (c['銀行貸款金額'] || '').replace(/[^\d.]/g,'');
+                    form.value.totalPrice = String(c['總價(萬)'] || c['售價(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentDeposit = String(c['訂金(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentContract = String(c['簽約款(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentSeal = String(c['用印款(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentTax = String(c['完稅款(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentBalance = String(c['尾款(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.paymentHandover = String(c['交屋款(萬)'] || '').replace(/[^\d.]/g,'');
+                    form.value.loanPrice = String(c['銀行貸款金額'] || '').replace(/[^\d.]/g,'');
                     form.value.buyerBankAmount = c['核貸金額'] || '';
                     form.value.buyerBank = c['貸款銀行+承辦'] || '';
                     form.value.sellerBank = c['塗銷銀行'] || '';
@@ -1356,7 +1552,7 @@
                     form.value.buyerPrePay = c['預收款'] || '';
                     form.value.waterId = c['水電、瓦斯、管理費'] || '';
                     form.value.notes = c['備註'] || '';
-
+                    
                     const escrowNum = c['履保編號'] || '';
                     const prefix = escrowOptions.value.prefixes.find(p => escrowNum.startsWith(p));
                     form.value.escrowIdPrefix = prefix || '';
@@ -1368,36 +1564,21 @@
                     if (c['_buyers_json']) try { form.value.buyers = JSON.parse(c['_buyers_json']); } catch(e){}
                     if (c['_salesAgents_json']) try { form.value.salesAgents = JSON.parse(c['_salesAgents_json']); } catch(e){}
                     if (c['_devAgents_json']) try { form.value.devAgents = JSON.parse(c['_devAgents_json']); } catch(e){}
-
-                    if(form.value.sellers.length === 1 && !form.value.sellers[0].name) {
-                         const names = c['客戶姓名(買/賣方)'] || '';
-                         const namesParts = names.split(/[、,]/);
-                         form.value.sellers[0].name = namesParts[0] || '';
-                         if(namesParts[1]) form.value.buyers[0].name = namesParts[1] || '';
-                    }
                 }
 
-                const staffStr = c['承辦'] || '';
-                selectedStaff.value = staffList.filter(s => staffStr.includes(s.name)).map(s => s.name);
+                const staffStr = String(c['承辦'] || '');
+                selectedStaff.value = staffList.value.filter(s => staffStr.includes(s.name)).map(s => s.name);
                 showManager.value = false;
             };
 
             const deleteCase = (idx) => {
-                if(confirm('【警告】您即將刪除這筆案件資料。\n\n請確認是否繼續？')) {
-                    if(confirm('【最終確認】刪除後將無法復原（若已連線雲端，資料庫也會同步刪除）。\n\n您確定要「永久刪除」嗎？')) {
-                        const targetCase = cases.value[currentCaseIndex.value]; 
-                        cases.value.splice(idx, 1);
-                        sortAndRenumberCases(); 
-                        
-                        if(targetCase && cases.value.indexOf(targetCase) > -1) {
-                            currentCaseIndex.value = cases.value.indexOf(targetCase);
-                        } else {
-                            resetForm();
-                        }
-                        
-                        localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
-                        if(GAS_URL) syncToCloud();
-                    }
+                if (currentUserRole.value === 'Agent') return;
+                if(confirm('【警告】確定要「永久刪除」這筆案件嗎？無法復原。')) {
+                    cases.value.splice(idx, 1);
+                    sortAndRenumberCases(); 
+                    resetForm();
+                    localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
+                    if(GAS_URL) syncToCloud();
                 }
             };
 
@@ -1410,19 +1591,8 @@
                 if(switchToNew) showManager.value = false;
             };
 
-            const addNewCase = () => {
-                if(confirm('確定要清空畫面，建立一筆全新的案件嗎？\n(未存檔的資料將會遺失)')) {
-                    resetForm(false);
-                }
-            };
-
-            const saveAsNew = () => {
-                if(confirm('確定要將目前畫面上的資料「另存為新案件」嗎？\n(系統將自動清除結案日期，設為進行中)')) {
-                    currentCaseIndex.value = -1; 
-                    form.value.closingDate = ''; 
-                    saveLocal(true); 
-                }
-            };
+            const addNewCase = () => { if(confirm('建立全新案件？(未存檔資料將遺失)')) resetForm(false); };
+            const saveAsNew = () => { if(confirm('另存為新案件？')) { currentCaseIndex.value = -1; form.value.closingDate = ''; saveLocal(true); } };
 
             const saveLocal = (isSaveAsNew = false) => {
                 const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
@@ -1433,7 +1603,7 @@
                 localStorage.setItem('nexus_staff_v33', JSON.stringify(selectedStaff.value));
 
                 const oldData = currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : {};
-                const tempId = Date.now().toString() + Math.random().toString();
+                const tempId = Date.now().toString();
 
                 const rowData = {
                     ...oldData, 
@@ -1443,11 +1613,12 @@
                     '地址': form.value.address,
                     '地建號': form.value.landBuildNo,
                     '簽約日': toROC(form.value.contractDate),
+                    '前次移轉日': form.value.prevTransferDate,
                     '客戶姓名(買/賣方)': `${sellerDisplay}、${buyerDisplay}`,
                     '買方詳細資訊': form.value.buyers.map(b => `${b.name}(${b.phone})`).join('、'),
                     '賣方詳細資訊': form.value.sellers.map(s => `${s.name}(${s.phone})`).join('、'),
                     '承辦': selectedStaff.value.join('、'),
-                    '總價(萬)': form.value.totalPrice ? form.value.totalPrice : '',
+                    '總價(萬)': form.value.totalPrice,
                     '訂金(萬)': form.value.paymentDeposit,
                     '簽約款(萬)': form.value.paymentContract,
                     '用印款(萬)': form.value.paymentSeal,
@@ -1478,108 +1649,36 @@
                     '_form_json': JSON.stringify(form.value)
                 };
 
-                if (currentCaseIndex.value > -1) {
-                    Object.assign(cases.value[currentCaseIndex.value], rowData);
-                } else {
-                    cases.value.push(rowData);
-                    currentCaseIndex.value = cases.value.length - 1;
-                }
+                if (currentCaseIndex.value > -1) Object.assign(cases.value[currentCaseIndex.value], rowData);
+                else { cases.value.push(rowData); currentCaseIndex.value = cases.value.length - 1; }
                 
                 sortAndRenumberCases();
-                
                 const newIdx = cases.value.findIndex(c => c._tempId === tempId);
-                if (newIdx > -1) {
-                    currentCaseIndex.value = newIdx;
-                    delete cases.value[newIdx]._tempId; 
-                }
+                if (newIdx > -1) { currentCaseIndex.value = newIdx; delete cases.value[newIdx]._tempId; }
                 
                 localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
                 localStorage.setItem('nexus_form_draft_v33', JSON.stringify(form.value));
                 
                 if (GAS_URL) {
-                    syncToCloud(rowData).then(() => {
-                        let msg = isSaveAsNew === true ? '✅ 已成功「另存新案」並同步至雲端資料庫！' : '✅ 存檔成功並同步至雲端！';
-                        if(COMPANY_CONTACT_GAS_URL) msg += '\n\n(聯絡人已自動同步至公司端)';
-                        alert(msg);
-                    });
-                } else {
-                    alert(isSaveAsNew === true ? '✅ 已成功另存於本機！' : '✅ 存檔成功於本機！');
-                }
-
-                if (COMPANY_CONTACT_GAS_URL) {
-                    const peopleToSync = [...form.value.sellers, ...form.value.buyers];
-                    fetch(COMPANY_CONTACT_GAS_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        redirect: 'follow',
-                        body: JSON.stringify({ action: 'sync_contacts', people: peopleToSync })
-                    }).catch(e => console.error("公司聯絡人同步異常:", e));
-                }
+                    syncToCloud(rowData).then(() => alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'));
+                } else { alert('✅ 存檔成功！(本機)'); }
             };
 
-            const exportCases = () => {
-                if(cases.value.length === 0) return alert('沒有資料可以匯出！');
-                
-                const allKeys = new Set();
-                cases.value.forEach(c => Object.keys(c).forEach(k => {
-                    if (k && String(k).trim() !== '') allKeys.add(String(k).trim());
-                }));
-                
-                const normalHeaders = Array.from(allKeys).filter(k => !k.startsWith('_') && k !== 'originalIndex');
-                const systemHeaders = ['_sellers_json', '_buyers_json', '_salesAgents_json', '_devAgents_json', '_form_json', '_roadmapType', '_showPrivateLien'];
-                
-                const exportHeader = [...normalHeaders, ...systemHeaders];
-                const dataRows = cases.value.map(c => exportHeader.map(h => c[h] !== undefined ? c[h] : ''));
-                
-                const csvContent = Papa.unparse([exportHeader, ...dataRows]);
-                const finalCSV = "宏國地政 | 易丞地政 案件\n" + csvContent;
-                
-                const blob = new Blob(["\uFEFF"+finalCSV], {type: 'text/csv;charset=utf-8;'});
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `案件交接檔_${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
+            const formatDate = (d) => {
+                if(!d) return '____/____';
+                try {
+                    const dt = new Date(d);
+                    if(isNaN(dt)) return '____/____';
+                    return `${dt.getMonth()+1}/${dt.getDate()}`;
+                } catch(e) { return '____/____'; }
             };
 
-            const contactsDB = ref([]);
-            const contactsLoaded = ref(false);
-            const suggestions = ref({ target: null, list: [], idx: null });
-            
-            const handleContactUpload = (e) => { /* reuse */ }; 
-            const handleFileUpload = (e) => {
-                const file = e.target.files[0];
-                if(!file) return;
-                Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
-                    contactsDB.value = res.data.map(row => {
-                        const name = (row['Name'] || Object.values(row)[0] || '').trim();
-                        const phone = Object.values(row).find(v => v && v.match && v.match(/09\d{8}/)) || '';
-                        return {name, phone, org: ''}; 
-                    }).filter(c => c.name);
-                    contactsLoaded.value = true;
-                }});
+            const getStepDate = (idx) => {
+                return [form.value.contractDate, form.value.sealDate, form.value.taxDate, form.value.closingDate][idx];
             };
-            const searchContacts = (e, target, idx = null) => {
-                const q = e.target.value.toLowerCase();
-                suggestions.value.target = target;
-                suggestions.value.idx = idx;
-                if(q.length<1 || !contactsLoaded.value) { suggestions.value.list=[]; return; }
-                suggestions.value.list = contactsDB.value.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))).slice(0,5);
+            const getStepIcon = (idx) => {
+                return ['fa-file-signature','fa-stamp','fa-file-invoice-dollar','fa-home'][idx];
             };
-            const selectAgent = (arrayName, c, idx) => {
-                form.value[arrayName][idx].name = c.name;
-                form.value[arrayName][idx].phone = c.phone;
-                form.value[arrayName][idx].store = c.org || '';
-                suggestions.value.list = [];
-            };
-             const selectContact = (target, c, idx) => {
-                if(target==='seller') { form.value.sellers[idx].name=c.name; form.value.sellers[idx].phone=c.phone; }
-                else if(target==='buyer') { form.value.buyers[idx].name=c.name; form.value.buyers[idx].phone=c.phone; }
-                suggestions.value.list = [];
-            };
-
-            const addStaff = () => {}; 
-            const formatDate = (d) => d ? (new Date(d).getMonth()+1)+'/'+new Date(d).getDate() : '____/____';
-            const printPage = () => window.print();
 
             const generatedCalendar = computed(() => {
                 if (!form.value.contractDate) return [];
@@ -1610,51 +1709,41 @@
             const generatedWeeklyReport = computed(() => {
                 let report = `📊 宏國x易丞地政 每週進度回報\n日期：${new Date().toLocaleDateString('zh-TW')}\n回報人：${reportStaffFilter.value || '全體'}\n`;
                 report += `=====================\n\n`;
-
-                if(reportNotes.value) {
-                    report += `📌【本週重點與主管協助事項】\n${reportNotes.value}\n\n`;
-                }
+                if(reportNotes.value) report += `📌【本週重點與協助事項】\n${reportNotes.value}\n\n`;
 
                 let activeCases = cases.value.filter(c => !c['結案時間']);
-                if (reportStaffFilter.value) {
-                    activeCases = activeCases.filter(c => (c['承辦'] || '').includes(reportStaffFilter.value));
-                }
+                if (reportStaffFilter.value) activeCases = activeCases.filter(c => String(c['承辦'] || '').includes(reportStaffFilter.value));
 
                 report += `📁【目前進行中案件：共 ${activeCases.length} 筆】\n`;
-                
-                if(activeCases.length === 0) {
-                    report += `(目前無進行中案件)\n`;
-                } else {
+                if(activeCases.length === 0) report += `(無)\n`;
+                else {
                     activeCases.forEach((c, index) => {
                         report += `\n[案件 ${index + 1}] ${c['地址'] || '無地址資訊'}\n`;
                         report += ` ▸ 買/賣方：${c['客戶姓名(買/賣方)'] || '未建立'}\n`;
                         report += ` ▸ 簽約日：${c['簽約日'] || '未定'}\n`;
                         if(c['預收款']) report += ` ▸ 預收款：${c['預收款']}\n`;
-                        if(c['貸款銀行+承辦']) report += ` ▸ 銀行/核貸：${c['貸款銀行+承辦']} / ${c['核貸金額'] || '無'}\n`;
+                        if(c['貸款銀行+承辦']) report += ` ▸ 銀行：${c['貸款銀行+承辦']} / ${c['核貸金額'] || '無'}\n`;
                     });
                 }
-
                 report += `\n=====================\n以上回報。`;
                 return report;
             });
 
-            const copyWeeklyReport = () => { 
-                navigator.clipboard.writeText(generatedWeeklyReport.value).then(() => alert('✅ 週報已成功複製！請直接至 LINE 貼上。')); 
-            };
+            const copyWeeklyReport = () => { navigator.clipboard.writeText(generatedWeeklyReport.value).then(() => alert('✅ 週報已複製！')); };
 
-            // ================= Omni-Aegis 小背表映射強化 =================
             const previewText = computed(() => { 
                 let staffTxt = "";
                 selectedStaff.value.forEach(name => {
-                    const s = staffList.find(staff => staff.name === name);
+                    const s = staffList.value.find(staff => staff.name === name);
                     if (s) staffTxt += `${s.name} ${s.phone}\n`;
                 });
                 
-                const d = form.value.contractDate ? form.value.contractDate.replace(/-/g, '.') : '';
-                const closing = form.value.closingDate ? form.value.closingDate.replace(/-/g, '.') : '';
+                const d = form.value.contractDate ? String(form.value.contractDate).replace(/-/g, '.') : '';
+                const closing = form.value.closingDate ? String(form.value.closingDate).replace(/-/g, '.') : '';
                 
                 const formatPerson = (p) => {
-                    const name = p.name.trim();
+                    if (!p || !p.name) return null;
+                    const name = String(p.name).trim();
                     if (!name) return null;
                     return p.role === '本人' ? name : `${name}(${p.role})`;
                 };
@@ -1663,85 +1752,46 @@
                 const buyerTxt = form.value.buyers.map(formatPerson).filter(n => n).join('、');
                 const fullEscrow = form.value.escrowIdPrefix + form.value.escrowIdSuffix;
                 
-                const depositTxt = (roadmapType.value === 'construction' && form.value.paymentDeposit) ? `👉訂金：${form.value.paymentDeposit} 萬\n` : '';
-                const handoverTxt = (roadmapType.value === 'construction' && form.value.paymentHandover) ? `👉交屋款：${form.value.paymentHandover} 萬\n` : '';
-
-                let sellerDocs = [];
-                if(form.value.docSellerDeed) sellerDocs.push('權狀');
-                if(form.value.docSellerSeal) sellerDocs.push('印鑑');
-                if(form.value.docSellerOrdSeal) sellerDocs.push('便章');
-                if(form.value.docSellerID) sellerDocs.push('身分證');
-                if(form.value.docSellerStamp) sellerDocs.push('其他');
-                const sellerDocTxt = sellerDocs.length > 0 ? `📄 賣方應備：${sellerDocs.join('、')}` : '';
-
                 let buyerDocs = [];
                 if(form.value.docBuyerSeal) buyerDocs.push('印章');
                 if(form.value.docBuyerID) buyerDocs.push('身分證');
                 const buyerDocTxt = buyerDocs.length > 0 ? `📄 買方應備：${buyerDocs.join('、')}` : '';
 
-                const buyerBankTxt = form.value.buyerBank ? `🏦 買方貸款：${form.value.buyerBank} (${form.value.buyerBankAmount || '未填額度'})` : '';
-                const sellerBankTxt = form.value.sellerBank ? `🏦 賣方塗銷：${form.value.sellerBank} (${form.value.sellerMortgage || '未填金額'})` : '';
-
-                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n地建號：${form.value.landBuildNo}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n${buyerDocTxt ? buyerDocTxt + '\n' : ''}${sellerDocTxt ? sellerDocTxt + '\n' : ''}${buyerBankTxt ? buyerBankTxt + '\n' : ''}${sellerBankTxt ? sellerBankTxt + '\n' : ''}\n⚠️ 特殊事項 ：\n${form.value.notes}\n\n💰 價金明細：\n總價：${form.value.totalPrice} 萬元\n${depositTxt}1️⃣簽約款：${form.value.paymentContract || 0} 萬\n2️⃣備證款：${form.value.paymentSeal || 0} 萬\n3️⃣完稅款：${form.value.paymentTax || 0} 萬\n4️⃣貸款：${form.value.paymentBalance || 0} 萬\n${handoverTxt}\n⏰ 最後點交日：${closing}\n🏦 履保編號：${fullEscrow}\n戶名：${form.value.escrowName}\n分行：${form.value.escrowBank}\n\n📞 案件相關問題請聯繫：\n宏國x易丞地政:06-2582589\n承辦：\n${staffTxt}`; 
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n${buyerDocTxt}\n⚠️ 備註 ：\n${form.value.notes}\n\n💰 總價：${form.value.totalPrice} 萬元\n⏰ 點交日：${closing}\n🏦 履保：${fullEscrow}\n\n📞 承辦：\n${staffTxt}`; 
             });
 
             const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
 
             const generateLineText = () => {
-                if (!form.value.address && !form.value.propertyName) {
-                    alert('⚠️ 請先填寫「案件名稱」或「地址」！');
-                    return null;
-                }
-                
-                const caseName = form.value.propertyName || form.value.address || '未命名案件';
-                const staff = selectedStaff.value.length > 0 ? selectedStaff.value.join('、') : '未指定承辦';
-                
-                const formatPerson = (p) => p.name.trim() ? (p.role === '本人' ? p.name : `${p.name}(${p.role})`) : null;
-                const buyers = form.value.buyers.map(formatPerson).filter(n => n).join('、') || '未填寫';
-                const sellers = form.value.sellers.map(formatPerson).filter(n => n).join('、') || '未填寫';
-
-                const salesTxt = form.value.salesAgents.map(a => a.name.trim() ? `${a.name}(${a.store||'銷售'})` : null).filter(n=>n).join('、');
-                const devTxt = form.value.devAgents.map(a => a.name.trim() ? `${a.name}(${a.store||'開發'})` : null).filter(n=>n).join('、');
-                const agentsArray = [salesTxt, devTxt].filter(n => n);
-                const agentSection = agentsArray.length > 0 ? `\n🤝 仲介：${agentsArray.join(' / ')}` : '';
-
-                const msg = quickReportMsg.value ? `\n\n📝 備註說明：\n${quickReportMsg.value}` : '';
-
-                return `📋【案件進度即時回報】\n案名：${caseName}\n📍 目前進度：${quickReportStep.value}\n\n👤 買方：${buyers}\n👤 賣方：${sellers}${agentSection}\n\n🏢 承辦地政：${staff}${msg}`;
+                if (!form.value.address && !form.value.propertyName) { alert('⚠️ 請填寫案名或地址'); return null; }
+                const caseName = form.value.propertyName || form.value.address;
+                const msg = quickReportMsg.value ? `\n📝 說明：${quickReportMsg.value}` : '';
+                return `📋【進度回報】\n案名：${caseName}\n📍 進度：${quickReportStep.value}${msg}`;
             };
 
             const copyLineProgressReport = () => {
                 const text = generateLineText();
-                if(!text) return;
-                navigator.clipboard.writeText(text).then(() => alert('✅ 進度回報已複製！\n\n請在電腦版 LINE 聊天室直接貼上 (Ctrl+V)'));
+                if(text) navigator.clipboard.writeText(text).then(() => alert('✅ 回報已複製！'));
             };
 
             const sendLineProgressReport = () => {
                 const text = generateLineText();
-                if(!text) return;
-                
-                const encodedText = encodeURIComponent(text);
-                const lineUrl = `https://line.me/R/share?text=${encodedText}`;
-                window.open(lineUrl, '_blank');
+                if(text) window.open(`https://line.me/R/share?text=${encodeURIComponent(text)}`, '_blank');
             };
 
             return {
-                GAS_URL, syncStatus,
-                toROC, 
-                staffList, selectedStaff, newStaff, addStaff, form,
-                handleFileUpload, contactsLoaded, handleImportCases, handleContactUpload,
-                searchContacts, suggestions, selectContact, selectAgent,
-                addPerson, removePerson, addAgent, removeAgent,
-                showManager, cases, currentCaseIndex, editCase, deleteCase, resetForm, saveLocal, exportCases,
-                formatDate, printPage, previewText, copyToClipboard, generatedCalendar, autoLoadedMsg,
-                priceSum, priceMismatch,
-                escrowOptions, checkAndAddOption, removeOption, 
-                roadmapType, showPrivateLien, currentRoadmapSteps, toggleTask,
-                calcDeed, calcLoan, calcResult,
-                showReporter, reportStaffFilter, reportNotes, generatedWeeklyReport, copyWeeklyReport,
-                managerTab, activeCasesList, closedCasesList,
-                quickReportStep, quickReportMsg, sendLineProgressReport, copyLineProgressReport,
-                toggleCaseStatus, addNewCase, saveAsNew
+                GAS_URL, syncStatus, currentUserRole, handleRoleChange,
+                cases, activeCasesList, closedCasesList, managerTab, showManager, currentCaseIndex,
+                form, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, toggleCaseStatus,
+                isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
+                roadmapType, showPrivateLien, escrowOptions, staffList, selectedStaff, newStaff, addStaff,
+                priceSum, priceMismatch, toROC, formatDate, printPage, exportPDF, autoLoadedMsg,
+                showReporter, reportStaffFilter, reportNotes, quickReportStep, quickReportMsg,
+                addPerson, removePerson, addAgent, removeAgent, checkAndAddOption, removeOption,
+                searchContacts, suggestions, selectContact, selectAgent, contactsLoaded, handleContactUpload, handleFileUpload,
+                copyToClipboard, copyLineProgressReport, sendLineProgressReport, copyWeeklyReport,
+                calcDeed, calcLoan, calcResult, toggleTask, generatedCalendar, generatedWeeklyReport, previewText, exportCases, handleImportCases,
+                checkVVIP, parseSafePrice, getStepDate, getStepIcon
             };
         }
     }).mount('#app');
