@@ -479,7 +479,7 @@
                     <label class="text-xs font-bold text-gray-500 uppercase block">成交總價</label>
                     <input type="number" v-model="form.totalPrice" class="nexus-input font-mono font-bold" :class="{'bg-red-50 text-red-600': priceMismatch}">
                     <span class="unit-tag">萬</span>
-                    <div v-if="priceMismatch" class="text-red-600 text-[10px] font-bold absolute bottom-[-16px] left-0 bg-white px-1 border border-red-200 rounded print:border-0 print:bottom-[-14px]"⚠️ 金額不符 (總和:{{priceSum}})</div>
+                    <div v-if="priceMismatch" class="text-red-600 text-[10px] font-bold absolute bottom-[-16px] left-0 bg-white px-1 border border-red-200 rounded print:border-0 print:bottom-[-14px]">⚠️ 金額不符 (總和:{{priceSum}})</div>
                 </div>
            </div>
        </div>
