@@ -167,8 +167,8 @@
        .pdf-loading-overlay.active { opacity: 1; pointer-events: all; }
 
        /* ==========================
-          列印極致壓縮核心 CSS (The Print Matrix) - v40.06 完美向量版
-          ========================== */
+         列印極致壓縮核心 CSS (The Print Matrix) - v40.06 完美向量版
+         ========================== */
        @media print {
            /* 💡 核心防禦 1：強制隱藏網頁提示遮罩，絕不印進 PDF 中 */
            .pdf-loading-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; }
@@ -236,7 +236,10 @@
            .print-finance-grid input[type="date"] { width: 100% !important; text-align: center; font-size: 9.5pt !important; }
  
            .print-people-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px !important; }
-           .person-input-card { border: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; display: grid !important; grid-template-columns: 30px 1fr 85px !important; gap: 2px !important; align-items: center; border-bottom: 1px dotted #ccc !important;}
+           
+           /* 💡 重大修正：原 grid-template-columns 寬度不足導致 12 碼電話號碼切斷，由 85px 擴展至 105px */
+           .person-input-card { border: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; display: grid !important; grid-template-columns: 30px 1fr 105px !important; gap: 2px !important; align-items: center; border-bottom: 1px dotted #ccc !important;}
+           
            .person-input-row-1 { display: contents !important; }
            .person-input-row-2 { display: contents !important; }
            .role-select { display: none !important; } 
@@ -328,7 +331,6 @@
  
 <div id="app" class="w-full md:max-w-5xl mx-auto bg-white p-4 md:p-6 shadow-xl min-h-screen print:max-w-[210mm] print:shadow-none print:p-0 print:block relative">
     
-   <!-- 💡 向量引擎劫持提示層 -->
    <div class="pdf-loading-overlay" :class="{'active': isPdfExporting}">
        <i class="fas fa-microchip text-5xl mb-4 animate-pulse"></i>
        <h2 class="text-xl font-bold mb-2 tracking-widest">啟動原生向量 PDF 引擎</h2>
@@ -401,12 +403,10 @@
                     <i class="fas fa-save mr-1"></i> 存檔<span v-if="GAS_URL" class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping-absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-400"></span></span>
                 </button>
  
-                <!-- 💡 恢復原有的常規列印按鈕 -->
                 <button @click="printPage" class="flex-1 md:flex-none px-4 py-2 bg-navy text-white rounded shadow-lg font-bold hover:bg-black transition-colors">
                     <i class="fas fa-print mr-1"></i> 快速列印
                 </button>
  
-                <!-- 💡 匯出 PDF 按鈕，呼叫向量底層引擎 -->
                 <button @click="exportVectorPDF" class="flex-1 md:flex-none px-4 py-2 bg-red-700 text-white rounded text-sm hover:bg-red-800 transition-colors shadow-lg font-bold">
                     <i class="fas fa-file-pdf mr-1"></i> 匯出 PDF
                 </button>
@@ -587,7 +587,7 @@
                                 </div>
                             </div>
                             <div class="person-input-row-2">
-                                <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
+                                <input type="text" v-model="person.phone" @blur="formatPhone(person, 'phone')" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
                             </div>
                             <button v-if="form.sellers.length > 1" @click="removePerson('sellers', idx)" class="no-print absolute top-0 right-0 -mt-2 -mr-1 text-red-400 hover:text-red-600"><i class="fas fa-times-circle"></i></button>
                         </div>
@@ -613,7 +613,7 @@
                                 </div>
                             </div>
                             <div class="person-input-row-2">
-                                <input type="text" v-model="person.phone" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
+                                <input type="text" v-model="person.phone" @blur="formatPhone(person, 'phone')" class="nexus-input font-mono text-xs p-1 person-phone-input" placeholder="電話">
                             </div>
                            <button v-if="form.buyers.length > 1" @click="removePerson('buyers', idx)" class="no-print absolute top-0 right-0 -mt-2 -mr-1 text-red-400 hover:text-red-600"><i class="fas fa-times-circle"></i></button>
                         </div>
@@ -639,7 +639,10 @@
                                     <input type="text" v-model="agent.name" @input="searchContacts($event,'sales', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'銷售 ' + (idx+1)">
                                     <div v-if="suggestions.target==='sales' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('salesAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                                 </div>
-                                <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                                <div class="flex gap-1 mb-1">
+                                    <input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店">
+                                    <input v-model="agent.phone" @blur="formatPhone(agent, 'phone')" class="nexus-input text-xs p-1 w-1/2" placeholder="電話">
+                                </div>
                                 <div v-if="form.salesAgents.length > 1" class="text-right"><button @click="removeAgent('salesAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
                             </div>
                         </div>
@@ -660,7 +663,10 @@
                                     <input type="text" v-model="agent.name" @input="searchContacts($event,'dev', idx)" class="nexus-input font-bold text-sm mb-1 p-1 w-full" :placeholder="'開發 ' + (idx+1)">
                                     <div v-if="suggestions.target==='dev' && suggestions.idx===idx && suggestions.list.length" class="suggestions-box"><div v-for="c in suggestions.list" @click="selectAgent('devAgents', c, idx)" class="suggestion-item">{{c.name}} - {{c.org}}</div></div>
                                 </div>
-                                <div class="flex gap-1 mb-1"><input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店"><input v-model="agent.phone" class="nexus-input text-xs p-1 w-1/2" placeholder="電話"></div>
+                                <div class="flex gap-1 mb-1">
+                                    <input v-model="agent.store" class="nexus-input text-xs p-1 w-1/2" placeholder="分店">
+                                    <input v-model="agent.phone" @blur="formatPhone(agent, 'phone')" class="nexus-input text-xs p-1 w-1/2" placeholder="電話">
+                                </div>
                                 <div v-if="form.devAgents.length > 1" class="text-right"><button @click="removeAgent('devAgents', idx)" class="text-red-400 text-xs agent-remove-btn">移除</button></div>
                             </div>
                         </div>
@@ -687,7 +693,7 @@
                      <span class="print-doc-title">買方文件:</span>
                      <div class="doc-flex-container">
                         <label class="doc-check-item"><input type="checkbox" v-model="form.docBuyerSeal"><span>印章</span></label>
-                       <label class="doc-check-item"><input type="checkbox" v-model="form.docBuyerID"><span>身分證</span></label>
+                        <label class="doc-check-item"><input type="checkbox" v-model="form.docBuyerID"><span>身分證</span></label>
                     </div>
                  </div>
            </div>
@@ -1091,7 +1097,27 @@
  
    createApp({
        setup() {
-           const GAS_URL = "https://script.google.com/macros/s/AKfycbwheYGYqWcALKIMokH7SHuaxbhju-mkiADmLQMdhg_g45AolLmP1Zcwl1mDe9b48wPG/exec";
+           // ==========================================
+           // 💡 【Supabase 資料庫連線設定】
+           // 1. SUPABASE_PROJECT_URL：貼 Supabase Project URL，例如 https://xxxxx.supabase.co
+           // 2. SUPABASE_KEY：只能貼 Publishable key 或 Legacy anon public key
+           // ⚠️ 絕對不要把 Secret key / service_role key 放進前端 HTML
+           // ==========================================
+           const SUPABASE_PROJECT_URL = "https://stsbxxredsudldyxwqpw.supabase.co";
+           const SUPABASE_KEY = "sb_publishable_Ii9luYqjDErotcRxiBVEtw_StDtZc5w";
+           const SUPABASE_TABLE = "nexus_data";
+           const SUPABASE_ROW_ID = 1;
+
+           const SUPABASE_ENABLED = (
+                !SUPABASE_PROJECT_URL.includes("你的專案ID") &&
+                !SUPABASE_KEY.includes("請貼上") &&
+                SUPABASE_PROJECT_URL.startsWith("https://")
+           );
+
+           const SUPABASE_ENDPOINT = `${SUPABASE_PROJECT_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}`;
+
+           // 保留 GAS_URL 這個變數名稱，只是讓原本畫面上的「雲端連線」判斷不用大改
+           const GAS_URL = SUPABASE_ENABLED;
  
            const currentUserRole = ref('Agent'); 
  
@@ -1174,6 +1200,17 @@
            });
  
            const defaultForm = JSON.parse(JSON.stringify(form.value));
+
+           // 💡 升級功能：電話自動格式化處理 (Format Phone Number)
+           const formatPhone = (obj, key) => {
+               if (!obj || !obj[key]) return;
+               let val = String(obj[key]).replace(/[^\d]/g, '');
+               if (val.length === 10 && val.startsWith('09')) {
+                   obj[key] = `${val.substring(0,4)}-${val.substring(4,7)}-${val.substring(7)}`;
+               } else if (val.length === 9 && (val.startsWith('02') || val.startsWith('03') || val.startsWith('04') || val.startsWith('05') || val.startsWith('06') || val.startsWith('07') || val.startsWith('08'))) {
+                   obj[key] = `${val.substring(0,2)}-${val.substring(2,5)}-${val.substring(5)}`;
+               }
+           };
  
            let autoSaveTimer = null;
            watch(() => form.value, (newVal) => {
@@ -1396,47 +1433,93 @@
            };
  
            const loadFromCloud = async () => {
-                if (!GAS_URL) return;
+                if (!SUPABASE_ENABLED) return;
                 try {
                     syncStatus.value = 'syncing';
-                    const response = await fetch(GAS_URL, { redirect: 'follow' });
-                    const textData = await response.text();
-                    if (textData.trim().startsWith('<')) throw new Error('權限阻擋');
-                    const result = JSON.parse(textData);
-                    if (result.status === 'error') throw new Error(result.message);
-                    
-                    if (Array.isArray(result) && result.length > 0) {
-                        cases.value = result;
-                        sortAndRenumberCases();
-                        try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); }catch(e){}
+
+                    const response = await fetch(SUPABASE_ENDPOINT, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Supabase 讀取失敗：${response.status} ${errorText}`);
                     }
+
+                    const result = await response.json();
+
+                    // Supabase 回傳格式為 [{ id: 1, payload: [...] }]
+                    if (Array.isArray(result) && result.length > 0) {
+                        const remotePayload = result[0].payload;
+
+                        if (Array.isArray(remotePayload)) {
+                            cases.value = remotePayload;
+                            sortAndRenumberCases();
+                            try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e){}
+                            autoLoadedMsg.value = `已從 Supabase 載入 ${cases.value.length} 筆案件`;
+                            setTimeout(() => autoLoadedMsg.value = null, 3000);
+                        } else {
+                            // 若 payload 不是陣列，視為空資料，避免整個系統壞掉
+                            cases.value = [];
+                            try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e){}
+                        }
+                    }
+
                     syncStatus.value = 'success';
-                } catch (error) { syncStatus.value = 'error'; }
+                } catch (error) {
+                    console.error("Supabase 讀取失敗:", error);
+                    syncStatus.value = 'error';
+                }
            };
- 
+
            const syncToCloud = async (currentSavedData = null) => {
-                if (!GAS_URL) return;
+                if (!SUPABASE_ENABLED) return;
                 try {
                     syncStatus.value = 'syncing';
+
+                    // 維持原本欄位正規化邏輯，避免部分案件缺欄位造成匯出或列表異常
                     const allKeys = new Set();
-                   cases.value.forEach(c => Object.keys(c).forEach(k => { if (k && String(k).trim() !== '') allKeys.add(String(k).trim()); }));
-                    
+                    cases.value.forEach(c => Object.keys(c).forEach(k => {
+                        if (k && String(k).trim() !== '') allKeys.add(String(k).trim());
+                    }));
+
                     const normalizedCases = cases.value.map(c => {
                         const cleanObj = {};
                         allKeys.forEach(k => cleanObj[k] = c[k] !== undefined ? c[k] : '');
                         return cleanObj;
                     });
- 
-                    const payload = { action: 'sync', cases: normalizedCases, currentCase: currentSavedData };
-                    const response = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', body: JSON.stringify(payload) });
-                    const textData = await response.text();
-                    if (textData.trim().startsWith('<')) throw new Error('權限阻擋');
-                    const result = JSON.parse(textData);
-                    if (result.status === 'error') throw new Error(result.message);
+
+                    const payload = { payload: normalizedCases };
+
+                    const response = await fetch(SUPABASE_ENDPOINT, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Supabase 同步失敗：${response.status} ${errorText}`);
+                    }
+
                     syncStatus.value = 'success';
-                } catch (error) { syncStatus.value = 'error'; }
+                } catch (error) {
+                    console.error("Supabase 同步失敗:", error);
+                    syncStatus.value = 'error';
+                    alert('⚠️ Supabase 同步失敗，資料已先保存在本機。請打開瀏覽器 Console 查看錯誤。');
+                }
            };
- 
+
            const contactsDB = ref([]);
             const contactsLoaded = ref(false);
            const suggestions = ref({ target: null, list: [], idx: null });
@@ -1853,7 +1936,7 @@
                searchContacts, suggestions, selectContact, selectAgent, contactsLoaded, handleContactUpload, handleFileUpload,
                copyToClipboard, copyLineProgressReport, sendLineProgressReport, copyWeeklyReport,
                calcDeed, calcLoan, calcResult, toggleTask, generatedCalendar, generatedWeeklyReport, previewText, handleImportCases,
-               checkVVIP, parseSafePrice, getStepDate, getStepIcon
+               checkVVIP, parseSafePrice, getStepDate, getStepIcon, formatPhone // 💡 匯出格式化函數供畫面使用
            };
        }
    }).mount('#app');
