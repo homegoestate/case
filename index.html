@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>宏國x易丞地政 - 案件指揮艙 v40.09 Portal Bound</title>
+   <title>宏國x易丞地政 - 兩頁背表流程候選 2026.09.16</title>
     
    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
    <script src="https://cdn.tailwindcss.com"></script>
@@ -325,7 +325,106 @@
        /* PDF 輸出專用動畫遮罩 */
        .pdf-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 46, 70, 0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #C5A065; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
        .pdf-loading-overlay.active { opacity: 1; pointer-events: all; }
-   </style>
+   
+       /* 2026-09-16：原縱向主線 + 文件／款項向右分支 */
+       .sop-summary {display:flex;flex-wrap:wrap;gap:6px 20px;justify-content:space-between;align-items:center;color:var(--nexus-navy);font-size:14px;margin:12px 0;}
+       .sop-save-hint {font-size:12px;color:#64748b;}
+       .sop-route {display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+       .sop-route a {padding:6px 10px;background:#edf2f6;color:#0f2e46;border:1px solid #dbe3eb;border-radius:5px;font-size:13px;font-weight:700;text-decoration:none;}
+       .sop-route a:not(:last-child)::after {content:' →';color:#92703c;}
+       .sop-intro {font-size:13px;color:#64748b;margin:8px 0 14px;line-height:1.6;}
+       .sop-tree.has-branches {display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:24px;}
+       .sop-branches {border-left:2px solid #c5a065;padding-left:16px;margin:8px 0;}
+       .sop-branch {position:relative;padding:10px 12px;background:#faf8f2;border:1px solid #e8ddc8;border-radius:5px;}
+       .sop-branch + .sop-branch {margin-top:10px;}
+       .sop-branch::before {content:'';position:absolute;left:-18px;top:20px;width:17px;height:2px;background:#c5a065;}
+       .sop-branch h3 {font-weight:800;color:#74552a;font-size:14px;margin:0 0 7px;}
+       .sop-branch.risk {background:#fff3f2;border-color:#e8beb9;}
+       .sop-branch.risk h3 {color:#9b2820;}
+       .sop-note {font-size:12px;line-height:1.65;color:#536172;margin:8px 0 0;padding:6px 9px;border-left:2px solid #a6b4c0;background:#f5f7f9;}
+       .roadmap .station {scroll-margin-top:20px;}
+       .roadmap .station-title {font-size:16px;line-height:1.6;margin-bottom:9px;}
+       .roadmap .task-item {margin:0 0 6px;display:block;}
+       .roadmap .task-item label {display:flex;align-items:flex-start;gap:7px;margin:0;color:#24374b;font-size:14px;font-weight:400;line-height:1.6;cursor:pointer;}
+       .roadmap .task-item input[type=checkbox] {appearance:auto;flex:0 0 16px;width:16px;height:16px;margin-top:4px;accent-color:#0f2e46;cursor:pointer;}
+       .roadmap .task-item input:focus-visible {outline:2px solid #b08743;outline-offset:3px;}
+       .roadmap .task-item.checked span {color:#667789;text-decoration:line-through;}
+       .roadmap .calc-row {flex-wrap:wrap;}
+       .roadmap .calc-row label {font-size:13px;font-weight:500;}
+       .roadmap .calc-input {width:80px;max-width:100%;}
+       @media screen and (max-width:760px) {
+         .roadmap-header {align-items:flex-start;gap:10px;flex-direction:column;}
+         .roadmap-controls {flex-wrap:wrap;}
+         .sop-tree.has-branches {grid-template-columns:minmax(0,1fr);gap:4px;}
+         .sop-branches {margin-left:5px;}
+         .station-card {margin-left:27px;padding:10px 9px;}
+         .sop-summary {align-items:flex-start;flex-direction:column;}
+       }
+       @media print {
+         .sop-summary {font-size:9pt;margin:3px 0;}
+         .sop-save-hint,.sop-intro {display:none!important;}
+         .sop-tree.has-branches {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:14px;}
+         .sop-branches {padding-left:10px;margin:2px 0;border-color:#777;}
+         .sop-branch {padding:3px 5px;background:white;border-color:#aaa;}
+         .sop-branch::before {left:-12px;width:11px;background:#777;top:12px;}
+         .sop-branch h3 {font-size:9pt;margin-bottom:2px;color:#000;}
+         .sop-branch + .sop-branch {margin-top:4px;}
+         .roadmap .task-item {margin-bottom:2px!important;}
+         .roadmap .task-item label {font-size:9pt!important;line-height:1.35;}
+         .roadmap .task-item input[type=checkbox] {display:inline-block!important;appearance:auto!important;flex-basis:12px;width:12px!important;height:12px!important;margin-top:2px;}
+         .sop-note {font-size:8pt;line-height:1.3;color:#000;margin-top:3px;padding:3px 5px;}
+         .station {break-inside:avoid;page-break-inside:avoid;}
+       }
+/* Full case controls and a separately measured, two-sheet print report. */
+.property-detail-panel{background:white;border:1px solid #d8e0e7;border-left:4px solid #c5a065;border-radius:6px;padding:14px;margin:12px 0;color:#17354b}
+.property-panel-title{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.property-panel-title h2{font-size:16px;font-weight:800;margin:0}.property-panel-title>label{display:flex;align-items:center;gap:8px;margin:0}
+.parking-row{display:grid;grid-template-columns:.7fr .5fr .5fr 1.1fr .75fr 1.3fr 1fr auto;gap:8px;padding:10px;background:#f7f9fb;border:1px solid #dbe3eb;border-radius:5px;margin-bottom:8px;align-items:end}
+.property-detail-panel input,.property-detail-panel select{width:100%;border:1px solid #bac8d4;background:white;padding:6px;border-radius:4px;font-size:14px;min-width:0}
+.property-detail-panel input:disabled{background:#eee;color:#64748b}.property-detail-panel label{font-size:13px;min-width:0}
+.parking-add{background:#0f2e46;color:white;padding:7px 12px;border-radius:4px;font-size:14px}.parking-delete{padding:7px 4px;color:#9f332b;font-size:13px}
+.property-help{font-size:12px;line-height:1.6;color:#657586;margin-top:8px}.property-warning{font-size:13px;color:#9f2921;background:#fff2ec;padding:7px;border-left:3px solid #bd5145;margin-top:8px}
+.milestone-fields{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:8px}.registration-warning{background:#fff8eb;border:1px solid #e8d2a2;border-left:4px solid #be9651;padding:9px 12px;font-size:13px;line-height:1.6;margin-bottom:10px}.registration-warning strong{color:#80551d}.registration-warning a{text-decoration:underline;color:#315a7b}
+.staff-directory-details>summary{cursor:pointer;font-size:14px;color:#17354b;padding:6px;background:#f2f5f8;margin-bottom:8px}.staff-selected-summary{font-size:14px;line-height:1.7;margin-top:10px;padding:8px;border-top:1px solid #d5dfe7}
+.print-dossier{position:absolute;left:-100000px;top:0;width:190mm;visibility:hidden;pointer-events:none;font-family:'Noto Sans TC',sans-serif;color:#172d3e;background:white}
+.report-sheet{width:190mm;height:277mm;position:relative;box-sizing:border-box;}
+.report-content{width:100%;font-size:calc(9pt * var(--paper-scale,1));line-height:1.35;box-sizing:border-box;overflow-wrap:anywhere;color:#152b3c;}
+.print-dossier *{box-sizing:border-box}.print-dossier p{margin:2px 0}.print-dossier h2{font-size:calc(15pt * var(--paper-scale,1))!important;margin:3px 0!important;line-height:1.3;font-weight:900}.print-dossier h3{font-size:calc(9.5pt * var(--paper-scale,1))!important;margin:0 0 3px!important;font-weight:800;border:0!important;color:#183447}.print-dossier h4{font-size:calc(8.5pt * var(--paper-scale,1));font-weight:800;margin:2px 0;color:#4b3e24}
+.report-heading{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #19394e;padding-bottom:5px;margin-bottom:6px;gap:10px;font-size:calc(10pt * var(--paper-scale,1))}.report-heading b{font-size:calc(13pt * var(--paper-scale,1));white-space:nowrap}.report-heading span{text-align:right;font-size:calc(9pt * var(--paper-scale,1))}
+.report-identity{border:1px solid #8499a8;background:#f5f8fa;padding:7px 9px;margin-bottom:6px}.report-two-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}.paper-box{border:1px solid #bbc8d1;padding:5px 7px;margin-bottom:6px;min-width:0}.paper-box h3{border-bottom:1px solid #d8e0e6!important;padding-bottom:2px}
+.print-dossier table{width:100%;border-collapse:collapse;table-layout:fixed}.print-dossier td,.print-dossier th{border:1px solid #c5d0d8;padding:3px 5px;text-align:left;vertical-align:top;word-break:break-word;font-size:calc(9pt * var(--paper-scale,1));font-weight:400}.print-dossier th{font-weight:700;background:#f2f5f7}.paper-warning{font-size:calc(8pt * var(--paper-scale,1));border-left:3px solid #79501d;padding:4px 6px;background:#fcf7ed;line-height:1.4}.paper-notes{white-space:pre-wrap;min-height:25px}.paper-sign{display:flex;justify-content:space-between;margin-top:8px;font-size:calc(9pt * var(--paper-scale,1))}
+.paper-footer{position:absolute;bottom:1mm;left:0;right:0;border-top:1px solid #95a6b4;padding-top:3px;display:flex;justify-content:space-between;font-size:calc(7pt * var(--paper-scale,1));color:#354a58;gap:12px}.paper-footer span:last-child{white-space:nowrap}
+.paper-sop-grid{display:block;columns:2;column-gap:7px;margin-top:6px}
+.paper-step{display:inline-block;width:100%;margin-bottom:5px;vertical-align:top;border:1px solid #acbbc6;border-top:2px solid #254254;padding:5px 6px;break-inside:avoid;min-width:0}.paper-step.private,.paper-step.critical{border-top-color:#914033}.paper-task{display:flex;gap:4px;font-size:calc(8.5pt * var(--paper-scale,1));line-height:1.32;margin:1px 0!important;align-items:flex-start}.paper-task>span{min-width:0}.paper-check{display:inline-block;font-style:normal;flex:0 0 9px;width:9px;height:9px;border:1px solid #4f6572;font-size:8px;line-height:8px;margin-top:2px;color:black}
+.paper-branch{border-left:1px solid #bbaa86;padding-left:6px;margin:4px 0 2px 5px}.paper-step-note{font-size:calc(7.5pt * var(--paper-scale,1));line-height:1.3;border-top:1px dotted #aaa;padding-top:3px;margin-top:3px!important;color:#435561}.penalty-print{font-size:calc(8pt * var(--paper-scale,1))}.paper-task .important-red{color:#792d25;font-weight:700}
+.paper-calendars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:7px}.paper-calendar{border:1px solid #bcc8d1;padding:3px}.paper-calendar h4{text-align:center;font-size:calc(8pt * var(--paper-scale,1));margin:0 0 2px}.paper-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;font-size:calc(7pt * var(--paper-scale,1));line-height:1.35;gap:1px}.paper-cal-grid span{min-height:12px;position:relative}.paper-cal-grid em{font-size:calc(6pt * var(--paper-scale,1));font-style:normal}.paper-date-active{background:#dde6ed;font-weight:800;outline:1px solid #91a5b5}.print-blocked-message{display:none}
+@media screen and (max-width:1000px){.parking-row{grid-template-columns:repeat(4,minmax(0,1fr))}.milestone-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:520px){.parking-row{grid-template-columns:repeat(2,minmax(0,1fr))}.property-detail-panel{padding:10px}.milestone-fields{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4 portrait;margin:10mm!important}
+ html,body{margin:0!important;padding:0!important;background:white!important;width:190mm!important;color:#000!important}
+ #app{max-width:none!important;width:190mm!important;margin:0!important;padding:0!important}
+ #app>:not(.print-dossier):not(.print-blocked-message){display:none!important}
+ .print-dossier{position:static!important;left:auto!important;width:190mm!important;visibility:visible!important;pointer-events:auto!important;display:block!important}
+ .report-sheet{height:277mm!important;width:190mm!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important}
+ .report-sheet:last-child{break-after:auto!important;page-break-after:auto!important}
+ .print-dossier .report-content{width:100%;font-size:calc(9pt * var(--paper-scale,1))!important;line-height:1.35!important}
+ .print-dossier .paper-task{font-size:calc(8.5pt * var(--paper-scale,1))!important;line-height:1.32!important}
+ .print-dossier .paper-step-note{font-size:calc(7.5pt * var(--paper-scale,1))!important;line-height:1.3!important}
+ .print-dossier .important-red{color:#792d25!important;text-decoration:none!important}
+ .print-too-long .print-dossier{display:none!important}.print-too-long .print-blocked-message{display:block!important;font-size:calc(14pt * var(--paper-scale,1));padding:20mm 0}
+}
+
+
+/* Stage estimates are scheduling guidance; deadlines remain distinct. */
+.sop-timing{display:inline-block;background:#eef4f8;border:1px solid #cbdbe7;border-left:3px solid #51778e;padding:5px 9px;margin:0 0 8px;color:#23475c;font-size:13px;font-weight:700;line-height:1.5;border-radius:3px}
+.paper-timing{font-size:calc(7.7pt * var(--paper-scale,1));font-weight:700;color:#23475c;background:#f0f4f7;padding:2px 3px;line-height:1.25}
+.print-dossier .paper-step{padding:4px 5px;margin-bottom:4px}
+.print-dossier .paper-branch{margin:3px 0 1px 4px;padding-left:5px}
+.print-dossier .paper-task{line-height:1.25!important}
+.print-dossier .paper-step-note{padding-top:2px;margin-top:2px!important;line-height:1.25!important}
+
+</style>
 </head>
 <body class="p-2 md:p-4 bg-gray-100">
  
@@ -362,6 +461,50 @@
        </div>
    </div>
  
+   <div class="print-blocked-message">{{ printIssue }}</div>
+   <div class="print-dossier" aria-hidden="true">
+     <section class="report-sheet">
+       <div class="report-content">
+         <div class="report-heading"><b>宏國地政｜易丞地政</b><span>{{caseTypeLabel}}・案件背表</span></div>
+         <div class="report-identity"><h2>{{form.propertyName || '案件名稱：________________'}}</h2><p><b>地址／標的</b> {{form.address || '________________'}}　<b>地建號</b> {{form.landBuildNo || '________________'}}</p><p><b>立約</b> {{form.contractDate || '____ / ____ / ____'}}　<b>總價</b> {{form.totalPrice || '____'}} 萬元　<b>承辦</b> {{reportStaffText || '________________'}}</p></div>
+         <div class="report-two-col">
+           <section class="paper-box"><h3>款項與時程</h3><table><thead><tr><th>款項</th><th>金額（萬元）</th><th>約定日期</th></tr></thead><tbody><tr v-for="row in paymentRows" :key="row.label"><td>{{row.label}}</td><td>{{row.amount === '' ? '—' : row.amount}}</td><td>{{row.date || '—'}}</td></tr></tbody></table><p v-if="priceMismatch" class="paper-warning">款項合計 {{priceSum}} 萬，與總價不符，請核對。</p></section>
+           <section class="paper-box"><h3>履約保證與銀行</h3><p><b>履保編號</b> {{form.escrowIdPrefix}}{{form.escrowIdSuffix}}</p><p><b>銀行</b> {{form.escrowBank || '—'}}</p><p><b>戶名</b> {{form.escrowName || '—'}}</p><p><b>買方銀行／承辦</b> {{form.buyerBank || '—'}}</p><p><b>核貸／利率</b> {{form.buyerBankAmount || '—'}}　<b>貸款金額</b> {{form.loanPrice || '—'}} 萬</p><p><b>塗銷銀行</b> {{form.sellerBank || '—'}}</p><p><b>塗銷金額</b> {{form.sellerMortgage || '—'}}</p></section>
+         </div>
+         <section class="paper-box"><h3>買賣標的・車位明細</h3><p v-if="form.parkingStatus !== '有'">{{parkingText}}</p><table v-else><thead><tr><th>樓層／位置</th><th>類別</th><th>格數／編號</th><th>價格拆分（本列合計）</th></tr></thead><tbody><tr v-for="(p,idx) in form.parkingSpaces" :key="idx"><td>{{p.level || '待確認'}} {{p.floor || '?'}} 樓</td><td>{{p.type || '待確認'}}</td><td>{{p.count || '?'}} 格 {{p.numbers}}</td><td>{{p.priceMode === '另列車位價格' ? (p.price === '' ? '待填' : p.price+' 萬元') : p.priceMode}}</td></tr></tbody></table><p v-if="parkingWarning" class="paper-warning">{{parkingWarning}}</p></section>
+         <div class="report-two-col">
+           <section class="paper-box"><h3>賣方</h3><p v-for="(p,idx) in form.sellers" :key="idx">{{p.role || '本人'}}　{{p.name || '________________'}}　{{p.phone || '________________'}}</p></section>
+           <section class="paper-box"><h3>買方</h3><p v-for="(p,idx) in form.buyers" :key="idx">{{p.role || '本人'}}　{{p.name || '________________'}}　{{p.phone || '________________'}}</p></section>
+           <section class="paper-box"><h3>銷售仲介</h3><p v-for="(p,idx) in form.salesAgents" :key="idx">{{p.name || '________'}}　{{p.store || '________'}}　{{p.phone || '________'}}</p></section>
+           <section class="paper-box"><h3>開發仲介</h3><p v-for="(p,idx) in form.devAgents" :key="idx">{{p.name || '________'}}　{{p.store || '________'}}　{{p.phone || '________'}}</p></section>
+         </div>
+         <section class="paper-box"><h3>文件、申請與稅費</h3><p><b>賣方</b> {{docText.seller}}　／　<b>買方</b> {{docText.buyer}}</p><p><b>申請</b> {{docText.apply}}</p><div class="report-two-col"><div><p><b>前次取得</b> {{form.prevTransferDate || '—'}}</p><p v-if="taxBracketInfo"><b>持有期間概算提示（適用資格待核）</b> {{taxBracketInfo.error || (taxBracketInfo.holdYears + '年／' + taxBracketInfo.currentRate)}}<span v-if="taxBracketInfo.nextDropDate">；下次區間 {{taxBracketInfo.nextDropDate}}／{{taxBracketInfo.nextRate}}</span></p><p><b>增值稅</b> {{form.taxTypeGeneral ? '☑' : '□'}} 一般　{{form.taxTypeSelf ? '☑' : '□'}} 自用</p><p><b>契稅案號</b> {{form.deedTaxId || '—'}}　<b>土增案號</b> {{form.landTaxId || '—'}}</p></div><div><p><b>水／電號</b> {{form.waterId || '—'}}　<b>管理費</b> {{form.mgmtFee || '—'}}</p><p><b>買方預收</b> {{form.buyerPrePay || '—'}} 元　{{form.buyerPrePayRemit ? '☑ 已匯' : '□ 未確認入帳'}}　{{form.buyerPrePayDate}}</p></div></div></section>
+         <section v-if="roadmapType === 'construction'" class="paper-box"><h3>建商保存、初驗與複驗節點</h3><p><b>保存後追加建物擔保</b> {{form.buildingCollateral}}　<b>初驗完成</b> {{form.initialInspectionDate || '—'}}</p><p><b>過戶送件</b> {{form.transferDate || '—'}}　<b>銀行撥款</b> {{form.disbursementDate || '—'}}　<b>複驗／點交</b> {{form.reinspectionDate || '—'}}</p><p v-if="constructionTimingWarning" class="paper-warning">{{constructionTimingWarning}}</p></section>
+         <section class="paper-box"><h3>備註・特殊約定・未決事項</h3><p class="paper-notes">{{form.notes || '________________________________________________________________________________'}}</p></section>
+         <div class="paper-sign"><span>承辦複核：________________</span><span>主管確認：________________</span><span>日期：________________</span></div>
+       </div>
+       <div class="paper-footer"><span>宏國地政｜易丞地政・案件資料與結算</span><span>1 / 2</span></div>
+     </section>
+     <section class="report-sheet">
+       <div class="report-content">
+         <div class="report-heading"><b>案件標準作業檢核</b><span>{{caseTypeLabel}}・{{form.propertyName || '未填案名'}}・{{sopProgress.done}} / {{sopProgress.total}}</span></div>
+         <div class="paper-warning penalty-print"><b>實價登錄</b> 價格、車位個數／總價／價格申報不實，罰 3～15 萬元並限期改正。車位類別等價格以外資訊：先限期改正，逾期罰 6 千～3 萬元，仍未改正得按次處罰。</div>
+         <div class="paper-sop-grid">
+           <section v-for="(step,idx) in currentRoadmapSteps" :key="stepKey(step)" class="paper-step" :class="step.type">
+             <h3>{{step.title}}</h3><p v-if="step.timing" class="paper-timing">{{step.timing}}</p>
+             <p v-for="(task,tIdx) in step.tasks" :key="taskKey(step,tIdx)" class="paper-task"><i class="paper-check">{{form.sopChecks[taskKey(step,tIdx)] ? '✓' : ''}}</i><span v-html="task"></span></p>
+             <div v-for="branch in (step.branches || [])" :key="branch.id" class="paper-branch"><h4>{{branch.title}}</h4><p v-for="(task,tIdx) in branch.tasks" :key="taskKey(step,tIdx,branch.id)" class="paper-task"><i class="paper-check">{{form.sopChecks[taskKey(step,tIdx,branch.id)] ? '✓' : ''}}</i><span>{{task}}</span></p></div>
+             <p v-if="step.note" class="paper-step-note">{{step.note}}</p>
+           </section>
+         </div>
+         <div class="paper-calendars">
+           <section v-for="month in generatedCalendar" :key="month.id" class="paper-calendar"><h4>{{month.title}}</h4><div class="paper-cal-grid"><b v-for="d in ['日','一','二','三','四','五','六']" :key="d">{{d}}</b><span v-for="n in month.startDay" :key="'blank'+n"></span><span v-for="day in month.days" :key="day.dateStr" :class="{'paper-date-active':[form.contractDate,form.sealDate,form.taxDate,form.closingDate].includes(day.dateStr)}">{{day.dayNum}}<em v-if="day.dateStr===form.contractDate">簽</em><em v-if="day.dateStr===form.sealDate">用</em><em v-if="day.dateStr===form.taxDate">完</em><em v-if="day.dateStr===form.closingDate">結</em></span></div></section>
+         </div>
+       </div>
+       <div class="paper-footer"><span>勾選係內部完成確認；未決風險仍須個案複核。簽／用／完／結＝簽約／用印／完稅／結案。</span><span>2 / 2</span></div>
+     </section>
+   </div>
+
    <div class="page-one-container">
        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b-2 border-gray-200 pb-2">
            <div class="flex items-center gap-2 mb-2 md:mb-0">
@@ -434,8 +577,8 @@
        <div v-if="isAMLTriggered" class="no-print bg-purple-50 border-l-4 border-purple-600 text-purple-800 px-4 py-3 rounded mb-4 shadow-sm flex items-start gap-3 animate-pulse">
            <i class="fas fa-exclamation-triangle text-xl mt-0.5 text-purple-600"></i>
            <div>
-                <h4 class="font-black text-sm uppercase">🚨 智能風控：洗錢防制法大額交易</h4>
-                <p class="text-xs mt-1 font-bold">本案成交總價達新台幣 5,000 萬以上，依法應於結案時主動向法務部調查局申報。<br>請承辦人務必備妥《大額交易申報書》，SOP 中已自動加入強制勾選關卡。</p>
+                <h4 class="font-black text-sm uppercase">金流法遵：大額案件內部複核</h4>
+                <p class="text-xs mt-1 font-bold">本案總價達 5,000 萬元，啟動內部金流複核。<br>總價或匯款金額不等同通貨申報要件；另核對單筆 50 萬元以上現金收付及疑似交易，符合要件時依期限辦理。</p>
            </div>
         </div>
        
@@ -494,6 +637,37 @@
            </div>
        </div>
  
+       <section class="property-detail-panel">
+          <div class="property-panel-title"><h2>買賣標的・車位明細</h2><label>有無車位 <select v-model="form.parkingStatus" @change="ensureParkingRow"><option>待確認</option><option>無</option><option>有</option></select></label></div>
+          <div v-if="form.parkingStatus === '有'" class="parking-list">
+            <div v-for="(space,idx) in form.parkingSpaces" :key="idx" class="parking-row">
+              <label>位置<select v-model="space.level"><option value="">待確認</option><option>地上</option><option>地下</option></select></label>
+              <label>樓層<input v-model="space.floor" type="number" min="1" placeholder="幾樓"></label>
+              <label>格數<input v-model="space.count" type="number" min="1" placeholder="幾格"></label>
+              <label>車位編號<input v-model="space.numbers" placeholder="如 P01、P02"></label>
+              <label>類別<select v-model="space.type"><option value="">待確認</option><option>平面</option><option>機械</option><option>其他</option></select></label>
+              <label>價格拆分<select v-model="space.priceMode"><option>待確認</option><option>另列車位價格</option><option>已含總價未拆分</option></select></label>
+              <label>本列總價（萬元）<input v-model="space.price" type="number" min="0" :disabled="space.priceMode !== '另列車位價格'" placeholder="此列合計"></label>
+              <button type="button" @click="removeParkingRow(idx)" class="parking-delete">移除</button>
+            </div>
+            <button type="button" @click="addParkingRow" class="parking-add">＋ 新增不同樓層／類別</button>
+            <p class="property-help">每列可填同樓層、同類別的多格車位。金額是本列合計，僅供拆分核對，不會自動加到成交總價。</p>
+            <p v-if="parkingWarning" class="property-warning">{{parkingWarning}}</p>
+          </div>
+          <p v-else class="property-help">{{form.parkingStatus === '無' ? '本案無車位；原已輸入明細仍保留，切回「有」可查看。' : '請依契約、車位圖與權利資料確認，未填不視為無車位。'}}</p>
+       </section>
+       <section v-if="roadmapType === 'construction'" class="property-detail-panel construction-milestones">
+          <div class="property-panel-title"><h2>建商新成屋・保存與驗交節點</h2></div>
+          <div class="milestone-fields">
+            <label>保存後追加建物擔保<select v-model="form.buildingCollateral"><option>待確認</option><option>須追加</option><option>不須追加（已向銀行確認）</option></select></label>
+            <label>初驗完成日<input type="date" v-model="form.initialInspectionDate"></label>
+            <label>過戶送件日<input type="date" v-model="form.transferDate"></label>
+            <label>銀行撥款日<input type="date" v-model="form.disbursementDate"></label>
+            <label>複驗／點交日<input type="date" v-model="form.reinspectionDate"></label>
+          </div>
+          <p class="property-help">保存時即申請土地謄本並與銀行確認追加擔保；初驗後查核契約／銀行條件，再安排過戶或撥款，複驗時點交。</p>
+          <p v-if="constructionTimingWarning" class="property-warning">{{constructionTimingWarning}}</p>
+       </section>
        <div class="print-finance-row gap-2 mb-2">
            <div class="card bg-white border border-gray-200 rounded p-3">
                 <h3 class="text-sm font-bold text-navy mb-2 border-l-4 border-gold pl-2 print:text-base print:mb-2">款項與時程 (金額:萬 | 日期)</h3>
@@ -558,17 +732,32 @@
                     </div>
                </div>
  
-                <div class="border-t border-gray-200 pt-2">
-                    <div class="flex justify-between items-center mb-1">
-                        <h3 class="text-sm font-bold text-navy print:text-base">承辦團隊</h3>
-                        <div class="no-print text-xs flex gap-1"><input v-model="newStaff.name" class="border w-10 text-center" placeholder="名"><input v-model="newStaff.phone" class="border w-16 text-center" placeholder="電"><button @click="addStaff" class="bg-gray-200 px-2 rounded">+</button></div>
+                <div class="border-t border-gray-200 pt-2" data-testid="staff-team-panel">
+                    <h3 class="text-sm font-bold text-navy print:text-base mb-2">承辦團隊</h3>
+                    <details class="staff-directory-details"><summary>承辦名單與管理（展開選擇／編輯）</summary><p class="no-print text-[11px] bg-blue-50 border border-blue-200 text-blue-800 rounded px-2 py-1 mb-2">{{staffStorageNotice}}</p>
+                    <p class="no-print text-[11px] text-gray-500 mb-2">{{staffSaveStatus}}</p>
+                    <div class="no-print grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 mb-2">
+                        <input v-model="newStaff.name" class="border rounded px-2 py-1 text-sm min-w-0" placeholder="承辦姓名">
+                        <input v-model="newStaff.phone" class="border rounded px-2 py-1 text-sm min-w-0" placeholder="電話（選填）">
+                        <button @click="addStaff" class="bg-navy text-white rounded px-3 py-1 text-sm font-bold">新增</button>
                     </div>
-                    <div class="flex flex-wrap gap-2 relative z-0">
-                        <label v-for="staff in staffList" :key="staff.name" class="flex items-center cursor-pointer bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 select-none print:bg-white print:border-0 print:p-0">
-                            <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
-                            <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
-                        </label>
+                    <div class="space-y-2 relative z-0">
+                        <div v-for="staff in staffList" :key="staff.name" data-testid="staff-row" class="flex flex-wrap items-center gap-2 bg-gray-50 px-2 py-2 rounded border">
+                            <label v-if="staff.active !== false" class="flex items-center cursor-pointer select-none print:bg-white print:border-0 print:p-0">
+                                <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
+                                <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
+                            </label>
+                            <span v-else class="text-sm font-bold text-gray-500">{{staff.name}} <span class="text-[10px] bg-gray-200 px-1 rounded">已停用</span></span>
+                            <span class="text-[11px] text-gray-500">歷史引用 {{staffUsageCount(staff.name)}} 案</span>
+                            <div class="no-print ml-auto flex flex-wrap gap-1">
+                                <button @click="renameStaff(staff)" class="border rounded px-2 py-1 text-xs">編輯</button>
+                                <button @click="toggleStaffActive(staff)" class="border rounded px-2 py-1 text-xs" :class="staff.active === false ? 'text-green-700' : 'text-amber-700'">{{staff.active === false ? '重新啟用' : '離職停用'}}</button>
+                                <button @click="deleteStaff(staff)" class="border rounded px-2 py-1 text-xs text-red-700">刪除</button>
+                            </div>
+                        </div>
                     </div>
+                    <p class="no-print text-[10px] text-amber-700 mt-2">刪除前只查核目前已載入案件；本機查核不等於正式後端全量查核。歷史案件請優先使用停用。</p>
+                    </details><div class="staff-selected-summary">本案承辦：{{ reportStaffText || '尚未選擇' }}</div>
                 </div>
            </div>
        </div>
@@ -749,7 +938,7 @@
                     </div>
                     <div class="detail-grid">
                         <div class="detail-label">申請</div>
-                        <div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox">稅籍</label><label><input type="checkbox">分區</label><label><input type="checkbox">農證</label><label><input type="checkbox">鑑界</label><label><input type="checkbox">無套繪</label></div>
+                        <div class="flex flex-wrap gap-2 text-xs print:text-[10.5pt]"><label><input type="checkbox" v-model="form.applyTaxRecord">稅籍</label><label><input type="checkbox" v-model="form.applyZoning">分區</label><label><input type="checkbox" v-model="form.applyFarmCertificate">農證</label><label><input type="checkbox" v-model="form.applyBoundary">鑑界</label><label><input type="checkbox" v-model="form.applyNoOverlay">無套繪</label><label><input type="checkbox" v-model="form.applySoil">土壤污染查詢</label></div>
                     </div>
                     <div class="detail-grid">
                         <div class="detail-label">買貸</div>
@@ -842,35 +1031,54 @@
                         <option value="land">🌳 純土地</option>
                         <option value="construction">🏗️ 建設公司</option>
                     </select>
-                    <label class="text-xs flex items-center font-bold text-red-600"><input type="checkbox" v-model="showPrivateLien" class="mr-1">私人設定</label>
+                    <label class="text-xs flex items-center font-bold text-red-600"><input type="checkbox" v-model="showPrivateLien" class="mr-1">私人設定／限制登記</label>
                 </div>
            </div>
            
+<aside class="registration-warning"><strong>實價登錄・價格與車位務必複核</strong><p>交易價格、車位個數、車位總價／價格申報不實：處新臺幣 3～15 萬元罰鍰，並限期改正。車位類別等價格以外資訊不實：先限期改正，逾期未改正處 6 千～3 萬元；仍未改正得按次處罰。</p><p>依契約、車位配置與權利資料交叉核對；不得自行推估拆價。<a href="https://www.moi.gov.tw/News_toggle3.aspx?PageSize=30&amp;_CSN=1634&amp;n=8362&amp;page=10&amp;sms=9015" target="_blank" rel="noopener">內政部說明</a></p></aside>
+           <div class="sop-summary">
+               <span>本案檢核 <strong>{{ sopProgress.done }} / {{ sopProgress.total }}</strong></span>
+               <span class="sop-save-hint" role="status">{{ sopDraftStatus }}</span>
+           </div>
+           <nav class="sop-route no-print" aria-label="案件流程導覽">
+               <a v-for="step in currentRoadmapSteps.filter(s => s.short)" :key="step.id" :href="'#sop-' + step.id">{{ step.short }}</a>
+           </nav>
+           <p class="sop-intro">依契約與銀行條件安排順序；右側分支同步確認文件、各期款與資金。金額填寫沿用上方案件欄位。</p>
            <div class="roadmap">
-                <div v-for="(step, idx) in currentRoadmapSteps" :key="idx" class="station" :class="step.type">
+                <div v-for="(step, idx) in currentRoadmapSteps" :key="stepKey(step)" :id="'sop-' + (step.id || idx)" class="station" :class="step.type">
                     <div class="station-dot"></div>
                     <div class="station-card">
-                        <div class="station-title">
-                            <span>{{ step.title }}</span>
-                        </div>
-                        <ul class="task-list">
-                            <li v-for="(task, tIdx) in step.tasks" :key="tIdx" class="task-item" @click="toggleTask($event)">
-                                <div class="task-checkbox"></div>
-                                <span v-html="task"></span>
-                            </li>
-                        </ul>
-                        <div v-if="step.calcType === 'pre_pay'" class="calc-box no-print">
-                            <div class="font-bold text-blue-700 mb-1">💵 預收款試算 (Fees)</div>
-                            <div class="calc-row">
-                                契稅 <input type="number" v-model="calcDeed" class="calc-input" placeholder="元"> 
-                                貸(萬) <input type="number" v-model="calcLoan" class="calc-input" placeholder="萬">
-                                <span class="ml-2 font-bold text-red-600">= {{ calcResult }} 元</span>
+                        <div class="station-title"><span>{{ step.title }}</span></div>
+                        <div v-if="step.timing" class="sop-timing">{{ step.timing }}</div>
+                        <div class="sop-tree" :class="{'has-branches': step.branches && step.branches.length}">
+                            <div class="sop-main">
+                                <ul class="task-list">
+                                    <li v-for="(task, tIdx) in step.tasks" :key="taskKey(step, tIdx)" class="task-item" :class="{checked: form.sopChecks[taskKey(step,tIdx)]}">
+                                        <label><input type="checkbox" v-model="form.sopChecks[taskKey(step,tIdx)]"><span v-html="task"></span></label>
+                                    </li>
+                                </ul>
+                                <div v-if="step.calcType === 'pre_pay' || step.calcType === 'land_pre_pay'" class="calc-box no-print">
+                                    <div class="font-bold text-blue-700 mb-1">💵 預收款試算（沿用原公式）</div>
+                                    <div class="calc-row">
+                                        <label v-if="roadmapType !== 'land'">契稅 <input type="number" min="0" v-model="calcDeed" class="calc-input" placeholder="元"></label>
+                                        <label>貸款 <input type="number" min="0" v-model="calcLoan" class="calc-input" placeholder="萬元"></label>
+                                        <strong>{{ calcResult }} 元</strong>
+                                    </div>
+                                    <div class="text-xs text-gray-500">{{ roadmapType === 'land' ? '純土地：貸款（萬元）× 12 ＋ 25,000 元，不計契稅' : '契稅（元）＋ 貸款（萬元）× 12 ＋ 25,000 元' }}</div>
+                                </div>
                             </div>
-                            <div class="text-xs text-gray-500">公式: 契稅 + (貸款x1.2x0.001) + 25000</div>
+                            <div v-if="step.branches && step.branches.length" class="sop-branches">
+                                <section v-for="branch in step.branches" :key="branch.id" class="sop-branch" :class="branch.tone">
+                                    <h3>{{ branch.title }}</h3>
+                                    <ul class="task-list">
+                                        <li v-for="(task,tIdx) in branch.tasks" :key="taskKey(step,tIdx,branch.id)" class="task-item" :class="{checked: form.sopChecks[taskKey(step,tIdx,branch.id)]}">
+                                            <label><input type="checkbox" v-model="form.sopChecks[taskKey(step,tIdx,branch.id)]"><span>{{ task }}</span></label>
+                                        </li>
+                                    </ul>
+                                </section>
+                            </div>
                         </div>
-                        <div v-if="step.note" class="text-xs text-gray-500 mt-1 bg-gray-50 p-1 border-l-2 border-gray-400 no-print">
-                            💡 {{ step.note }}
-                        </div>
+                        <p v-if="step.note" class="sop-note">{{ step.note }}</p>
                     </div>
                 </div>
            </div>
@@ -949,7 +1157,34 @@
                 <button @click="managerTab = 'settings'" :class="managerTab === 'settings' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-cog mr-1"></i> 字典設定</button>
            </div>
  
-           <div v-if="managerTab === 'settings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
+                       <div v-if="managerTab === 'settings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
+                <div class="bg-white p-4 rounded shadow-sm border border-gray-200 mb-4">
+                    <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-users-cog mr-1"></i> 承辦人名單管理</h3>
+                    <p class="text-xs text-gray-600 mb-2">已被案件引用者請停用：歷史案件仍保留原姓名，但建立新案時不再顯示；查詢與週報篩選仍會列出並標示「已停用」。只有未被任何案件引用的人員可永久刪除。</p>
+                    <div class="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2 mb-3"><i class="fas fa-laptop mr-1"></i> 承辦名單只儲存在目前瀏覽器，不會跨裝置或同步到正式後端。換電腦前請匯出 JSON，再於另一台電腦匯入。</div>
+                    <div class="flex flex-wrap gap-2 mb-3 no-print">
+                        <button @click="exportStaffDirectory" class="border border-blue-300 text-blue-700 rounded px-3 py-1 text-sm font-bold"><i class="fas fa-file-export mr-1"></i>匯出名單 JSON</button>
+                        <label class="border border-green-300 text-green-700 rounded px-3 py-1 text-sm font-bold cursor-pointer"><i class="fas fa-file-import mr-1"></i>匯入名單 JSON<input type="file" accept="application/json,.json" class="hidden" @change="importStaffDirectory"></label>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <input v-model="newStaff.name" class="border rounded px-2 py-1 text-sm w-28" placeholder="承辦姓名">
+                        <input v-model="newStaff.phone" class="border rounded px-2 py-1 text-sm w-36" placeholder="電話（選填）">
+                        <button @click="addStaff" class="bg-navy text-white rounded px-3 py-1 text-sm font-bold">新增承辦人</button>
+                    </div>
+                    <div class="space-y-2">
+                        <div v-for="staff in staffList" :key="staff.name" class="flex flex-wrap items-center gap-2 border rounded px-3 py-2 text-sm" :class="staff.active === false ? 'bg-gray-100 text-gray-500' : 'bg-white'">
+                            <span class="font-bold min-w-[5rem]">{{staff.name}}</span>
+                            <span class="text-xs min-w-[7rem]">{{staff.phone || '未填電話'}}</span>
+                            <span class="text-xs" :class="staffUsageCount(staff.name) ? 'text-blue-700' : 'text-gray-400'">歷史引用 {{staffUsageCount(staff.name)}} 案</span>
+                            <span v-if="staff.active === false" class="text-[11px] bg-gray-300 text-gray-700 px-2 py-0.5 rounded">已停用</span>
+                            <div class="ml-auto flex gap-1 no-print">
+                                <button @click="renameStaff(staff)" class="border rounded px-2 py-1 hover:bg-gray-50">更名</button>
+                                <button @click="toggleStaffActive(staff)" class="border rounded px-2 py-1" :class="staff.active === false ? 'text-green-700' : 'text-amber-700'">{{staff.active === false ? '重新啟用' : '停用'}}</button>
+                                <button @click="deleteStaff(staff)" :disabled="staffUsageCount(staff.name) > 0" class="border rounded px-2 py-1 text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed" :title="staffUsageCount(staff.name) > 0 ? '已有歷史案件引用，請改用停用' : '永久刪除未引用人員'">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="bg-white p-4 rounded shadow-sm border border-gray-200">
                     <h3 class="font-bold mb-4 text-navy text-sm"><i class="fas fa-book mr-1"></i> 資料字典管理 (點擊 <i class="fas fa-times text-red-500"></i> 刪除常用記憶)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1060,7 +1295,7 @@
                     <label class="text-sm font-bold text-gray-700 mb-2">1. 選擇承辦人員 (自動撈取進行中案件)</label>
                     <select v-model="reportStaffFilter" class="nexus-select w-full font-bold text-indigo-700">
                         <option value="">-- 顯示全公司所有進行中案件 --</option>
-                        <option v-for="staff in staffList" :key="staff.name" :value="staff.name">{{staff.name}}</option>
+                        <option v-for="staff in staffHistoryFilterList" :key="staff.name" :value="staff.name">{{staff.name}}{{staff.active === false ? '（已停用）' : ''}}</option>
                     </select>
                 </div>
                 <div class="bg-white p-3 rounded shadow-sm border border-gray-200 flex-1 flex flex-col">
@@ -1082,7 +1317,7 @@
 </div>
  
 <script>
-   const { createApp, ref, computed, watch, onMounted } = Vue;
+   const { createApp, ref, computed, watch, onMounted, reactive } = Vue;
  
    const holidays = [
        '2025-01-01', '2025-01-25', '2025-01-26', '2025-01-27', '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', 
@@ -1095,24 +1330,619 @@
    ];
  
    const constructionSteps = [
-       { title: "Phase 1: 地政保存登記", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (正影本)", "3. 使用執照竣工平面圖 (正影本)", "4. 建物測量成果圖 (影本)", "5. 分坪表、公告稿、公設分配書"] },
-       { title: "Phase 2: 稅務局設立稅籍", type: "construction", tasks: ["1. 起造人證件：公司變更登記事項表 (影本)", "2. 使用執照 (影本) & 竣工平面圖 (影本)", "3. 建物謄本 (影本)", "4. 建物測量成果圖 (影本)", "5. 確認影本皆蓋公司大小章與正本相符章"] },
-       { title: "Phase 3: 銀行貸款 & 驗屋 & 設定清查", type: "critical", tasks: ["1. 銀貸：確認建商專案細節", "2. 初驗：核准後進行對保、差額、預收調整", "3. 修繕：針對初驗瑕疵進行修繕", "4. <span class='important-red'>[重點] 謄本設定清查 (Check 私人/銀行)</span>", "5. 複驗：確認過戶與撥款順序"], note: "設定清查：連帶擔保需辦理分塗或拋棄；個別設定務必辦理直接塗銷。" },
-       { title: "Phase 4: 抵押權設定 & 結案", type: "construction", tasks: ["1. 製作設定契約書及抵押權變更契約書", "2. 公司變更登記事項表 (正本 + 影本x2)", "3. 建物權狀 (正本) & 印鑑章備用", "4. <span class='important-red'>[確認] 實價登錄複查 (價金/車位)</span>", "5. 地政連件送 (內容變更/設定/塗銷)"], note: "實價登錄錯誤罰款 3~15 萬元，務必複查。" }
-   ];
+  {
+    "id": "construction-preservation",
+    "title": "建商前置：保存登記與稅籍",
+    "short": "保存／稅籍",
+    "type": "construction",
+    "tasks": [
+      "<span class='important-red'>辦理保存時即申請最新土地謄本，查核土地抵押及擔保範圍</span>",
+      "備妥起造人／公司文件、使用執照、竣工圖、測量成果圖與分坪文件",
+      "辦理建物第一次登記（保存），建立建物稅籍並核對權狀"
+    ],
+    "branches": [
+      {
+        "id": "collateral",
+        "title": "保存與銀行擔保銜接",
+        "tasks": [
+          "向原土地貸款銀行確認：保存後是否追加建物擔保、範圍及文件",
+          "核對原設定、連帶擔保及分戶塗銷／拋棄／變更安排",
+          "保存後再查土地及建物謄本，確認新增建物與銀行設定一致"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "是否追加建物擔保依原貸款契約及銀行確認；不得因已辦保存就假定已完成追加。"
+  },
+  {
+    "id": "construction-sign",
+    "title": "Phase 1：簽約與房地／車位核對",
+    "short": "簽約",
+    "type": "normal",
+    "tasks": [
+      "核對建商公司文件、代表人／代理權及買方身分",
+      "簽署不動產買賣契約書；確認付款節點與履保約定",
+      "整理實價登錄初步資料，確認申報義務人與期限",
+      "<span class='important-red'>調閱最新謄本：抵押權、限制登記及預告登記</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-1",
+        "title": "第一期款｜簽約款",
+        "tasks": [
+          "核對簽約款金額、付款日及收款帳戶",
+          "確認款項入帳並留存憑證；訂金是否抵充依契約"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  },
+  {
+    "id": "construction-tax",
+    "title": "Phase 2：報稅與用印",
+    "short": "報稅／用印",
+    "type": "normal",
+    "tasks": [
+      "土地增值稅申報（一般／自用）",
+      "契稅申報（建物移轉）與印花稅開立",
+      "查詢地價稅、房屋稅等欠稅並確認處理方式",
+      "<span class='important-red'>【重要】一般案件自訂約／契約成立日起 30 日內申報（含當日）</span>",
+      "<span class='important-red'>【內部逾期流程】先簽立契約變更協議書並經主管複核，再辦理申報</span>"
+    ],
+    "branches": [
+      {
+        "id": "seller-docs",
+        "title": "建商過戶文件",
+        "tasks": [
+          "核對公司文件、土地／建物權狀及必要印鑑",
+          "確認戶別、公設、車位權利範圍及契約附件",
+          "預先取得銀行分戶塗銷、變更或拋棄文件需求"
+        ],
+        "tone": ""
+      },
+      {
+        "id": "payment-2",
+        "title": "第二期款｜用印款",
+        "tasks": [
+          "核對用印款金額、付款日及入帳憑證"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "變更須符合當事人真意；逾期即洽稅捐機關，補簽不當然重算期限或免責。特殊起算另核；核發天數為排程估時。",
+    "timing": "作業估時｜稅單核發約 3～5 天；自用稅率約 5～8 天"
+  },
+  {
+    "id": "construction-loan",
+    "title": "Phase 3：貸款申請與核貸",
+    "short": "貸款／核貸",
+    "type": "normal",
+    "tasks": [
+      "確認建商專案條件、買方財力及銀行鑑價",
+      "確認核貸金額、利率、年期、撥款條件及自備差額"
+    ],
+    "branches": [
+      {
+        "id": "loan-check",
+        "title": "資金銜接",
+        "tasks": [
+          "確認買方銀行與承辦窗口",
+          "核對自備款、貸款及各期款安排；未核定部分列待確認"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "實際依資料備齊、銀行審查及補件進度確認。",
+    "timing": "作業估時｜填寫申請書至貸款核准約 2～4 週"
+  },
+  {
+    "id": "construction-guarantee",
+    "title": "Phase 4：初驗、對保與完稅",
+    "short": "初驗／對保",
+    "type": "critical",
+    "tasks": [
+      "<span class='important-red'>先完成初驗並留存缺失清單；確認後續修繕與交付條件</span>",
+      "完成對保、抵押權書類用印，調整差額與預收",
+      "核對完稅文件及第三期款入帳",
+      "<span class='important-red'>複核成交價金、面積及車位申報明細</span>",
+      "<span class='important-red'>完稅前確認賣方搬遷／騰空（如有）、修繕及交付準備進度</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-3",
+        "title": "第三期款｜完稅款",
+        "tasks": [
+          "核對完稅款入帳；依契約確認付款條件",
+          "確認預收款及服務費明細，核對是否另收或已包含"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "本案依初驗結果、買賣契約與銀行條件，確認何時可送過戶及撥款；不以已對保推定可撥款。",
+    "calcType": "pre_pay"
+  },
+  {
+    "id": "construction-transfer",
+    "title": "Phase 5：過戶與代償確認",
+    "short": "過戶",
+    "type": "normal",
+    "tasks": [
+      "<span class='important-red'>確認初驗已完成，且達契約／銀行要求，始安排過戶或撥款</span>",
+      "送件前查土地／建物謄本及限制登記；複核實價登錄",
+      "依個案辦理移轉、抵押設定、變更、分戶塗銷或拋棄",
+      "追蹤補正、登記完成及領取新權狀",
+      "預先確認買賣雙方結案時間，約定日期、時間與地點"
+    ],
+    "branches": [
+      {
+        "id": "payoff-details",
+        "title": "代償前確認",
+        "tasks": [
+          "核對代償金額、計息截止日與預定日期",
+          "核對收款銀行、戶名、帳號及銀行承辦確認紀錄"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "過戶與撥款先後依契約及銀行書面條件確認；初驗缺失、貸款條件未明時暫緩安排。",
+    "timing": "作業估時｜過戶約 3～5 個工作天"
+  },
+  {
+    "id": "construction-payoff",
+    "title": "Phase 6：撥款代償與塗銷",
+    "short": "代償／尾款",
+    "type": "normal",
+    "tasks": [
+      "確認撥款條件與資金順序後，由銀行辦理代償",
+      "取得清償證明／塗銷文件，追蹤原抵押權塗銷",
+      "<span class='important-red'>查核最新謄本：確認應塗銷事項已辦妥；清償不等同解除限制</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-4",
+        "title": "第四期款｜貸款／尾款",
+        "tasks": [
+          "核對貸款撥款、尾款及代償入帳憑證",
+          "確認買方銀行匯出代償後餘額的金額、帳戶與日期"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "代償後向銀行確認清償證明核發日；塗銷另行追蹤，不以證明核發視為已塗銷。",
+    "timing": "作業估時｜清償證明約 3～5 個工作天"
+  },
+  {
+    "id": "construction-handover",
+    "title": "Phase 7：複驗點交與結案",
+    "short": "複驗／點交",
+    "type": "normal",
+    "tasks": [
+      "<span class='important-red'>完成複驗、確認修繕結果，於複驗時辦理點交</span>",
+      "記錄未改善事項、完成期限及保留款，未完成不得逕作結清",
+      "核對水電、天然氣、管理費、稅費及鑰匙／設備",
+      "核對交屋款、代償後餘額、權狀與結算文件"
+    ],
+    "branches": [
+      {
+        "id": "close-check",
+        "title": "結案複核",
+        "tasks": [
+          "確認應解除之登記事項、款項及文件均已完成",
+          "有未決事項時記錄承辦、待辦與追蹤日，暫不結案"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  }
+];
    const landSteps = [
-       { title: "Phase 1: 簽約 & 用印 (土地專用)", type: "critical", tasks: ["1. 核對雙方身分證、印鑑章", "2. 簽署不動產買賣契約書", "<span class='important-red'>3. [特] 確認土地分區 (Zoning)</span>", "<span class='important-red'>4. [特] 確認無套繪管制 (No Overlay)</span>", "<span class='important-red'>5. [特] 申請鑑界 (Boundary Verify)</span>", "6. [特] 農地農用勘查 (若為農地)"], note: "土地風險極高，務必確認使用分區與有無套繪管制。" },
-       { title: "Phase 2: 稅務申報 (增值稅)", type: "normal", tasks: ["1. 土地增值稅申報 (一般/自用/農用)", "2. 查詢欠稅 (地價稅/工程受益費)", "3. 印花稅開立", "4. 若申請農用證明 (不課土增稅)"] },
-       { title: "Phase 3: 完稅 & 移轉 & 結案", type: "normal", tasks: ["1. 繳納土增稅", "2. <span class='important-red'>[重點] 實價登錄複查 (價金正確?)</span>", "3. 地政事務所送件 (移轉登記)", "4. 領取新權狀", "5.點交土地 (鑑界釘樁確認)"] }
-   ];
+  {
+    "id": "land-sign",
+    "title": "Phase 1：簽約與土地盡職查核",
+    "short": "簽約",
+    "type": "normal",
+    "tasks": [
+      "核對買賣雙方身分證、印鑑章及代理權限",
+      "簽署不動產買賣契約書；確認付款節點與履保約定",
+      "整理實價登錄初步資料，確認申報義務人與期限",
+      "<span class='important-red'>調閱最新謄本：抵押權、限制登記及預告登記</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-1",
+        "title": "第一期款｜簽約款",
+        "tasks": [
+          "核對簽約款金額、付款日及收款帳戶",
+          "確認款項入帳並留存憑證；訂金是否抵充依契約"
+        ],
+        "tone": ""
+      },
+      {
+        "id": "land-diligence",
+        "title": "土地專屬查核",
+        "tasks": [
+          "取得使用分區／編定資料，核對用途與使用限制",
+          "申請鑑界，確認界址、占用及通行現況",
+          "查核套繪管制與無套繪證明，確認主管機關核復",
+          "農地辦理農用勘查／農用證明，追蹤違規使用改善",
+          "查詢土壤／地下水污染列管，查核歷史用途與現況；疑慮另調查"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  },
+  {
+    "id": "land-tax",
+    "title": "Phase 2：報稅與用印",
+    "short": "報稅／用印",
+    "type": "normal",
+    "tasks": [
+      "土地增值稅申報（一般／自用／農地不課徵，依要件）",
+      "印花稅及地價稅／工程受益費等欠費查核",
+      "農地不課徵案件：核對農用證明、適用要件及有效性",
+      "<span class='important-red'>【重要】一般案件自訂約／契約成立日起 30 日內申報（含當日）</span>",
+      "<span class='important-red'>【內部逾期流程】先簽立契約變更協議書並經主管複核，再辦理申報</span>"
+    ],
+    "branches": [
+      {
+        "id": "seller-docs",
+        "title": "賣方過戶文件",
+        "tasks": [
+          "核對土地權狀、印鑑證明、印鑑章及身分文件",
+          "備妥塗銷／代償文件，確認賣方銀行窗口"
+        ],
+        "tone": ""
+      },
+      {
+        "id": "payment-2",
+        "title": "第二期款｜用印款",
+        "tasks": [
+          "核對用印款金額、付款日及入帳憑證"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "變更須符合當事人真意；逾期即洽稅捐機關，補簽不當然重算期限或免責。特殊起算另核；核發天數為排程估時。",
+    "timing": "作業估時｜稅單核發約 3～5 天；自用稅率約 5～8 天"
+  },
+  {
+    "id": "land-loan",
+    "title": "Phase 3：貸款申請與核貸",
+    "short": "貸款／核貸",
+    "type": "normal",
+    "tasks": [
+      "買方提供財力證明，完成銀行鑑價與貸款申請",
+      "確認核貸金額、利率、年期、撥款條件與差額"
+    ],
+    "branches": [
+      {
+        "id": "loan-check",
+        "title": "資金銜接",
+        "tasks": [
+          "確認買方銀行與承辦窗口",
+          "核對自備款、貸款及各期款安排；未核定部分列待確認"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "實際依資料備齊、銀行審查及補件進度確認。",
+    "timing": "作業估時｜填寫申請書至貸款核准約 2～4 週"
+  },
+  {
+    "id": "land-guarantee",
+    "title": "Phase 4：對保、完稅與預收",
+    "short": "對保／完稅",
+    "type": "critical",
+    "tasks": [
+      "完成對保及抵押權設定書類用印",
+      "核對土增稅完稅／不課徵等證明文件",
+      "<span class='important-red'>實價登錄複核：成交價金、面積及標的明細</span>",
+      "<span class='important-red'>完稅前確認賣方搬遷（如有）、清場與騰空交付進度</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-3",
+        "title": "第三期款｜完稅款",
+        "tasks": [
+          "核對完稅款入帳；依契約確認付款條件",
+          "確認預收款及服務費明細，核對是否另收或已包含"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "純土地不計契稅；預收明細另依案件核對，不因勾選而視為農用或免稅要件成立。",
+    "calcType": "land_pre_pay"
+  },
+  {
+    "id": "land-transfer",
+    "title": "Phase 5：過戶與代償確認",
+    "short": "過戶",
+    "type": "normal",
+    "tasks": [
+      "<span class='important-red'>送件前重新查核謄本、限制登記與預告登記處理結果</span>",
+      "<span class='important-red'>實價登錄最終複核，依規定期限申報；不得以結案日取代期限</span>",
+      "地政事務所送件：移轉登記及個案所需設定／塗銷",
+      "追蹤補正、登記完成及領取新權狀",
+      "預先確認買賣雙方結案時間，約定日期、時間與地點"
+    ],
+    "branches": [
+      {
+        "id": "payoff-details",
+        "title": "代償前確認",
+        "tasks": [
+          "核對代償金額、計息截止日與預定日期",
+          "核對收款銀行、戶名、帳號及銀行承辦確認紀錄"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "實際依地政機關收件、補正及銀行安排確認。",
+    "timing": "作業估時｜過戶約 3～5 個工作天"
+  },
+  {
+    "id": "land-payoff",
+    "title": "Phase 6：撥款代償與塗銷",
+    "short": "代償／尾款",
+    "type": "normal",
+    "tasks": [
+      "確認撥款條件與資金順序後，由銀行辦理代償",
+      "取得清償證明／塗銷文件，追蹤原抵押權塗銷",
+      "<span class='important-red'>查核最新謄本：確認應塗銷事項已辦妥；清償不等同解除限制</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-4",
+        "title": "第四期款｜貸款／尾款",
+        "tasks": [
+          "核對貸款撥款、尾款及代償入帳憑證",
+          "確認買方銀行匯出代償後餘額的金額、帳戶與日期"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "代償後向銀行確認清償證明核發日；塗銷另行追蹤，不以證明核發視為已塗銷。",
+    "timing": "作業估時｜清償證明約 3～5 個工作天"
+  },
+  {
+    "id": "land-handover",
+    "title": "Phase 7：土地點交、結算與結案",
+    "short": "點交／結案",
+    "type": "normal",
+    "tasks": [
+      "核對界址、鑑界成果、占用排除與通行約定",
+      "確認農用／污染／套繪等未決事項的處理結果",
+      "結清地價稅、各期價款及契約約定費用",
+      "完成土地點交紀錄，交付權狀及結算文件"
+    ],
+    "branches": [
+      {
+        "id": "close-check",
+        "title": "結案複核",
+        "tasks": [
+          "確認應解除之登記事項、款項及文件均已完成",
+          "有未決事項時記錄承辦、待辦與追蹤日，暫不結案"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  }
+];
    const standardSteps = [
-       { title: "Phase 1: 簽約 & 用印", type: "normal", tasks: ["1. 核對雙方身分證、印鑑章", "2. 簽署不動產買賣契約書", "3. 申報登錄 (實價登錄 - 初步申報)", "4. 收取第一期款 (簽約金)"] },
-       { title: "Phase 2: 稅務申報 (增/契)", type: "normal", tasks: ["1. 土地增值稅申報 (一般/自用)", "2. 契稅申報 (建物移轉)", "3.印花稅開立", "4. 查詢是否有欠稅 (地價/房屋)"] },
-       { title: "Phase 3: 銀行貸款 & 對保", type: "critical", calcType: "pre_pay", tasks: ["1. 買方提供財力證明 & 銀行鑑價", "2. 核貸金額確認 & 對保", "3. 設定抵押權書類用印", "4. <span class='important-red'>[重點] 實價登錄資料最終複核</span>"], note: "過戶前請務必確認「成交價金」與「車位」是否正確。" },
-       { title: "Phase 4: 完稅 & 移轉 & 結案", type: "normal", tasks: ["1. 繳納土增稅、契稅", "2. <span class='important-red'>[最後防線] 確認實價登錄無誤</span>", "3. 地政事務所送件 (移轉登記)", "4.領取新權狀 & 銀行撥款代償", "5. 點交房屋 (水電/鑰匙)"] }
-   ];
-   const privateLienStep = { title: "⚠️ Phase X: 私人設定拆彈", type: "private", tasks: ["1. <span class='important-red'>[查核] 擋拍檢查 (確認是否遭法拍)</span>", "2. 確認資金方案：代墊 vs 動撥", "3. 簽署動撥同意書 / 借據 / 本票", "4. 聯繫私人債權人 (確認塗銷條件)", "5. 取得清償證明/塗銷同意書"], note: "【高風險】務必確認金主配合塗銷，資金流向需透明。" };
-   const amlStep = { title: "⚠️ Phase 0: 洗錢防制申報", type: "aml", tasks: ["1. 確認買方資金來源合法性", "2. <span class='important-red'>填寫洗錢防制法大額交易申報書</span>", "3. 結案時向法務部調查局通報"], note: "依《洗錢防制法》第9條，現金/匯款達 5000 萬以上強制通報。" };
+  {
+    "id": "house-sign",
+    "title": "Phase 1：簽約與身分核對",
+    "short": "簽約",
+    "type": "normal",
+    "tasks": [
+      "核對買賣雙方身分證、印鑑章及代理權限",
+      "簽署不動產買賣契約書；確認付款節點與履保約定",
+      "整理實價登錄初步資料，確認申報義務人與期限",
+      "<span class='important-red'>調閱最新謄本：抵押權、限制登記及預告登記</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-1",
+        "title": "第一期款｜簽約款",
+        "tasks": [
+          "核對簽約款金額、付款日及收款帳戶",
+          "確認款項入帳並留存憑證；訂金是否抵充依契約"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  },
+  {
+    "id": "house-tax",
+    "title": "Phase 2：報稅與用印",
+    "short": "報稅／用印",
+    "type": "normal",
+    "tasks": [
+      "土地增值稅申報（一般／自用）",
+      "契稅申報（建物移轉）與印花稅開立",
+      "查詢地價稅、房屋稅等欠稅並確認處理方式",
+      "<span class='important-red'>【重要】一般案件自訂約／契約成立日起 30 日內申報（含當日）</span>",
+      "<span class='important-red'>【內部逾期流程】先簽立契約變更協議書並經主管複核，再辦理申報</span>"
+    ],
+    "branches": [
+      {
+        "id": "seller-docs",
+        "title": "賣方過戶文件",
+        "tasks": [
+          "確認權狀、印鑑證明、印鑑章及身分文件",
+          "確認塗銷申請書、代償清償委託書等所需文件",
+          "確認賣方銀行、承辦聯絡窗口與文件需求"
+        ],
+        "tone": ""
+      },
+      {
+        "id": "payment-2",
+        "title": "第二期款｜用印款",
+        "tasks": [
+          "核對用印款金額、付款日及入帳憑證"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "變更須符合當事人真意；逾期即洽稅捐機關，補簽不當然重算期限或免責。特殊起算另核；核發天數為排程估時。",
+    "timing": "作業估時｜稅單核發約 3～5 天；自用稅率約 5～8 天"
+  },
+  {
+    "id": "house-loan",
+    "title": "Phase 3：貸款申請與核貸",
+    "short": "貸款／核貸",
+    "type": "normal",
+    "tasks": [
+      "買方提供財力證明，完成銀行鑑價與貸款申請",
+      "確認核貸金額、利率、年期、撥款條件與差額"
+    ],
+    "branches": [
+      {
+        "id": "loan-check",
+        "title": "資金銜接",
+        "tasks": [
+          "確認買方銀行與承辦窗口",
+          "核對自備款、貸款及各期款安排；未核定部分列待確認"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "實際依資料備齊、銀行審查及補件進度確認。",
+    "timing": "作業估時｜填寫申請書至貸款核准約 2～4 週"
+  },
+  {
+    "id": "house-guarantee",
+    "title": "Phase 4：對保、完稅與預收",
+    "short": "對保／完稅",
+    "type": "critical",
+    "tasks": [
+      "完成銀行對保及抵押權設定書類用印",
+      "繳納土地增值稅、契稅，核對完稅文件",
+      "<span class='important-red'>實價登錄資料最終複核：成交價金、車位及其他必要資料</span>",
+      "<span class='important-red'>完稅前確認賣方搬遷進度、騰空日期及交付安排</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-3",
+        "title": "第三期款｜完稅款",
+        "tasks": [
+          "核對完稅款入帳；依契約確認付款條件",
+          "確認預收款及服務費明細，核對是否另收或已包含"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "預收款沿用原試算公式；實收依案件明細核對，避免服務費重複計入。",
+    "calcType": "pre_pay"
+  },
+  {
+    "id": "house-transfer",
+    "title": "Phase 5：過戶與代償確認",
+    "short": "過戶",
+    "type": "normal",
+    "tasks": [
+      "<span class='important-red'>送件前重新查核謄本、限制登記與預告登記處理結果</span>",
+      "<span class='important-red'>最後防線：確認實價登錄內容無誤，依規定期限辦理申報</span>",
+      "地政事務所送件：移轉登記及個案所需設定／塗銷",
+      "追蹤補正、登記完成及領取新權狀",
+      "預先確認買賣雙方結案時間，約定日期、時間與地點"
+    ],
+    "branches": [
+      {
+        "id": "payoff-details",
+        "title": "代償前確認",
+        "tasks": [
+          "核對代償金額、計息截止日與預定日期",
+          "核對收款銀行、戶名、帳號及銀行承辦確認紀錄"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "實際依地政機關收件、補正及銀行安排確認。",
+    "timing": "作業估時｜過戶約 3～5 個工作天"
+  },
+  {
+    "id": "house-payoff",
+    "title": "Phase 6：撥款代償與塗銷",
+    "short": "代償／尾款",
+    "type": "normal",
+    "tasks": [
+      "確認撥款條件與資金順序後，由銀行辦理代償",
+      "取得清償證明／塗銷文件，追蹤原抵押權塗銷",
+      "<span class='important-red'>查核最新謄本：確認應塗銷事項已辦妥；清償不等同解除限制</span>"
+    ],
+    "branches": [
+      {
+        "id": "payment-4",
+        "title": "第四期款｜貸款／尾款",
+        "tasks": [
+          "核對貸款撥款、尾款及代償入帳憑證",
+          "確認買方銀行匯出代償後餘額的金額、帳戶與日期"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": "代償後向銀行確認清償證明核發日；塗銷另行追蹤，不以證明核發視為已塗銷。",
+    "timing": "作業估時｜清償證明約 3～5 個工作天"
+  },
+  {
+    "id": "house-handover",
+    "title": "Phase 7：點交、結算與結案",
+    "short": "點交／結案",
+    "type": "normal",
+    "tasks": [
+      "完成水、電、天然氣、管理費及地價稅／房屋稅分算",
+      "核對鑰匙、設備與屋況，完成點交紀錄",
+      "核對代償後餘額、各期款及交屋保留款結清",
+      "交付權狀及結算明細，留存收據與案件文件"
+    ],
+    "branches": [
+      {
+        "id": "close-check",
+        "title": "結案複核",
+        "tasks": [
+          "確認應解除之登記事項、款項及文件均已完成",
+          "有未決事項時記錄承辦、待辦與追蹤日，暫不結案"
+        ],
+        "tone": ""
+      }
+    ],
+    "note": ""
+  }
+];
+   const privateLienStep = {
+  "id": "private-review",
+  "title": "⚠ 私人設定與限制登記查核",
+  "type": "private",
+  "tasks": [
+    "<span class='important-red'>擋拍／法拍查核：確認執行案號、進度及拍賣期日</span>",
+    "<span class='important-red'>限制登記逐項查核：查封、假扣押、假處分及其他禁止處分</span>",
+    "<span class='important-red'>預告登記查核：請求權內容、權利人及處理所需同意／塗銷文件</span>",
+    "確認資金方案：代墊或動撥，及清償、解除與送件順序",
+    "依個案簽署動撥同意書／借據／本票等必要文件",
+    "聯繫私人債權人，確認清償金額、條件與塗銷文件",
+    "取得清償證明及抵押權塗銷所需文件",
+    "<span class='important-red'>辦妥各項解除／塗銷後，再查最新謄本並由承辦複核</span>"
+  ],
+  "branches": [
+    {
+      "id": "restriction-gate",
+      "title": "發現異常時",
+      "tasks": [
+        "記錄登記種類、日期、案號／文號及權利人",
+        "向法院／囑託機關、地政機關或權利人確認處理條件",
+        "未釐清前，暫緩不可回復的撥款與送件安排，提報楊總確認"
+      ],
+      "tone": "risk"
+    }
+  ],
+  "note": "內部風控：不得只確認「沒有法拍」。私人抵押權清償不代表法院限制已解除；預告登記須另查其請求權及處理條件。"
+};
+   const amlStep = {"id": "aml-review-v2", "title": "金流法遵：大額案件內部複核", "type": "aml", "tasks": ["確認交易目的、資金來源、付款人及付款方式", "核對是否有單筆50萬元以上現金收付，及疑似交易申報情形", "符合申報要件時依法定期限辦理並留存紀錄"], "note": "總價5,000萬元為內部複核旗標，不等於匯款依法應申報；通貨申報另依現金收付要件判定。"};
  
    createApp({
        setup() {
@@ -1135,8 +1965,10 @@
 
            const SUPABASE_ENDPOINT = `${SUPABASE_PROJECT_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}`;
 
+           // file:// 僅供候選預覽：避免開啟候選檔時自動讀寫既有後端；正式部署流程未變更。
+           const IS_LOCAL_FILE_PREVIEW = window.location.protocol === 'file:';
            // 保留 GAS_URL 這個變數名稱，只是讓原本畫面上的「雲端連線」判斷不用大改
-           const GAS_URL = SUPABASE_ENABLED;
+           const GAS_URL = SUPABASE_ENABLED && !IS_LOCAL_FILE_PREVIEW;
  
            const currentUserRole = ref('Agent'); 
 
@@ -1187,7 +2019,7 @@
                portalBound.value = true;
                try { localStorage.setItem(ERP_SESSION_KEY, JSON.stringify({ ...op, updatedAt: new Date().toISOString() })); } catch(e) {}
 
-               if (!selectedStaff.value.length && op.shortName && staffList.some(s => s.name === op.shortName)) {
+               if (!selectedStaff.value.length && op.shortName && staffList.some(s => s.name === op.shortName && s.active !== false)) {
                    selectedStaff.value = [op.shortName];
                }
                return true;
@@ -1273,14 +2105,19 @@
                 }
            };
 
-           const staffList = [
-                { name: "宜婷", fullName: "李宜婷", phone: "0910-854-444" },
-                { name: "淑玲", fullName: "張淑玲", phone: "0910-111-088" },
-                { name: "蕙蓁", fullName: "呂蕙蓁", phone: "0911-905-270" },
-                { name: "美汎", fullName: "周美汎", phone: "0927-055-226" },
-                { name: "楊雅婷", fullName: "楊雅婷", phone: "" },
-                { name: "楊翊晟", fullName: "楊翊晟", phone: "0912-584-498" }
+           const DEFAULT_STAFF = [
+                { name: "宜婷", fullName: "李宜婷", phone: "0910-854-444", active: true },
+                { name: "淑玲", fullName: "張淑玲", phone: "0910-111-088", active: true },
+                { name: "蕙蓁", fullName: "呂蕙蓁", phone: "0911-905-270", active: true },
+                { name: "美汎", fullName: "周美汎", phone: "0927-055-226", active: true },
+                { name: "楊雅婷", fullName: "楊雅婷", phone: "", active: true },
+                { name: "楊翊晟", fullName: "楊翊晟", phone: "0912-584-498", active: true }
            ];
+           const STAFF_STORAGE_KEY = 'nexus_staff_directory_v2_round3';
+           const staffList = reactive(DEFAULT_STAFF.map(s => ({...s})));
+           const staffSavedAt = ref('');
+           const staffStorageNotice = computed(() => location.protocol === 'file:' ? '本機隔離名單，不連線 Supabase' : '本機名單，未跨裝置同步');
+           const staffSaveStatus = computed(() => staffSavedAt.value ? '已自動保存於此裝置｜'+staffSavedAt.value : '尚無本次修改；變更後會自動保存於此裝置');
            
            const selectedStaff = ref([]); 
            const newStaff = ref({name:'', phone:''});
@@ -1296,6 +2133,14 @@
            const isPdfExporting = ref(false); 
  
            const cases = ref([]);
+           const activeStaffList = computed(() => staffList.filter(staff => staff.active !== false));
+           const staffHistoryFilterList = computed(() => {
+               const byName = new Map(staffList.map(staff => [staff.name, staff]));
+               cases.value.forEach(c => String(c['承辦'] || '').split('、').map(v => v.trim()).filter(Boolean).forEach(name => {
+                   if (!byName.has(name)) byName.set(name, { name, active: false, historyOnly: true });
+               }));
+               return Array.from(byName.values());
+           });
            const currentCaseIndex = ref(-1); 
            const managerTab = ref('active'); 
            
@@ -1310,9 +2155,7 @@
            });
  
            const roadmapType = ref('house');
-           const showPrivateLien = ref(false);
-           const calcDeed = ref('');
-           const calcLoan = ref('');
+
  
            const escrowOptions = ref({
                prefixes: ['997975-', '55006-', '96866-', '28500-', '98688-'],
@@ -1321,6 +2164,9 @@
            });
  
            const form = ref({
+               sopChecks: {}, sopPrivateLien: false, sopCalcDeed: '', sopCalcLoan: '',
+               sopDraftRef: '', sopDraftStaff: [], parkingStatus: '待確認', parkingSpaces: [], initialInspectionDate: '', transferDate: '', disbursementDate: '', reinspectionDate: '', buildingCollateral: '待確認',
+               applyTaxRecord: false, applyZoning: false, applyFarmCertificate: false, applyBoundary: false, applyNoOverlay: false, applySoil: false,
                contractDate: new Date().toISOString().split('T')[0], prevTransferDate: '', 
                sealDate: '', taxDate: '', closingDate: '',
                paymentDeposit: '', depositDate: '', paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '', paymentHandover: '', handoverDate: '',
@@ -1332,6 +2178,78 @@
            });
  
            const defaultForm = JSON.parse(JSON.stringify(form.value));
+           const showPrivateLien = computed({ get: () => form.value.sopPrivateLien === true, set: value => { form.value.sopPrivateLien = value; } });
+           const calcDeed = computed({ get: () => form.value.sopCalcDeed, set: value => { form.value.sopCalcDeed = value; } });
+           const calcLoan = computed({ get: () => form.value.sopCalcLoan, set: value => { form.value.sopCalcLoan = value; } });
+           const sopDraftStatus = ref('勾選隨本案草稿保存；案件交接前請按上方存檔');
+           const normalizeSopState = () => {
+               if (!Array.isArray(form.value.parkingSpaces)) form.value.parkingSpaces = [];
+               form.value.parkingSpaces = form.value.parkingSpaces.filter(p => p && typeof p === 'object' && !Array.isArray(p)).map(p => ({level: p.level || '', floor: p.floor ?? '', count: p.count ?? '', numbers: p.numbers || '', type: p.type || '', priceMode: p.priceMode || '待確認', price: p.price ?? ''}));
+               if (!['待確認','無','有'].includes(form.value.parkingStatus)) form.value.parkingStatus = '待確認';
+               const checks = form.value.sopChecks;
+               form.value.sopChecks = checks && typeof checks === 'object' && !Array.isArray(checks)
+                   ? Object.fromEntries(Object.entries(checks).filter(([key,value]) => typeof key === 'string' && value === true)) : {};
+           };
+
+           const addParkingRow = () => form.value.parkingSpaces.push({level:'',floor:'',count:'',numbers:'',type:'',priceMode:'待確認',price:''});
+           const ensureParkingRow = () => { if (form.value.parkingStatus === '有' && !form.value.parkingSpaces.length) addParkingRow(); };
+           const removeParkingRow = index => { if(confirm('移除此列車位明細？')) form.value.parkingSpaces.splice(index,1); };
+           const parkingRowText = p => `${p.level || '位置待確認'} ${p.floor || '?'} 樓｜${p.type || '類別待確認'}｜${p.count || '?'} 格 ${p.numbers || ''}｜${p.priceMode === '另列車位價格' ? (p.price === '' ? '價格待填' : p.price + ' 萬元（本列合計）') : p.priceMode}`;
+           const parkingText = computed(() => form.value.parkingStatus === '有' ? (form.value.parkingSpaces.length ? form.value.parkingSpaces.map(parkingRowText).join('；') : '有車位，明細待填') : form.value.parkingStatus === '無' ? '無車位' : '車位待確認');
+           const parkingWarning = computed(() => {
+             if (form.value.parkingStatus !== '有') return '';
+             const ps=form.value.parkingSpaces;
+             if (!ps.length || ps.some(p => !p.level || !p.type || !Number.isInteger(Number(p.floor)) || Number(p.floor)<1 || !Number.isInteger(Number(p.count)) || Number(p.count)<1)) return '車位位置、樓層、類別或格數尚待完整確認。';
+             if (ps.some(p=>p.priceMode === '待確認' || (p.priceMode === '另列車位價格' && (p.price === '' || !Number.isFinite(Number(p.price)) || Number(p.price)<0)))) return '請確認各列是否拆價；另列價格時請填有效非負金額。';
+             const ids=ps.flatMap(p=>String(p.numbers || '').split(/[、,，;；\s]+/).filter(Boolean).map(n=>p.level+'|'+p.floor+'|'+n));
+             if(ps.some(p=>String(p.numbers || '').split(/[、,，;；\s]+/).filter(Boolean).length!==Number(p.count))) return '車位編號數量與格數不符或尚未填妥；請逐格核對，沒有編號時於備註說明。';
+             if(new Set(ids).size!==ids.length) return '同一樓層出現重複車位編號，請核對。';
+             const total=ps.filter(p=>p.priceMode==='另列車位價格').reduce((sum,p)=>sum+Number(p.price),0);
+             if(Number(form.value.totalPrice)>0 && total>Number(form.value.totalPrice)) return '車位拆分合計高於成交總價，請核對金額／單位。';
+             return '';
+           });
+           const constructionTimingWarning = computed(() => {
+             const f=form.value;
+             if (roadmapType.value !== 'construction') return '';
+             if ((f.transferDate || f.disbursementDate) && !f.initialInspectionDate) return '已填過戶或撥款日，但初驗完成日待確認；請先查核初驗與契約／銀行條件。';
+             if ([f.transferDate,f.disbursementDate,f.reinspectionDate].some(d=>d && f.initialInspectionDate && d<f.initialInspectionDate)) return '日期早於初驗完成日，請確認契約、實際進度與銀行安排。';
+             return '';
+           });
+           const caseTypeLabel=computed(()=>({house:'房地案件',land:'純土地',construction:'建設公司／新成屋'})[roadmapType.value] || '房地案件');
+           const paymentRows=computed(()=>[
+             ['訂金','paymentDeposit','depositDate'],['簽約款','paymentContract','contractDate'],['用印款','paymentSeal','sealDate'],['完稅款','paymentTax','taxDate'],['尾款','paymentBalance','closingDate'],['交屋款','paymentHandover','handoverDate']
+           ].map(([label,key,date])=>({label,amount:form.value[key],date:form.value[date]})));
+           const docText=computed(()=>({seller:[['docSellerDeed','權狀'],['docSellerSeal','印鑑'],['docSellerOrdSeal','便章'],['docSellerStamp','其他'],['docSellerID','身分證']].map(([k,l])=>(form.value[k]?'☑ ':'□ ')+l).join('　'),buyer:[['docBuyerSeal','印章'],['docBuyerID','身分證']].map(([k,l])=>(form.value[k]?'☑ ':'□ ')+l).join('　'),apply:[['applyTaxRecord','稅籍'],['applyZoning','分區'],['applyFarmCertificate','農證'],['applyBoundary','鑑界'],['applyNoOverlay','無套繪'],['applySoil','土壤污染查詢']].map(([k,l])=>(form.value[k]?'☑ ':'□ ')+l).join('　')}));
+           const reportStaffText=computed(()=>selectedStaff.value.map(name=>{const staff=staffList.find(s=>s.name===name);return name+(staff?.phone?' '+staff.phone:'')}).join('、'));
+           const draftRestoreBlocked=ref(false);
+           const printIssue=ref('');
+           const fitPrintPages = () => {
+             printIssue.value=''; document.body.classList.remove('print-too-long');
+             const limit=268*96/25.4;
+             let tooSmall=false;
+             document.querySelectorAll('.report-content').forEach(el=>{
+               let scale=1;el.style.setProperty('--paper-scale','1');el.style.width='100%';
+               for(let i=0;i<6 && el.getBoundingClientRect().height>limit;i++) {
+                 scale=Math.max(.88,scale*Math.sqrt(limit/el.getBoundingClientRect().height)*.99);
+                 el.style.setProperty('--paper-scale',String(scale));
+               }
+               if(el.getBoundingClientRect().height>limit+1) tooSmall=true;
+             });
+             if(tooSmall){printIssue.value='本案內容超出兩頁可讀範圍，請精簡過長備註或重複明細後重試；系統不會截掉內容列印。';document.body.classList.add('print-too-long');}
+             return !tooSmall;
+           };
+           window.addEventListener('beforeprint',fitPrintPages);
+           window.addEventListener('afterprint',()=>document.body.classList.remove('print-too-long'));
+
+           const stepKey = step => step.id || (roadmapType.value + ':' + step.title);
+           const taskKey = (step, index, branch = 'main') => stepKey(step) + ':' + branch + ':' + index;
+           const sopProgress = computed(() => {
+               const keys = currentRoadmapSteps.value.flatMap(step => [
+                   ...step.tasks.map((task,index) => taskKey(step,index)),
+                   ...(step.branches || []).flatMap(branch => branch.tasks.map((task,index) => taskKey(step,index,branch.id)))
+               ]);
+               return {done: keys.filter(key => form.value.sopChecks[key] === true).length, total: keys.length};
+           });
 
            // 💡 升級功能：電話自動格式化處理 (Format Phone Number)
            const formatPhone = (obj, key) => {
@@ -1346,13 +2264,14 @@
  
            let autoSaveTimer = null;
            watch(() => form.value, (newVal) => {
+               sopDraftStatus.value = "正在保存本案草稿…";
                clearTimeout(autoSaveTimer);
                autoSaveTimer = setTimeout(() => { 
-                   try { localStorage.setItem('nexus_form_draft_v33', JSON.stringify(newVal)); } catch(e){}
+                   try { localStorage.setItem('nexus_form_draft_v33', JSON.stringify(newVal)); sopDraftStatus.value = '本案草稿已保存於此瀏覽器；案件交接前請按上方存檔'; } catch(e){ sopDraftStatus.value = '草稿保存失敗，請勿關閉；請先存檔並匯出備份'; }
                }, 1000);
            }, { deep: true });
  
-           watch(() => selectedStaff.value, (newVal) => { try{ localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal)); }catch(e){} }, { deep: true });
+           watch(() => selectedStaff.value, (newVal) => { form.value.sopDraftStaff = [...newVal]; try{ localStorage.setItem('nexus_staff_draft_v33', JSON.stringify(newVal)); }catch(e){} }, { deep: true });
            watch(() => roadmapType.value, (newVal) => { try{ localStorage.setItem('nexus_roadmap_type_v33', newVal); }catch(e){} });
            watch(reportNotes, (newVal) => { try{ localStorage.setItem('nexus_report_notes_v33', newVal); }catch(e){} });
  
@@ -1393,7 +2312,7 @@
                if (showPrivateLien.value) {
                    let insertIdx = steps.findIndex(s => s.title.includes("Phase 2"));
                    if (insertIdx === -1) insertIdx = 1; 
-                   steps.splice(insertIdx + 1, 0, privateLienStep);
+                   steps.splice(roadmapType.value === 'construction' ? 2 : 1, 0, privateLienStep);
                }
                if (isAMLTriggered.value) {
                    steps.unshift(amlStep);
@@ -1499,14 +2418,13 @@
            };
  
            const calcResult = computed(() => {
-                const d = parseFloat(calcDeed.value) || 0;
+                const d = roadmapType.value === 'land' ? 0 : (parseFloat(calcDeed.value) || 0);
                 const l = parseFloat(calcLoan.value) || 0;
+                if (!Number.isFinite(d) || !Number.isFinite(l) || d < 0 || l < 0) return '請輸入有效非負金額';
                 return Math.round(d + (l * 12) + 25000).toLocaleString();
            });
  
-           const toggleTask = (event) => {
-              event.currentTarget.classList.toggle('checked');
-           };
+
  
            const addPerson = (type) => { form.value[type].push({ name: '', phone: '', role: '本人' }); };
            const removePerson = (type, idx) => { if (form.value[type].length > 1) form.value[type].splice(idx, 1); };
@@ -1854,31 +2772,117 @@
                 else if(target==='buyer') { form.value.buyers[idx].name=c.name; form.value.buyers[idx].phone=c.phone; }
                 suggestions.value.list = [];
            };
-           const addStaff = () => { if(newStaff.value.name && newStaff.value.phone) { staffList.push({...newStaff.value}); newStaff.value = {name:'', phone:''}; } }; 
+           const persistStaffList = () => {
+                try {
+                    const savedAt = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
+                    localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify({ version: 2, savedAt, staff: staffList }));
+                    staffSavedAt.value = savedAt;
+                } catch(e) { console.warn('承辦名單儲存失敗', e); }
+           };
+           const normalizeStaffName = (value) => String(value || '').trim();
+           const staffUsageCount = (name) => cases.value.filter(c => String(c['承辦'] || '').split('、').map(v => v.trim()).includes(name)).length;
+           const addStaff = () => {
+                const name = normalizeStaffName(newStaff.value.name);
+                if (!name) return alert('請輸入承辦姓名。');
+                if (staffList.some(staff => staff.name === name)) return alert('此承辦姓名已存在；如已停用，請在名單管理按「重新啟用」。');
+                staffList.push({ name, fullName: name, phone: String(newStaff.value.phone || '').trim(), active: true });
+                persistStaffList();
+                newStaff.value = {name:'', phone:''};
+           };
+           const renameStaff = (staff) => {
+                const oldName = staff.name;
+                const nextName = normalizeStaffName(prompt(`承辦人更名：${oldName}\n歷史案件仍保留原姓名，不會批次改寫。`, oldName));
+                if (!nextName || nextName === oldName) return;
+                if (staffList.some(item => item !== staff && item.name === nextName)) return alert('此承辦姓名已存在。');
+                staff.name = nextName;
+                if (!staff.fullName || staff.fullName === oldName) staff.fullName = nextName;
+                selectedStaff.value = selectedStaff.value.map(name => name === oldName ? nextName : name);
+                if (reportStaffFilter.value === oldName) reportStaffFilter.value = '';
+                persistStaffList();
+           };
+           const toggleStaffActive = (staff) => {
+                const willActivate = staff.active === false;
+                if (!willActivate && !confirm(`停用「${staff.name}」？\n新案件指派將不再顯示；查詢與週報仍可依歷史姓名篩選，並標示「已停用」。`)) return;
+                staff.active = willActivate;
+                if (!willActivate) {
+                    selectedStaff.value = selectedStaff.value.filter(name => name !== staff.name);
+                }
+                persistStaffList();
+           };
+           const deleteStaff = (staff) => {
+                const usage = staffUsageCount(staff.name);
+                if (usage > 0) return alert(`「${staff.name}」已被目前載入的 ${usage} 筆案件引用，為保留歷史不可刪除，請改用離職停用。`);
+                if (!confirm(`第一步確認：刪除未被目前載入案件引用的「${staff.name}」？`)) return;
+                if (!confirm(`第二步確認：確定永久刪除「${staff.name}」？本機查核不等於正式後端全量查核。`)) return;
+                const index = staffList.indexOf(staff);
+                if (index > -1) staffList.splice(index, 1);
+                selectedStaff.value = selectedStaff.value.filter(name => name !== staff.name);
+                persistStaffList();
+           };
+           const normalizeImportedStaff = (input) => {
+                const rows = Array.isArray(input) ? input : (input && Array.isArray(input.staff) ? input.staff : null);
+                if (!rows) throw new Error('JSON 必須是承辦人陣列，或含有 staff 陣列。');
+                if (rows.length > 500) throw new Error('名單不可超過 500 筆。');
+                const unique = new Map();
+                rows.forEach((row, index) => {
+                    if (!row || typeof row !== 'object' || Array.isArray(row)) throw new Error(`第 ${index + 1} 筆不是有效物件。`);
+                    if (typeof row.name !== 'string') throw new Error(`第 ${index + 1} 筆姓名必須是文字。`);
+                    const name = normalizeStaffName(row.name);
+                    if (!name) throw new Error(`第 ${index + 1} 筆缺少姓名。`);
+                    if (name.length > 50) throw new Error(`第 ${index + 1} 筆姓名超過 50 字。`);
+                    if (/[、\u0000-\u001f\u007f]/.test(name)) throw new Error(`第 ${index + 1} 筆姓名含有不可使用的分隔符號或控制字元。`);
+                    if (row.active !== undefined && typeof row.active !== 'boolean') throw new Error(`第 ${index + 1} 筆 active 必須是布林值。`);
+                    if (!unique.has(name)) unique.set(name, { name, fullName: String(row.fullName || name).trim().slice(0, 100), phone: String(row.phone || '').trim().slice(0, 50), active: row.active !== false });
+                });
+                if (!unique.size) throw new Error('名單不可為空。');
+                return Array.from(unique.values());
+           };
+           const exportStaffDirectory = () => {
+                const payload = { version: 1, exportedAt: new Date().toISOString(), localOnly: true, staff: staffList.map(staff => ({ name: staff.name, fullName: staff.fullName || staff.name, phone: staff.phone || '', active: staff.active !== false })) };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json;charset=utf-8'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `背表承辦名單_${new Date().toISOString().slice(0,10)}.json`;
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+           };
+           const importStaffDirectory = (event) => {
+                const file = event.target.files && event.target.files[0];
+                event.target.value = '';
+                if (!file) return;
+                if (file.size > 1024 * 1024) return alert('匯入失敗：名單 JSON 不可超過 1 MB。');
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const imported = normalizeImportedStaff(JSON.parse(String(reader.result || '')));
+                        if (!confirm(`將以匯入的 ${imported.length} 位承辦人取代目前本機名單？\n案件歷史資料不會改寫，也不會同步正式後端。`)) return;
+                        staffList.splice(0, staffList.length, ...imported);
+                        selectedStaff.value = selectedStaff.value.filter(name => activeStaffList.value.some(staff => staff.name === name));
+                        if (reportStaffFilter.value && !staffList.some(staff => staff.name === reportStaffFilter.value)) reportStaffFilter.value = '';
+                        persistStaffList();
+                        alert(`✅ 已匯入 ${imported.length} 位承辦人（同名已去重），僅儲存於目前瀏覽器。`);
+                    } catch(e) { alert(`匯入失敗：${e.message}`); }
+                };
+                reader.onerror = () => alert('匯入失敗：無法讀取檔案。');
+                reader.readAsText(file, 'UTF-8');
+           };
            
-           const printPage = () => window.print();
+           const printPage = async () => { await Vue.nextTick(); await document.fonts.ready; if(!fitPrintPages()) return alert(printIssue.value); window.print(); };
  
-           const exportVectorPDF = () => {
-                isPdfExporting.value = true;
-                
-                const originalTitle = document.title;
-                let caseName = form.value.propertyName || form.value.address || '未命名案件';
-                caseName = caseName.replace(/[\/\\:*?"<>|]/g, '_').replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '');
-                document.title = `${caseName}_背表`;
+           const exportVectorPDF = async () => {
+                await Vue.nextTick(); await document.fonts.ready;
+                if(!fitPrintPages()) return alert(printIssue.value);
+                const originalTitle=document.title;
+                document.title=((form.value.propertyName || form.value.address || '未命名案件').replace(/[\\/:*?"<>|]/g,'_'))+'_兩頁背表';
+                window.print(); document.title=originalTitle;
+           };
 
-                setTimeout(() => {
-                    window.print();
-                    document.title = originalTitle;
-                    isPdfExporting.value = false;
-                }, 1500);
-            };
- 
            const exportCases = () => {
                 if(cases.value.length === 0) return alert('沒有資料可以匯出！');
                 const allKeys = new Set();
                 cases.value.forEach(c => Object.keys(c).forEach(k => { if (k && String(k).trim() !== '') allKeys.add(String(k).trim()); }));
                 const normalHeaders = Array.from(allKeys).filter(k => !k.startsWith('_') && k !== 'originalIndex');
-                const systemHeaders = ['_sellers_json', '_buyers_json', '_salesAgents_json', '_devAgents_json', '_form_json', '_roadmapType', '_showPrivateLien'];
+                const systemHeaders = Array.from(allKeys).filter(k=>k.startsWith('_') && k!=='_tempId');
                 const exportHeader = [...normalHeaders, ...systemHeaders];
                 const dataRows = cases.value.map(c => exportHeader.map(h => c[h] !== undefined ? c[h] : ''));
                 const csvContent = Papa.unparse([exportHeader, ...dataRows]);
@@ -1909,12 +2913,13 @@
                             if (h && String(h).trim() !== '') obj[h] = row[i] !== undefined ? row[i] : '';
                         });
 
+                        if(obj['_archived'] !== undefined) obj['_archived'] = obj['_archived'] === true || obj['_archived'] === 'true';
                         obj['_lastAction'] = obj['_lastAction'] || '由交接檔匯入';
                         obj['_updatedAt'] = obj['_updatedAt'] || new Date().toISOString();
-                        obj['_updatedBy'] = obj['_updatedBy'] || (portalUser && portalUser.name ? portalUser.name : '交接檔匯入');
+                        obj['_updatedBy'] = obj['_updatedBy'] || (currentOperator.value.name || '交接檔匯入');
                         obj['_auditTrail'] = obj['_auditTrail'] || JSON.stringify([{
                             time: new Date().toISOString(),
-                            user: (portalUser && portalUser.name ? portalUser.name : '交接檔匯入'),
+                            user: (currentOperator.value.name || '交接檔匯入'),
                             action: 'IMPORT_CSV',
                             note: `從 ${file.name} 匯入`
                         }]);
@@ -1967,6 +2972,15 @@
            };
 
            onMounted(() => {
+               try {
+                   const savedStaff = JSON.parse(localStorage.getItem(STAFF_STORAGE_KEY) || 'null');
+                   const savedRows = Array.isArray(savedStaff) ? savedStaff : (savedStaff && Array.isArray(savedStaff.staff) ? savedStaff.staff : null);
+                   if (savedRows) {
+                       const validStaff = savedRows.filter(s => s && normalizeStaffName(s.name)).map(s => ({ name: normalizeStaffName(s.name), fullName: String(s.fullName || s.name).trim(), phone: String(s.phone || '').trim(), active: s.active !== false }));
+                       if (validStaff.length) staffList.splice(0, staffList.length, ...validStaff);
+                       if (savedStaff && savedStaff.savedAt) staffSavedAt.value = savedStaff.savedAt;
+                   }
+               } catch(e) { console.warn('承辦名單載入失敗，改用內建名單', e); }
                loadPortalSession();
                try {
                    const savedEscrow = localStorage.getItem('nexus_escrow_options');
@@ -1989,7 +3003,8 @@
                        if(!parsed.buyers || !Array.isArray(parsed.buyers) || parsed.buyers.length===0) parsed.buyers = [{ name: '', phone: '', role: '本人' }];
                        if(!parsed.salesAgents || !Array.isArray(parsed.salesAgents) || parsed.salesAgents.length===0) parsed.salesAgents = [{ name: '', phone: '', store: '' }];
                        if(!parsed.devAgents || !Array.isArray(parsed.devAgents) || parsed.devAgents.length===0) parsed.devAgents = [{ name: '', phone: '', store: '' }];
-                       form.value = Object.assign({}, defaultForm, parsed);
+                       form.value = Object.assign({}, JSON.parse(JSON.stringify(defaultForm)), parsed);
+                       normalizeSopState();
                    }
                } catch(e) { try{localStorage.removeItem('nexus_form_draft_v33');}catch(err){} }
                
@@ -2013,6 +3028,13 @@
                    }
                } catch(e) { try{localStorage.removeItem('nexus_cases_db');}catch(err){} }
  
+               const draftRef=form.value.sopDraftRef;
+               if(draftRef){
+                 const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>draftRef.startsWith('id:') ? c._caseId===draftRef.slice(3) : caseSignature(c)===draftRef.slice(4));
+                 if(matches.length===1){currentCaseIndex.value=matches[0].i;}
+                 else {draftRestoreBlocked.value=true; sopDraftStatus.value='草稿無法唯一對應原案，請從總庫重開或另存新案';}
+               }
+               if(Array.isArray(form.value.sopDraftStaff)) selectedStaff.value=[...form.value.sopDraftStaff];
                if(GAS_URL) loadFromCloud();
            });
  
@@ -2021,7 +3043,9 @@
                 const c = cases.value[idx];
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
                 
-                if (c['_roadmapType']) roadmapType.value = c['_roadmapType'];
+                draftRestoreBlocked.value=false;
+                selectedStaff.value=String(c['承辦'] || '').split('、').map(v=>v.trim()).filter(Boolean);
+                roadmapType.value = c['_roadmapType'] || 'house';
                 if (c['_showPrivateLien'] !== undefined) showPrivateLien.value = (c['_showPrivateLien'] === true || c['_showPrivateLien'] === 'true');
  
                 if (c['_form_json']) {
@@ -2062,6 +3086,9 @@
                     if (c['_devAgents_json']) try { form.value.devAgents = JSON.parse(c['_devAgents_json']); } catch(e){}
                 }
  
+                normalizeSopState();
+                form.value.sopDraftRef=c._caseId ? 'id:'+c._caseId : 'sig:'+caseSignature(c);
+                form.value.sopDraftStaff=[...selectedStaff.value];
                 showManager.value = false;
            };
  
@@ -2113,15 +3140,24 @@
 
            const resetForm = (switchToNew = false) => {
                 currentCaseIndex.value = -1;
+                roadmapType.value = 'house';
+                selectedStaff.value=[]; draftRestoreBlocked.value=false;
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
                 try { localStorage.removeItem('nexus_form_draft_v33'); }catch(e){}
                 if(switchToNew) showManager.value = false;
            };
  
            const addNewCase = () => { if(confirm('建立全新案件？(未存檔資料將遺失)')) resetForm(false); };
-           const saveAsNew = () => { if(confirm('另存為新案件？')) { currentCaseIndex.value = -1; form.value.closingDate = ''; saveLocal(true); } };
+           const saveAsNew = () => { if(confirm('另存為新案件？')) { currentCaseIndex.value = -1; draftRestoreBlocked.value=false; form.value.sopDraftRef=''; form.value.closingDate = ''; form.value.sopChecks = {}; saveLocal(true); } };
  
            const saveLocal = (isSaveAsNew = false) => {
+                if(draftRestoreBlocked.value) return alert('草稿無法唯一對應原案件，請從總庫重新開啟原案，或明確選擇「另存新案」；目前尚未保存。');
+                if(!isSaveAsNew && form.value.sopDraftRef) {
+                  const draftRef=form.value.sopDraftRef;
+                  const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>draftRef.startsWith('id:') ? c._caseId===draftRef.slice(3) : caseSignature(c)===draftRef.slice(4));
+                  if(matches.length!==1) return alert('目前總庫已變更，無法唯一對應原案件；請重新開啟案件，或另存新案。未執行存檔。');
+                  currentCaseIndex.value=matches[0].i;
+                }
                 const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
                 const buyerDisplay = form.value.buyers.map(b => b.name).join('、');
                 const fullEscrowNum = form.value.escrowIdPrefix + form.value.escrowIdSuffix;
@@ -2129,11 +3165,14 @@
                 try { localStorage.setItem('nexus_form_v33', JSON.stringify(form.value)); }catch(e){}
 
                 const oldData = currentCaseIndex.value > -1 ? JSON.parse(JSON.stringify(cases.value[currentCaseIndex.value] || {})) : {};
+                const stableId=oldData._caseId || (crypto.randomUUID ? crypto.randomUUID() : 'case-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+                form.value.sopDraftRef='id:'+stableId; form.value.sopDraftStaff=[...selectedStaff.value];
                 const tempId = Date.now().toString();
                 const actionName = currentCaseIndex.value > -1 ? (isSaveAsNew ? '另存新案' : '修改案件') : '新增案件';
 
                 const rowData = {
                     ...oldData, 
+                    '_caseId': stableId,
                     '_tempId': tempId,
                     '編號': currentCaseIndex.value > -1 ? oldData['編號'] : '', 
                     '案名': form.value.propertyName,
@@ -2165,6 +3204,7 @@
                     '履保戶名': form.value.escrowName,
                     '銷售仲介': form.value.salesAgents.map(a => `${a.name}(${a.store})`).join('、'),
                     '開發仲介': form.value.devAgents.map(a => `${a.name}(${a.store})`).join('、'),
+                    '車位資料': parkingText.value,
                     '備註': form.value.notes,
                     '_sellers_json': JSON.stringify(form.value.sellers),
                     '_buyers_json': JSON.stringify(form.value.buyers),
@@ -2186,7 +3226,7 @@
                 try {
                   localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value));
                    localStorage.setItem('nexus_form_draft_v33', JSON.stringify(form.value));
-                } catch(e){}
+                } catch(e){ sopDraftStatus.value='存檔失敗，請勿關閉；請匯出交接CSV備份'; alert('⚠️ 存檔失敗：瀏覽器儲存空間不足或已被停用。內容仍在畫面，請勿關閉，請先匯出交接CSV備份。'); return; }
 
                 if (GAS_URL) {
                   syncToCloud(rowData).then(() => alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'));
@@ -2244,7 +3284,7 @@
                 if(reportNotes.value) report += `📌【本週重點與協助事項】\n${reportNotes.value}\n\n`;
  
                 let activeCases = cases.value.filter(c => !c['結案時間']);
-                if (reportStaffFilter.value) activeCases = activeCases.filter(c => String(c['承辦'] || '').includes(reportStaffFilter.value));
+                if (reportStaffFilter.value) activeCases = activeCases.filter(c => String(c['承辦'] || '').split('、').map(v => v.trim()).includes(reportStaffFilter.value));
  
                 report += `📁【目前進行中案件：共 ${activeCases.length} 筆】\n`;
                 if(activeCases.length === 0) report += `(無)\n`;
@@ -2297,7 +3337,7 @@
                 if (form.value.paymentBalance) paymentTxt += `  🔹尾款：${form.value.paymentBalance}萬 (${formatDate(form.value.closingDate)})\n`;
                 if (roadmapType.value === 'construction' && form.value.paymentHandover) paymentTxt += `  🔹交屋款：${form.value.paymentHandover}萬 (${formatDate(form.value.handoverDate)})\n`;
  
-                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n${buyerDocTxt}\n⚠️ 備註 ：\n${form.value.notes}\n\n💰 總價：${form.value.totalPrice} 萬元\n${paymentTxt ? '📊 款項明細：\n' + paymentTxt : ''}⏰ 點交日：${closing}\n🏦 履保：${fullEscrow}\n\n📞 承辦：\n${staffTxt}`; 
+                return `簽約案件：${d}\n案名：${form.value.propertyName}\n🏠 住址：${form.value.address}\n🚗 車位：${parkingText.value}\n\n👤 買方：${buyerTxt}\n👤 賣方：${sellerTxt}\n\n${buyerDocTxt}\n⚠️ 備註 ：\n${form.value.notes}\n\n💰 總價：${form.value.totalPrice} 萬元\n${paymentTxt ? '📊 款項明細：\n' + paymentTxt : ''}⏰ 點交日：${closing}\n🏦 履保：${fullEscrow}\n\n📞 承辦：\n${staffTxt}`; 
            });
  
            const copyToClipboard = () => { navigator.clipboard.writeText(previewText.value).then(() => alert('已複製')); };
@@ -2322,15 +3362,15 @@
            return {
                GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
                cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
-               form, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
+               form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
-               roadmapType, showPrivateLien, escrowOptions, staffList, selectedStaff, newStaff, addStaff,
+               roadmapType, showPrivateLien, escrowOptions, staffList, activeStaffList, staffHistoryFilterList, staffStorageNotice, staffSaveStatus, selectedStaff, newStaff, addStaff, staffUsageCount, renameStaff, toggleStaffActive, deleteStaff, exportStaffDirectory, importStaffDirectory,
                priceSum, priceMismatch, toROC, formatDate, printPage, exportVectorPDF, exportCases, autoLoadedMsg, isPdfExporting,
                showReporter, reportStaffFilter, reportNotes, quickReportStep, quickReportMsg,
                addPerson, removePerson, addAgent, removeAgent, checkAndAddOption, removeOption,
                searchContacts, suggestions, selectContact, selectAgent, contactsLoaded, handleContactUpload, handleFileUpload,
                copyToClipboard, copyLineProgressReport, sendLineProgressReport, copyWeeklyReport,
-               calcDeed, calcLoan, calcResult, toggleTask, generatedCalendar, generatedWeeklyReport, previewText, handleImportCases,
+               calcDeed, calcLoan, calcResult, stepKey, taskKey, sopProgress, sopDraftStatus, generatedCalendar, generatedWeeklyReport, previewText, handleImportCases,
                checkVVIP, parseSafePrice, getStepDate, getStepIcon, formatPhone, recoverLocalCaseBackups // 💡 匯出格式化函數供畫面使用
            };
        }
