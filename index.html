@@ -19519,6 +19519,15 @@ License: MIT
 @media print{body.ledger-only .report-sheet:not(.ledger-sheet){display:none!important}.ledger-sheet .ledger-subtitle{font-size:calc(9pt * var(--paper-scale,1))}.ledger-sheet .paper-box{break-inside:avoid}}
 
 .escrow-panel{border:1px solid #b4c3ce;border-top:4px solid #a37c3d;border-radius:8px;padding:18px;margin:18px 0;background:#fbfcfd}.escrow-panel h2{font-size:20px;font-weight:800;color:#16394e}.escrow-panel h3{font-size:15px;font-weight:700;margin:14px 0 8px}.escrow-panel p{font-size:13px;line-height:1.7;margin:6px 0}.escrow-panel details{border-top:1px solid #d9e1e6;padding:10px 0}.escrow-panel summary{cursor:pointer;font-weight:700;font-size:15px}.escrow-panel .field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}.escrow-panel input,.escrow-panel select{width:100%;border:1px solid #b7c6d0;border-radius:4px;padding:7px;background:white;min-width:0;font-size:14px}.escrow-panel input[type=checkbox]{width:auto}.escrow-panel .sync-value{font-size:13px;color:#325568;overflow-wrap:anywhere;background:#eef4f8;padding:7px;min-height:35px}.escrow-panel label{font-size:12px}.escrow-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.escrow-actions button{background:#15384d;color:white;padding:9px 13px;border-radius:4px;font-weight:700}.escrow-actions button.secondary{background:#e7edf2;color:#17374c}.escrow-panel button:disabled{opacity:.45}.escrow-callout{border-left:3px solid #b3884b;padding:8px 12px;background:#fff4dc;font-size:13px;white-space:pre-wrap}.contact-preview{width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed}.contact-preview td,.contact-preview th{padding:7px;border:1px solid #d1dce5;text-align:left;overflow-wrap:anywhere}.escrow-status{font-size:13px;white-space:pre-wrap;margin-top:8px;padding:8px;background:#edf3f6}.ledger-role-print{font-size:9pt;line-height:1.5;margin:6px 0!important}
+/* V41: choices always remain editable; empty fields are blank on the printed register. */
+.ledger-panel .ledger-choice-other{margin-top:5px;border-left:3px solid #b58e55;padding-left:9px}
+.ledger-panel .ledger-hint{color:#486c80;font-size:12px;margin:4px 0 8px;line-height:1.5}
+.ledger-panel .ledger-quick-select{margin:5px 0 6px;border-color:#a7baca;background:#f3f8fb}
+.ledger-sheet .ledger-write-space{display:inline-block;min-width:20mm;min-height:1.2em;vertical-align:baseline}
+.ledger-sheet .ledger-write-line{white-space:pre-wrap;min-height:8mm;line-height:1.5;overflow-wrap:anywhere}
+.ledger-sheet .ledger-table td{height:9mm;vertical-align:top}
+.ledger-sheet .ledger-blank-row td{height:12mm}
+@media print{.ledger-sheet .ledger-write-line{min-height:9mm}.ledger-sheet .ledger-text{min-height:8mm}}
 @media(max-width:700px){.escrow-panel .field-grid{grid-template-columns:1fr}}
 
 </style>
@@ -19620,16 +19629,37 @@ https://github.com/nodeca/pako/blob/main/LICENSE
      <section class="report-sheet ledger-sheet" data-testid="ledger-print">
        <div class="report-content">
          <div class="report-heading"><b>地政士業務紀錄簿</b><span>宏國地政｜易丞地政<br>逐案紀錄・獨立留存</span></div>
-         <p class="ledger-subtitle">紀錄編號：{{ledgerNumberText}}　｜　受託地政士：{{form.ledgerAgent || '待填'}}</p>
-         <p class="ledger-role-print"><b>簽約協辦地政士：</b>{{form.ledgerSigningAgent || '未填'}}　<b>履保特約地政士：</b>{{form.ledgerEscrowAgent || '未填'}}<br><b>登記代理地政士：</b>{{form.ledgerRegistrationAgent || '未填'}}　<b>內部辦理承辦：</b>{{caseHandlerNames || '未填'}}</p>
-         <p v-if="form.ledgerDelegatedAgent">共同受託／受委辦：{{form.ledgerDelegatedAgent}}；依據：{{form.ledgerDelegationBasis || '待填'}}</p><p v-if="form.ledgerCertification==='是'">法定簽證人：{{form.ledgerCertifier || '待填'}}</p><p v-if="form.ledgerRoleNotes" class="ledger-text">分工／委任範圍：{{form.ledgerRoleNotes}}</p>
-         <div v-if="ledgerMissing.length" class="paper-warning">待補正紀錄：{{ledgerMissing.join('、')}}。補齊並核對後再正式歸檔。</div>
-         <section class="paper-box"><h3>一、受託案件之類別及內容</h3><p><b>類別：</b>{{caseTypeLabel}} ／ {{form.ledgerService || '受託業務待填'}}</p><p><b>案件：</b>{{form.propertyName || '待填'}}</p><p><b>標的地址：</b>{{form.address || '未填'}}　<b>地／建號：</b>{{form.landBuildNo || '未填'}}</p><p class="ledger-text"><b>受託內容：</b>{{form.ledgerContent || '待填實際委託範圍'}}</p></section>
-         <section class="paper-box"><h3>二、委託人姓名或名稱及地址</h3><table class="ledger-table"><thead><tr><th style="width:18%">身分／確認</th><th style="width:26%">姓名或名稱</th><th>委託人地址</th></tr></thead><tbody><tr v-for="(row,i) in ledgerClients" :key="i"><td>{{row.side}} {{row.person.role || ''}}<br>{{row.person.ledgerClient==='是' ? '已確認為委託人' : '委託身分待確認'}}</td><td>{{row.person.name || '待填'}}</td><td>{{row.person.ledgerAddress || '待填委託人地址'}}</td></tr><tr v-if="!ledgerClients.length"><td colspan="3">委託人待確認／待填</td></tr></tbody></table></section>
-         <section class="paper-box"><h3>三、受託日期及申請日期</h3><table class="ledger-table"><tbody><tr><th>受託日期</th><td>{{form.ledgerAccepted || '待填'}}</td><th>申請日期</th><td>{{ledgerApplication || '未申請／待填'}}</td></tr><tr><th>申請機關</th><td>{{form.ledgerAuthority || '待填'}}</td><th>收件字號</th><td>{{form.ledgerReceipt || '未填'}}</td></tr></tbody></table><p>申請日期來源：{{form.ledgerApplied ? '本紀錄簿填列' : (form.transferDate ? '同步前表過戶送件日，須核對是否為本案保存起算日' : '尚無日期')}}。</p></section>
-         <section class="paper-box"><h3>四、受託案件辦理情形</h3><p><b>實際狀態：</b>{{form.ledgerStatus || '待確認'}}　<b>實際辦結／終止日：</b>{{form.ledgerCompleted || '未填'}}</p><p class="ledger-text">{{form.ledgerHandling || '待填：實際申辦事項、辦理經過與結果；如撤件、補正或終止亦請敘明。'}}</p><p>前表 SOP 勾選進度：{{sopProgress.done}}／{{sopProgress.total}} 項（作業輔助資訊，不等於辦結認定）。</p></section>
-         <section v-if="form.ledgerCertification==='是'" class="paper-box"><h3>五、簽證案件基本資料（簽訂人；列印後簽名蓋章）</h3><div v-for="(row,i) in ledgerSigners" :key="i"><p><b>{{row.person.name || '姓名待填'}}</b>　出生日期：{{row.person.ledgerBirth || '待填'}}　身分證統一編號：{{row.person.ledgerId || '待填'}}</p><p>戶籍地址：{{row.person.ledgerHome || '待填'}}<br>通訊地址：{{row.person.ledgerContact || '待填'}}　電話：{{row.person.phone || '待填'}}</p><div class="ledger-signbox">印章款：　　　　　　　　　　　　簽名款：</div></div></section>
-         <p class="paper-warning">紀錄簿至少保存十五年，自向相關機關申請日起算。{{ledgerApplication ? '本案起算日請核對：'+ledgerApplication+'。' : '尚無申請日期，不能計算保存期間。'}}其他文件仍依各自保存義務及爭議需求處理。</p>
+         <p class="ledger-subtitle">紀錄編號：<span class="ledger-write-space">{{ledgerNumberText}}</span>　｜　受託地政士：<span class="ledger-write-space">{{form.ledgerAgent || ''}}</span></p>
+         <p class="ledger-role-print"><b>簽約協辦地政士：</b><span class="ledger-write-space">{{form.ledgerSigningAgent || ''}}</span>　<b>履保特約地政士：</b><span class="ledger-write-space">{{form.ledgerEscrowAgent || ''}}</span><br><b>登記代理地政士：</b><span class="ledger-write-space">{{form.ledgerRegistrationAgent || ''}}</span>　<b>內部辦理承辦：</b><span class="ledger-write-space">{{caseHandlerNames || ''}}</span></p>
+         <p v-if="form.ledgerDelegatedAgent || form.ledgerDelegationBasis">共同受託／受委辦：{{form.ledgerDelegatedAgent || ''}}；依據：{{form.ledgerDelegationBasis || ''}}</p>
+         <p v-if="form.ledgerCertification==='是'">法定簽證人：<span class="ledger-write-space">{{form.ledgerCertifier || ''}}</span></p>
+         <p v-if="form.ledgerRoleNotes" class="ledger-text">分工／委任範圍：{{form.ledgerRoleNotes}}</p>
+         <section class="paper-box"><h3>一、受託案件之類別及內容</h3>
+           <p><b>類別：</b><span class="ledger-write-space">{{form.ledgerService || ''}}</span></p>
+           <p><b>案件：</b><span class="ledger-write-space">{{form.propertyName || ''}}</span></p>
+           <p><b>標的地址：</b>{{form.address || ''}}　<b>地／建號：</b>{{form.landBuildNo || ''}}</p>
+           <p class="ledger-text ledger-write-line"><b>受託內容：</b>{{form.ledgerContent || ''}}</p>
+         </section>
+         <section class="paper-box"><h3>二、委託人姓名或名稱及地址</h3>
+           <table class="ledger-table"><thead><tr><th style="width:18%">身分</th><th style="width:26%">姓名或名稱</th><th>委託人地址</th></tr></thead>
+             <tbody><tr v-for="(row,i) in ledgerConfirmedClients" :key="i"><td>{{row.side}} {{row.person.role || ''}}</td><td>{{row.person.name || ''}}</td><td>{{row.person.ledgerAddress || ''}}</td></tr>
+             <tr v-if="!ledgerConfirmedClients.length" class="ledger-blank-row"><td></td><td></td><td></td></tr></tbody>
+           </table>
+         </section>
+         <section class="paper-box"><h3>三、受託日期及申請日期</h3>
+           <table class="ledger-table"><tbody><tr><th>受託日期</th><td>{{form.contractDate || ''}}</td><th>申請日期</th><td>{{ledgerApplication || ''}}</td></tr>
+             <tr><th>申請機關</th><td>{{form.ledgerAuthority || ''}}</td><th>收件字號</th><td>{{form.ledgerReceipt || ''}}</td></tr></tbody></table>
+         </section>
+         <section class="paper-box"><h3>四、受託案件辦理情形</h3>
+           <p><b>實際狀態：</b><span class="ledger-write-space">{{form.ledgerStatus || ''}}</span>　<b>實際辦結／終止日：</b><span class="ledger-write-space">{{form.ledgerCompleted || ''}}</span></p>
+           <p class="ledger-text ledger-write-line">{{form.ledgerHandling || ''}}</p>
+         </section>
+         <section v-if="form.ledgerCertification==='是'" class="paper-box"><h3>五、簽證案件基本資料（簽訂人；列印後簽名蓋章）</h3>
+           <div v-for="(row,i) in ledgerSigners" :key="i"><p><b>{{row.person.name || ''}}</b>　出生日期：{{row.person.ledgerBirth || ''}}　身分證統一編號：{{row.person.ledgerId || ''}}</p>
+             <p>戶籍地址：{{row.person.ledgerHome || ''}}<br>通訊地址：{{row.person.ledgerContact || ''}}　電話：{{row.person.phone || ''}}</p><div class="ledger-signbox">印章款：　　　　　　　　　　　　簽名款：</div></div>
+           <div v-if="!ledgerSigners.length"><p>姓名：　　　　　　　　　出生日期：　　　　　　　　身分證統一編號：</p><p>戶籍地址：<br>通訊地址：　　　　　　　　　　　　　　　電話：</p><div class="ledger-signbox">印章款：　　　　　　　　　　　　簽名款：</div></div>
+         </section>
+         <p class="paper-warning">紀錄簿至少保存十五年，自向相關機關申請日起算。{{ledgerApplication ? '本案起算日請核對：'+ledgerApplication+'。' : ''}}其他文件仍依各自保存義務及爭議需求處理。</p>
          <div class="paper-sign"><span>紀錄／核對：________________</span><span>核對日期：________________</span></div>
        </div>
        <div class="paper-footer"><span>地政士法第25條；施行細則第16至18條。簽證基本資料及印章／簽名款須完整留存。</span><span>{{ledgerOnly ? '1 / 1' : '3 / 3'}}</span></div>
@@ -20123,23 +20153,43 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 <section class="ledger-panel no-print" data-testid="ledger-editor">
          <h2>地政士業務紀錄簿｜第三頁</h2>
          <p>案名、標的、買賣方姓名與過戶送件日連動前表。只需補足下列紀錄；資料隨原「存檔」及交接 CSV 保存。一般案件不另收身分證號、出生日期。</p>
+         <p class="ledger-hint">下拉選單提供常用選項；選「其他／自行填寫」即可輸入特殊案件資料。未選或未填的欄位列印時不顯示待填文字。</p>
          <div class="ledger-grid">
-           <label>紀錄編號（可自訂）<input v-model="form.ledgerNumber" placeholder="未填時用案件識別碼／待編號"></label>
-           <label>受託地政士（紀錄簿責任人）<input v-model="form.ledgerAgent" placeholder="依實際委任關係填寫"></label>
-           <label>簽約協辦地政士<input v-model="form.ledgerSigningAgent" placeholder="例如：楊翊晟"></label>
-           <label>履保特約地政士<input v-model="form.ledgerEscrowAgent" placeholder="例如：楊明宗"></label>
-           <label>登記代理地政士<input v-model="form.ledgerRegistrationAgent" placeholder="依登記申請書填寫"></label><label>共同受託／受委辦地政士<input v-model="form.ledgerDelegatedAgent" placeholder="依實際分工填寫"></label><label>委辦依據／同意文件索引<input v-model="form.ledgerDelegationBasis" placeholder="委任文件、同意日期等"></label>
-           <label>受託業務類別<input v-model="form.ledgerService" placeholder="例如買賣移轉登記、抵押權設定"></label>
-           <label>受託日期（不等於簽約日）<input type="date" v-model="form.ledgerAccepted"></label>
+           <label>紀錄編號（可自訂）<input v-model="form.ledgerNumber" placeholder="留空則列印空白；不影響內部案件識別碼"></label>
+           <label v-for="field in ledgerAgentFields" :key="field.key">{{field.label}}
+             <select :value="ledgerChoiceValue(field.key)" @change="setLedgerChoice(field.key,$event.target.value)">
+               <option value="">請選擇／留空</option><option v-for="value in ledgerChoiceOptions(field.key)" :key="value" :value="value">{{value}}</option><option value="__custom__">其他／自行填寫</option>
+             </select>
+             <input v-if="ledgerChoiceValue(field.key)==='__custom__'" v-model="form[field.key]" class="ledger-choice-other" :aria-label="field.label+'自行輸入'" placeholder="輸入實際地政士姓名（依法核對）">
+           </label>
+           <label>委辦依據／同意文件索引<input v-model="form.ledgerDelegationBasis" placeholder="委任文件、同意日期等（留空列印空白）"></label>
+           <label>受託業務類別
+             <select :value="ledgerChoiceValue('ledgerService')" @change="setLedgerChoice('ledgerService',$event.target.value)">
+               <option value="">請選擇／留空</option><option v-for="value in ledgerChoiceOptions('ledgerService')" :key="value" :value="value">{{value}}</option><option value="__custom__">其他／自行填寫</option>
+             </select>
+             <input v-if="ledgerChoiceValue('ledgerService')==='__custom__'" v-model="form.ledgerService" class="ledger-choice-other" aria-label="受託業務類別自行輸入" placeholder="可自行輸入多項實際受託業務">
+           </label>
+           <label>受託日期＝簽約日（與第一頁同步）<input type="date" v-model="form.contractDate" title="此日期與第一頁簽約日共用同一欄位"></label>
            <label>申請日期（空白時同步過戶送件日）<input type="date" v-model="form.ledgerApplied"></label>
-           <label>申請機關<input v-model="form.ledgerAuthority" placeholder="實際受理機關"></label>
-           <label>收件字號（如有）<input v-model="form.ledgerReceipt"></label>
-           <label>實際辦理狀態<select v-model="form.ledgerStatus"><option value="">待確認</option><option>受託尚未申請</option><option>已申請辦理中</option><option>補正中</option><option>已辦結</option><option>已撤件</option><option>委託終止</option></select></label>
+           <label>申請機關
+             <select :value="ledgerChoiceValue('ledgerAuthority')" @change="setLedgerChoice('ledgerAuthority',$event.target.value)">
+               <option value="">請選擇／留空</option><option v-for="value in ledgerChoiceOptions('ledgerAuthority')" :key="value" :value="value">{{value}}</option><option value="__custom__">其他機關／自行填寫</option>
+             </select>
+             <input v-if="ledgerChoiceValue('ledgerAuthority')==='__custom__'" v-model="form.ledgerAuthority" class="ledger-choice-other" aria-label="申請機關自行輸入" placeholder="輸入實際受理機關全銜">
+           </label>
+           <label>收件字號（如有）<input v-model="form.ledgerReceipt" placeholder="依實際機關收件字號填寫"></label>
+           <label>實際辦理狀態<select v-model="form.ledgerStatus"><option value="">請選擇／留空</option><option>受託尚未申請</option><option>已申請辦理中</option><option>補正中</option><option>已辦結</option><option>已撤件</option><option>委託終止</option></select></label>
            <label>實際辦結／終止日<input type="date" v-model="form.ledgerCompleted"></label>
          </div>
          <p>內部辦理承辦：{{caseHandlerNames || '請在前表「承辦團隊」選擇，例如李宜婷'}}。簽約協辦、履保特約、登記代理與內部承辦可以不同人，不以職稱推定委任或法定簽證身分。</p>
-         <label>分工／委任範圍<textarea v-model="form.ledgerRoleNotes" rows="2" placeholder="記錄各地政士實際受託範圍及交接；如共同受託，請註明各自業務與紀錄簿對應編號"></textarea></label>
-         <label>受託內容（記錄實際委託範圍）<textarea v-model="form.ledgerContent" rows="2" placeholder="標的會自動帶入；請補充實際委託辦理內容"></textarea></label>
+         <label>分工／委任範圍
+           <select class="ledger-quick-select" aria-label="選擇分工說明範本" @change="appendLedgerText('ledgerRoleNotes',$event)"><option value="">選擇常用分工說明（可選填）</option><option v-for="text in ledgerNarrativeOptions.ledgerRoleNotes" :key="text" :value="text">{{text}}</option></select>
+           <textarea v-model="form.ledgerRoleNotes" rows="2" placeholder="可直接輸入，或從上方選單插入；須核對實際委任及分工"></textarea>
+         </label>
+         <label>受託內容（記錄實際委託範圍）
+           <select class="ledger-quick-select" aria-label="選擇受託內容範本" @change="appendLedgerText('ledgerContent',$event)"><option value="">選擇常用受託內容（可多次選擇）</option><option v-for="text in ledgerNarrativeOptions.ledgerContent" :key="text" :value="text">{{text}}</option></select>
+           <textarea v-model="form.ledgerContent" rows="2" placeholder="可直接輸入；選單文字也可再修改，應符合實際委託內容"></textarea>
+         </label>
          <p><b>委託人核對：</b>買賣方名單自動帶入，但代理人或其他當事人不當然是委託人。逐人選擇；地址請填委託人地址。</p>
          <div v-for="(row,i) in ledgerAllPeople" :key="row.side+'-'+i" class="ledger-client"><button v-if="row.side==='其他'" type="button" class="parking-delete" @click="form.ledgerExtraClients.splice(form.ledgerExtraClients.indexOf(row.person),1)">移除此新增人員</button>
            <div class="ledger-grid">
@@ -20150,10 +20200,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            <template v-if="form.ledgerCertification==='是'"><label>是否為契約／協議簽訂人<select v-model="row.person.ledgerSigner"><option :value="undefined">待確認</option><option value="是">是，列入簽證基本資料</option><option value="否">否</option></select></label><div class="ledger-grid" v-if="row.person.ledgerSigner==='是'"><label>出生日期<input type="date" v-model="row.person.ledgerBirth"></label><label>身分證統一編號<input v-model="row.person.ledgerId"></label><label>電話<input v-model="row.person.phone"></label><label>戶籍地址<input v-model="row.person.ledgerHome"></label><label>通訊地址<input v-model="row.person.ledgerContact"></label></div></template>
          </div>
          <button type="button" class="parking-add" @click="form.ledgerExtraClients.push({name:'',role:'其他',ledgerClient:'是'})">＋其他委託人／簽訂人</button>
-         <label style="margin-top:12px">受託案件辦理情形<textarea v-model="form.ledgerHandling" rows="3" placeholder="日期、申辦事項、補正／撤件情形及辦理結果；不要只寫 SOP 完成比例"></textarea></label>
+         <label style="margin-top:12px">受託案件辦理情形
+           <select class="ledger-quick-select" aria-label="選擇辦理情形範本" @change="appendLedgerText('ledgerHandling',$event)"><option value="">選擇常用辦理情形（選填後須核對）</option><option v-for="text in ledgerNarrativeOptions.ledgerHandling" :key="text" :value="text">{{text}}</option></select>
+           <textarea v-model="form.ledgerHandling" rows="3" placeholder="填寫實際日期、申辦事項、補正／撤件及結果；選單為文字範本，不代表已完成"></textarea>
+         </label>
          <div class="ledger-grid"><label>是否為地政士法所稱簽證案件<select v-model="form.ledgerCertification"><option>待確認</option><option>否</option><option>是</option></select></label></div>
-         <label v-if="form.ledgerCertification==='是'">法定簽證人<input v-model="form.ledgerCertifier" placeholder="依法登記並實際辦理簽證之地政士"></label><p v-if="form.ledgerCertification==='是'">請逐人確認簽訂人並填完整基本資料；列印後加蓋印章款及簽名款。一般見證／簽約不自動視為法定簽證。</p>
-         <div class="ledger-status">{{ledgerMissing.length ? '待補正：'+ledgerMissing.join('、') : '欄位已齊備，請核對實際內容後歸檔。'}}<span v-if="form.ledgerCertification==='是'"> 簽證頁仍須補齊印章款、簽名款。</span></div>
+         <label v-if="form.ledgerCertification==='是'">法定簽證人
+           <select :value="ledgerChoiceValue('ledgerCertifier')" @change="setLedgerChoice('ledgerCertifier',$event.target.value)"><option value="">請選擇／留空</option><option v-for="value in ledgerChoiceOptions('ledgerCertifier')" :key="value" :value="value">{{value}}</option><option value="__custom__">其他／自行填寫</option></select>
+           <input v-if="ledgerChoiceValue('ledgerCertifier')==='__custom__'" v-model="form.ledgerCertifier" class="ledger-choice-other" aria-label="法定簽證人自行輸入" placeholder="依法登記並實際辦理簽證之地政士">
+         </label><p v-if="form.ledgerCertification==='是'">請逐人確認簽訂人並填完整基本資料；列印後加蓋印章款及簽名款。一般見證／簽約不自動視為法定簽證。</p>
+         <div class="ledger-status">{{ledgerMissing.length ? '內部待核對／補填：'+ledgerMissing.join('、') : '欄位已齊備，請核對實際內容後歸檔。'}}<span v-if="form.ledgerCertification==='是'"> 簽證頁仍須補齊印章款、簽名款。</span><div class="ledger-hint">本提示僅供畫面檢查；未填欄位在紙本紀錄簿保留空白，不自動虛構資訊。</div></div>
          <div class="ledger-actions"><button @click="printLedger">只印紀錄簿／存為 PDF</button><button @click="printPage">列印三頁（背表＋流程＋紀錄簿）</button></div>
          <p>保存提醒：紀錄簿至少十五年，從向相關機關申請日起算；不代表契約、洗錢防制或其他應保存資料均可銷毀。本工具不刪除原案資料。</p>
        </section>
@@ -21349,7 +21405,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                sopChecks: {}, sopPrivateLien: false, sopCalcDeed: '', sopCalcLoan: '',
                sopDraftRef: '', sopDraftStaff: [], parkingStatus: '待確認', parkingSpaces: [], initialInspectionDate: '', transferDate: '', disbursementDate: '', reinspectionDate: '', buildingCollateral: '待確認',
                applyTaxRecord: false, applyZoning: false, applyFarmCertificate: false, applyBoundary: false, applyNoOverlay: false, applySoil: false,
-               contractDate: new Date().toISOString().split('T')[0], prevTransferDate: '', 
+               contractDate: '', prevTransferDate: '', 
                sealDate: '', taxDate: '', closingDate: '',
                paymentDeposit: '', depositDate: '', paymentContract: '', paymentSeal: '', paymentTax: '', paymentBalance: '', paymentHandover: '', handoverDate: '',
                propertyName: '', address: '', landBuildNo: '', escrowIdPrefix: '', escrowIdSuffix: '', escrowName: '', escrowBank: '', totalPrice: '', loanPrice: '',
@@ -21360,6 +21416,53 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            });
  
            const defaultForm = JSON.parse(JSON.stringify(form.value));
+           // V41 | 僅此頁下拉選項，並不新增或改動既有案例儲存結構。
+           // 地政士職別只能由實際委任/登記資料核對，不從「承辦員工」名單推斷持照身分。
+           const ledgerAgentFields = [
+             {key:'ledgerAgent',label:'受託地政士（紀錄簿責任人）'},
+             {key:'ledgerSigningAgent',label:'簽約協辦地政士'},
+             {key:'ledgerEscrowAgent',label:'履保特約地政士'},
+             {key:'ledgerRegistrationAgent',label:'登記代理地政士'},
+             {key:'ledgerDelegatedAgent',label:'共同受託／受委辦地政士'}
+           ];
+           const ledgerScrivenerNames = ['楊翊晟','楊明宗'];
+           const ledgerChoiceLists = {
+             ledgerService: ['買賣所有權移轉登記','贈與所有權移轉登記','繼承登記','分割繼承登記','抵押權設定登記','抵押權塗銷登記','買賣移轉登記及抵押權設定登記','建物所有權第一次登記','建商整批移轉登記','共有物分割登記','信託登記','信託塗銷登記','更正登記','土地複丈／建物測量申請','土地登記及相關諮詢'],
+             ledgerAuthority: ['臺南市臺南地政事務所','臺南市東南地政事務所','臺南市安南地政事務所','臺南市永康地政事務所','臺南市歸仁地政事務所','臺南市新化地政事務所','臺南市麻豆地政事務所','臺南市佳里地政事務所','臺南市鹽水地政事務所','臺南市白河地政事務所','臺南市玉井地政事務所']
+           };
+           for(const fld of [...ledgerAgentFields.map(f=>f.key),'ledgerCertifier']) ledgerChoiceLists[fld] = ledgerScrivenerNames;
+           const ledgerCustomOpen = reactive({});
+           const ledgerChoiceOptions = key => ledgerChoiceLists[key] || [];
+           const ledgerChoiceValue = key => {
+             const value=String(form.value[key] || '');
+             if(ledgerCustomOpen[key]) return '__custom__';
+             return value && !ledgerChoiceOptions(key).includes(value) ? '__custom__' : value;
+           };
+           const setLedgerChoice = (key, value) => {
+             if(!Object.prototype.hasOwnProperty.call(ledgerChoiceLists,key)) return;
+             if(value === '__custom__') {
+               ledgerCustomOpen[key]=true;
+               if(ledgerChoiceOptions(key).includes(form.value[key])) form.value[key]='';
+               return;
+             }
+             ledgerCustomOpen[key]=false;
+             form.value[key]=ledgerChoiceOptions(key).includes(value) ? value : '';
+           };
+           const ledgerNarrativeOptions = {
+             ledgerRoleNotes: ['受託地政士負責登記申辦；其他分工依各自委任文件辦理。','簽約協辦、履保特約及登記代理依個別委任關係分工。','共同受託地政士依委任文件約定範圍分別辦理。'],
+             ledgerContent: ['受託辦理買賣所有權移轉登記。','受託辦理抵押權設定登記。','受託辦理買賣移轉登記及抵押權設定登記。','受託辦理繼承登記。','受託辦理贈與所有權移轉登記。','受託辦理建物所有權第一次登記。','受託辦理信託登記。','受託辦理共有物分割登記。'],
+             ledgerHandling: ['已接受委託，尚未向登記機關提出申請。','已送件申請登記，目前辦理中。','已收到補正通知，正在辦理補正。','已辦理補正，等待機關審查。','申請案件已辦結。','申請案件已撤回。','委託關係已終止。']
+           };
+           const appendLedgerText = (key, event) => {
+             const text=String(event?.target?.value || '').trim();
+             if(event?.target) event.target.value='';
+             if(!text || !Object.prototype.hasOwnProperty.call(ledgerNarrativeOptions,key)) return;
+             const original=String(form.value[key] || '').trim();
+             if(!original) form.value[key]=text;
+             else if(!original.split(/\r?\n/).some(line=>line.trim()===text)) form.value[key]=original+'\n'+text;
+           };
+           // 雙向連動第一頁簽約日，且保存既有舊鍵，兼容舊案快照/CSV/履保資料。
+           watch(() => form.value.contractDate, value => { form.value.ledgerAccepted = value || ''; }, {immediate:true,flush:'sync'});
            const showPrivateLien = computed({ get: () => form.value.sopPrivateLien === true, set: value => { form.value.sopPrivateLien = value; } });
            const calcDeed = computed({ get: () => form.value.sopCalcDeed, set: value => { form.value.sopCalcDeed = value; } });
            const calcLoan = computed({ get: () => form.value.sopCalcLoan, set: value => { form.value.sopCalcLoan = value; } });
@@ -21367,6 +21470,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const normalizeSopState = () => {
                if(!form.value.escrowValues || typeof form.value.escrowValues!=='object' || Array.isArray(form.value.escrowValues)) form.value.escrowValues={};
                if (!Array.isArray(form.value.ledgerExtraClients)) form.value.ledgerExtraClients=[];
+               // V41: 現有快照保留，畫面/輸出一律以簽約日為受託日期；重新存檔時同步舊欄位。
+               form.value.ledgerAccepted = form.value.contractDate || '';
+               Object.keys(ledgerCustomOpen).forEach(key => { ledgerCustomOpen[key] = false; });
                if (!['待確認','否','是'].includes(form.value.ledgerCertification)) form.value.ledgerCertification='待確認';
                if (!Array.isArray(form.value.parkingSpaces)) form.value.parkingSpaces = [];
                form.value.parkingSpaces = form.value.parkingSpaces.filter(p => p && typeof p === 'object' && !Array.isArray(p)).map(p => ({level: p.level || '', floor: p.floor ?? '', count: p.count ?? '', numbers: p.numbers || '', type: p.type || '', priceMode: p.priceMode || '待確認', price: p.price ?? ''}));
@@ -21410,16 +21516,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const ledgerOnly=ref(false);
            const ledgerAllPeople=computed(()=>[...form.value.sellers.map(person=>({side:'賣方',person})),...form.value.buyers.map(person=>({side:'買方',person})),...(form.value.ledgerExtraClients || []).map(person=>({side:'其他',person}))]);
            const ledgerClients=computed(()=>ledgerAllPeople.value.filter(r=>r.person.ledgerClient!=='否' && (r.person.name || r.person.ledgerClient==='是')));
+           const ledgerConfirmedClients=computed(()=>ledgerAllPeople.value.filter(r=>r.person.ledgerClient==='是'));
            const ledgerSigners=computed(()=>ledgerAllPeople.value.filter(r=>r.person.ledgerSigner==='是'));
            const ledgerApplication=computed(()=>form.value.ledgerApplied || form.value.transferDate || '');
-           const ledgerNumberText=computed(()=>form.value.ledgerNumber || form.value.sopDraftRef.replace(/^id:/,'') || '待編號（請先存檔或自訂編號）');
+           const ledgerNumberText=computed(()=>form.value.ledgerNumber || '');
            const ledgerMissing=computed(()=>{
              const f=form.value, missing=[];
              if(!f.ledgerService.trim()) missing.push('業務類別');
              if(!f.ledgerContent.trim()) missing.push('受託內容');
-             if(!f.ledgerAccepted) missing.push('受託日期');
+             if(!f.contractDate) missing.push('受託日期／簽約日');
              if(!ledgerApplication.value) missing.push('申請日期（未申請者請記明）');
-             if(f.ledgerAccepted && ledgerApplication.value && ledgerApplication.value<f.ledgerAccepted) missing.push('申請日早於受託日，請核對');
+             if(f.contractDate && ledgerApplication.value && ledgerApplication.value<f.contractDate) missing.push('申請日早於受託日，請核對');
              if(!ledgerClients.value.length) missing.push('委託人');
              if(ledgerClients.value.some(r=>r.person.ledgerClient!=='是')) missing.push('委託身分確認');
              if(ledgerClients.value.some(r=>!String(r.person.name||'').trim() || !String(r.person.ledgerAddress||'').trim())) missing.push('委託人姓名／地址');
@@ -22680,7 +22787,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            };
  
            return {
-               caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
+               caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerConfirmedClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, ledgerAgentFields, ledgerChoiceOptions, ledgerChoiceValue, setLedgerChoice, ledgerNarrativeOptions, appendLedgerText, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
                cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
