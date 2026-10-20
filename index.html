@@ -19530,6 +19530,31 @@ License: MIT
 @media print{.ledger-sheet .ledger-write-line{min-height:9mm}.ledger-sheet .ledger-text{min-height:8mm}}
 @media(max-width:700px){.escrow-panel .field-grid{grid-template-columns:1fr}}
 
+
+/* V44 additive module: original V41 CSS and print layout stay unchanged */
+.v44-panel,.v44-dash{border:1px solid #c6d4de;border-top:4px solid #b08b51;border-radius:8px;background:#fbfcfe;padding:16px;margin:16px 0;color:#17354b}
+.v44-panel h2,.v44-dash h3{font-size:18px;font-weight:800;color:#16354a;margin:0 0 6px}
+.v44-panel p,.v44-dash p{font-size:12px;color:#53697a;line-height:1.6;margin:5px 0 9px}
+.v44-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:11px 0}
+.v44-grid label{display:block;font-size:12px;font-weight:700;color:#364d5f}
+.v44-grid input,.v44-grid select,.v44-grid textarea,.v44-filter{width:100%;font:inherit;font-size:13px;background:white;color:#1a3346;border:1px solid #adbecd;border-radius:5px;padding:7px;margin-top:4px;min-width:0}
+.v44-grid textarea{min-height:58px}
+.v44-entry{border:1px solid #d0dce4;background:#fff;border-radius:7px;padding:12px;margin:12px 0}
+.v44-entry summary{font-size:14px;font-weight:700;cursor:pointer;color:#133951}
+.v44-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.v44-btn{background:#17354b;color:white;padding:7px 11px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;border:0}
+.v44-btn.alt{background:#a68042;color:#fff}.v44-btn.line{background:#fff;border:1px solid #b6c7d3;color:#17354b}.v44-btn.danger{background:#fff;border:1px solid #edc3bc;color:#a33325}
+.v44-pill{display:inline-block;background:#e9f0f4;color:#23475f;border:1px solid #cfdee9;padding:2px 6px;border-radius:5px;font-size:11px;margin:2px}
+.v44-note{padding:9px 12px;background:#f7f0e3;color:#745128;border-left:3px solid #bf9857;border-radius:4px;font-size:12px;line-height:1.55}
+.v44-table{border-collapse:collapse;width:100%;font-size:12px}.v44-table th,.v44-table td{border-bottom:1px solid #e5edf1;padding:7px 5px;text-align:left;vertical-align:top}
+.v44-table th{background:#eaf0f4;color:#183c51;white-space:nowrap}
+.v44-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+.v44-stat{background:#fff;border:1px solid #dbe3e9;border-radius:7px;padding:12px;text-align:center}
+.v44-stat strong{display:block;font-size:21px;color:#183950}.v44-stat small{color:#647987}
+.v44-tiny{font-size:11px;color:#687c88;line-height:1.4}
+@media(max-width:780px){.v44-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v44-stats{grid-template-columns:1fr}}
+@media(max-width:470px){.v44-grid{grid-template-columns:1fr}}
+@media print{.v44-panel,.v44-dash,.v44-btn{display:none!important}}
 </style>
 <script>/*!
 
@@ -20213,6 +20238,62 @@ https://github.com/nodeca/pako/blob/main/LICENSE
          <div class="ledger-actions"><button @click="printLedger">只印紀錄簿／存為 PDF</button><button @click="printPage">列印三頁（背表＋流程＋紀錄簿）</button></div>
          <p>保存提醒：紀錄簿至少十五年，從向相關機關申請日起算；不代表契約、洗錢防制或其他應保存資料均可銷毀。本工具不刪除原案資料。</p>
        </section>
+
+<!-- V44 ADDITIVE: original ledger editor above and all existing sections below are unchanged -->
+<details class="v44-panel no-print" id="v44-module" data-testid="v44-filings-editor">
+  <summary style="cursor:pointer;font-size:16px;font-weight:800;color:#16354a"><i class="fas fa-layer-group"></i> 新增｜送件管理與獨立委任（點擊展開；原設定不變）</summary>
+  <p>舊版業務紀錄簿、履保、案件欄位都保留。這裡只新增「獨立受託紀錄」與「逐筆收件」，由原本的「存檔」一併保存。不會因為選擇送件人，就自動修改法定受託人或收入歸屬。</p>
+  <div class="v44-note">簽約日預設為受託日期，但實際不同可註明原因。新增草稿不算正式送件；收件證明經人工確認後，才列入「已覆核收件數」。舊案不會自動推定已送件。</div>
+  <h3 style="font-weight:800;margin-top:14px">甲、兩位地政士各自的委任紀錄</h3>
+  <div class="v44-controls">
+    <button type="button" class="v44-btn" @click="v44AddMandate()">＋建立獨立委任</button>
+    <button type="button" class="v44-btn line" @click="v44ImportLegacyMandate()">從原第三頁複製一筆供核對</button>
+    <span class="v44-tiny">每筆都需核對實際委任；複製不等於已確認。</span>
+  </div>
+  <div v-if="!form.v44Mandates.length" class="v44-tiny">目前尚無新增的獨立委任紀錄；原第三頁資料原封保留。</div>
+  <details v-for="(m,i) in form.v44Mandates" :key="m.id" class="v44-entry" open>
+    <summary>委任 {{i+1}}｜{{m.owner || '受託地政士未選'}}｜{{m.service || '業務類別未填'}}</summary>
+    <div class="v44-grid">
+      <label>法定受託地政士<select v-model="m.owner"><option value="">選擇／留空</option><option v-for="name in v44Practitioners" :key="name" :value="name">{{name}}</option></select></label>
+      <label>實際受託日期<input type="date" v-model="m.acceptedAt"></label>
+      <label>受託日期例外說明<input v-model="m.acceptedReason" placeholder="與簽約日不同才填"></label>
+      <label>受託案件類別<input v-model="m.service" list="v44-services" placeholder="可從清單選或自行輸入"></label>
+      <label>委託人姓名及地址<textarea v-model="m.clients" placeholder="須記錄實際委託人及地址，不自動認定買賣方"></textarea></label>
+      <label>受託內容／範圍<textarea v-model="m.scope" placeholder="僅依實際授權填寫"></textarea></label>
+      <label>辦理情形<textarea v-model="m.handling" placeholder="申請、補正、完成等事實"></textarea></label>
+    </div>
+    <div class="v44-controls"><button type="button" class="v44-btn line" @click="v44PrintMandate(m)">預覽／列印此地政士獨立紀錄</button><button type="button" class="v44-btn danger" @click="v44RemoveMandate(i)">移除此新增紀錄</button></div>
+    <div v-if="m.acceptedAt && form.contractDate && m.acceptedAt!==form.contractDate && !m.acceptedReason" class="v44-note">實際受託日與簽約日不同，請補上依據。</div>
+  </details>
+  <h3 style="font-weight:800;margin-top:18px">乙、買賣／設定／塗銷等各次收件</h3>
+  <div class="v44-controls">
+    <button type="button" class="v44-btn" @click="v44AddFiling()">＋新增一筆送件</button>
+    <button type="button" class="v44-btn alt" @click="v44AddThree()">＋買賣、設定、塗銷三筆草稿</button>
+    <span class="v44-pill">本案 {{form.v44Filings.length}} 筆新增明細</span>
+  </div>
+  <datalist id="v44-services"><option v-for="n in v44ServiceOptions" :value="n"></option></datalist>
+  <datalist id="v44-offices"><option v-for="n in v44AuthorityOptions" :value="n"></option></datalist>
+  <div v-if="!form.v44Filings.length" class="v44-tiny">本案沒有新增送件紀錄。舊版「收件字號」仍留在原第三頁，尚未自動轉入統計。</div>
+  <details v-for="(f,i) in form.v44Filings" :key="f.id" class="v44-entry" open>
+    <summary>送件 {{i+1}}｜{{f.kind || '類別未選'}}｜{{f.authority || '機關未填'}}｜{{f.receiptNo || '收件號未填'}} <span class="v44-pill">{{v44FilingLabel(f)}}</span></summary>
+    <div class="v44-grid">
+      <label>登記業務類別<select v-model="f.kind"><option value="">選擇類別</option><option v-for="n in v44Kinds" :value="n">{{n}}</option></select></label>
+      <label>申請地政所／機關<input v-model="f.authority" list="v44-offices" placeholder="可選擇或自行輸入全銜"></label>
+      <label>正式收件日期<input v-model="f.filedAt" type="date"></label>
+      <label>收件年度（民國）<input v-model="f.receiptYear" inputmode="numeric" placeholder="不填時依申請日推算"></label>
+      <label>收件字號<input v-model="f.receiptNo" placeholder="填正式機關收件號；可自訂"></label>
+      <label>法定受託紀錄<select v-model="f.mandateId"><option value="">尚未核對／不關聯</option><option v-for="m in form.v44Mandates" :key="m.id" :value="m.id">{{m.owner||'未定受託人'}}｜{{m.service||'未填類別'}}</option></select></label>
+      <label>登記代理地政士<select v-model="f.agent"><option value="">未確認</option><option v-for="name in v44Practitioners" :value="name">{{name}}</option></select></label>
+      <label>實際送件人<input v-model="f.deliverer" placeholder="地政士或登記助理員"></label>
+      <label>送件辦理狀態<select v-model="f.status"><option value="草稿">草稿／待送件</option><option value="已送件">已送件</option><option value="補正中">補正中</option><option value="辦理中">辦理中</option><option value="已辦結">已辦結</option><option value="撤回">撤回</option></select></label>
+      <label>備註<textarea v-model="f.note" placeholder="補正、跨地政所、移轉代理等原因"></textarea></label>
+      <label style="display:flex;align-items:center;gap:7px;padding-top:18px"><input type="checkbox" style="width:18px;margin:0" v-model="f.verified"> 已人工對照收件證明</label>
+    </div>
+    <p class="v44-tiny">{{v44FilingExplanation(f)}}</p>
+    <div class="v44-controls"><button type="button" class="v44-btn danger" @click="v44RemoveFiling(i)">移除此新增送件</button></div>
+  </details>
+  <div class="v44-note">報稅使用：這裡統計「正式收件」，不是自動計算執行業務收入或稅務計件。楊明宗、楊翊晟仍各自收款、開收據、記帳；會計需另核對當年度適用規定。</div>
+</details>
        <div class="card bg-green-50 border border-green-200 rounded p-3 mt-2 no-print">
            <div class="flex justify-between items-center mb-1 border-b border-green-200 pb-1">
                 <h3 class="text-xs font-bold text-green-800"><i class="fab fa-line mr-1"></i> LINE 案件進度回報快傳</h3>
@@ -20389,6 +20470,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中 ({{activeCasesList.length}})</button>
                 <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
                 <button @click="managerTab = 'archived'" :class="managerTab === 'archived' ? 'bg-red-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">封存 ({{archivedCasesList.length}})</button>
+
+                <button @click="managerTab = 'v44filings'" :class="managerTab === 'v44filings' ? 'bg-[#a68042] text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors" data-testid="v44-stats-tab">送件總覽／年度統計</button>
                 <button @click="managerTab = 'crm'" :class="managerTab === 'crm' ? 'bg-purple-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors ml-auto"><i class="fas fa-bullhorn mr-1"></i> CRM喚醒系統</button>
                 <button @click="managerTab = 'settings'" :class="managerTab === 'settings' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-cog mr-1"></i> 字典設定</button>
            </div>
@@ -20482,6 +20565,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                 <button v-if="managerTab !== 'archived'" @click="toggleCaseStatus(c.originalIndex)" class="text-emerald-700 hover:text-white hover:bg-emerald-600 bg-emerald-50 px-2 py-1 rounded font-bold transition-colors text-xs mr-1" :title="c['結案時間'] ? '取消結案' : '標記結案'"><i class="fas" :class="c['結案時間'] ? 'fa-rotate-left' : 'fa-circle-check'"></i> {{ c['結案時間'] ? '取消結案' : '結案' }}</button>
                                 <button v-if="managerTab !== 'archived' && canArchiveCases" @click="deleteCase(c.originalIndex)" class="text-red-600 hover:text-white hover:bg-red-500 bg-red-50 px-2 py-1 rounded font-bold transition-colors text-xs" title="封存"><i class="fas fa-box-archive"></i> 封存</button>
                                 <button v-if="managerTab === 'archived' && canRestoreCases" @click="restoreCase(c.originalIndex)" class="text-green-700 hover:text-white hover:bg-green-600 bg-green-50 px-2 py-1 rounded font-bold transition-colors text-xs" title="還原"><i class="fas fa-rotate-left"></i> 還原</button>
+
+                                <!-- V44 append-only: original actions and case table columns are untouched -->
+                                <button v-if="managerTab !== 'archived'" type="button" class="v44-btn alt" style="padding:4px 7px;margin-top:4px" :data-testid="'v44-quick-add-'+c.originalIndex" @click="v44QuickAddCase(c.originalIndex)">＋送件</button>
+                                <div v-if="v44CaseFilings(c).length" class="v44-tiny" style="max-width:270px;white-space:normal;margin-top:6px"><span v-for="item in v44CaseFilings(c)" :key="item.id" class="v44-pill">{{item.kind||'未選類別'}} · {{item.agent||'代理未定'}} · {{item.receiptNo||'收件號待填'}}</span></div>
                             </td>
                         </tr>
                         <tr v-if="managerCaseList.length === 0">
@@ -20491,6 +20578,30 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 </table>
            </div>
  
+
+<!-- V44 ADDITIVE: annual filing summary; old active/closed/archive/CRM/settings remain untouched -->
+<section v-if="managerTab === 'v44filings'" class="v44-dash bg-gray-50 flex-1 overflow-y-auto" data-testid="v44-annual-summary">
+  <h3>送件管理總覽｜依實際收件資料逐筆統計</h3>
+  <p>同一交易可有買賣、設定、塗銷等多筆；地政所及登記代理地政士可各筆不同。只有人工核對且欄位完整、未重複的收件，才列入「已覆核收件數」。</p>
+  <div class="v44-note">歷史案件尚未全部補入新送件欄位，本報表是「已登載」範圍，不能當作全年送件或報稅總件數。原第三頁單一收件號不會被自動當成兩位地政士的已覆核件數。</div>
+  <div class="v44-controls">
+    <label>年度（民國）<select v-model="v44ReportYear" class="v44-filter"><option v-for="y in v44AvailableYears" :value="y">{{y}} 年</option></select></label>
+    <label>登記代理<select v-model="v44ReportAgent" class="v44-filter"><option value="">全部代理地政士</option><option v-for="n in v44Practitioners" :value="n">{{n}}</option></select></label>
+    <label>申請類別<select v-model="v44ReportKind" class="v44-filter"><option value="">全部類別</option><option v-for="n in v44Kinds" :value="n">{{n}}</option></select></label>
+    <button type="button" class="v44-btn line" @click="v44ExportCsv()"><i class="fas fa-file-csv"></i> 匯出年度明細 CSV</button>
+  </div>
+  <div class="v44-stats">
+    <div class="v44-stat"><small>已有收件資料（含待核對）</small><strong>{{v44Stats.recorded}}</strong><small>不含未送件草稿</small></div>
+    <div class="v44-stat"><small>已覆核・不重複</small><strong>{{v44Stats.verified}}</strong><small>可供送件數核對</small></div>
+    <div class="v44-stat"><small>待核對／疑似重複</small><strong>{{v44Stats.pending}}</strong><small>補齊機關、字號、日期及證明</small></div>
+  </div>
+  <table class="v44-table" data-testid="v44-practitioner-totals"><thead><tr><th>登記代理地政士</th><th>已登載收件</th><th>已覆核不重複</th><th>待核對</th></tr></thead><tbody><tr v-for="p in v44Practitioners" :key="p"><td>{{p}}</td><td>{{v44CountsFor(p).recorded}}</td><td>{{v44CountsFor(p).verified}}</td><td>{{v44CountsFor(p).pending}}</td></tr></tbody></table>
+  <h3 style="margin-top:15px;font-size:15px">各案送件明細</h3>
+  <div style="max-width:100%;overflow-x:auto"><table class="v44-table"><thead><tr><th>案名／操作</th><th>受託地政士</th><th>登記代理地政士</th><th>送件日</th><th>類別</th><th>地政所</th><th>收件號</th><th>核對</th></tr></thead><tbody>
+    <tr v-for="rec in v44FilteredRecords" :key="rec.caseIndex+'-'+rec.id"><td>{{rec.caseName}} <button type="button" class="v44-btn line" style="padding:3px 6px" @click="v44OpenCase(rec.caseIndex)">檢視</button></td><td>{{rec.owner||''}}</td><td>{{rec.agent||''}}</td><td>{{rec.filedAt||''}}</td><td>{{rec.kind||''}}</td><td>{{rec.authority||''}}</td><td>{{rec.receiptNo||''}}</td><td>{{rec._flag}}</td></tr>
+    <tr v-if="!v44FilteredRecords.length"><td colspan="8" class="v44-tiny">本年度尚無新模組送件資料；舊案不會被自動當成0件。</td></tr>
+  </tbody></table></div>
+</section>
            <div v-if="managerTab === 'crm'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
                 <div class="bg-purple-100 border-l-4 border-purple-600 text-purple-800 p-4 rounded mb-4 shadow-sm">
                     <h3 class="font-bold text-sm mb-1"><i class="fas fa-bullhorn mr-2"></i> 家族辦公室 CRM 喚醒雷達</h3>
@@ -21400,6 +21511,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            });
  
            const form = ref({
+               v44Mandates: [], v44Filings: [], // V44 appended fields; does not remove any original field
                escrowProvider: '', escrowValues: {}, escrowFinalAmountSource: '', escrowScrivenerSource: '', ledgerSigningAgent: '', ledgerEscrowAgent: '', ledgerRegistrationAgent: '', ledgerRoleNotes: '', ledgerDelegatedAgent: '', ledgerDelegationBasis: '', ledgerCertifier: '',
                ledgerNumber: '', ledgerService: '', ledgerContent: '', ledgerAccepted: '', ledgerApplied: '', ledgerAuthority: '', ledgerReceipt: '', ledgerStatus: '', ledgerCompleted: '', ledgerHandling: '', ledgerAgent: '', ledgerCertification: '待確認', ledgerExtraClients: [],
                sopChecks: {}, sopPrivateLien: false, sopCalcDeed: '', sopCalcLoan: '',
@@ -21431,6 +21543,59 @@ https://github.com/nodeca/pako/blob/main/LICENSE
              ledgerAuthority: ['臺南市臺南地政事務所','臺南市東南地政事務所','臺南市安南地政事務所','臺南市永康地政事務所','臺南市歸仁地政事務所','臺南市新化地政事務所','臺南市麻豆地政事務所','臺南市佳里地政事務所','臺南市鹽水地政事務所','臺南市白河地政事務所','臺南市玉井地政事務所']
            };
            for(const fld of [...ledgerAgentFields.map(f=>f.key),'ledgerCertifier']) ledgerChoiceLists[fld] = ledgerScrivenerNames;
+
+           // V44 strictly additive extension. No original save, load, calendar, escrow or print function is replaced.
+           const v44Practitioners=['楊明宗','楊翊晟'];
+           const v44Kinds=['買賣移轉','抵押設定','抵押塗銷','贈與移轉','繼承','分割繼承','信託','信託塗銷','建物第一次登記','更正登記','其他'];
+           const v44ServiceOptions=[...ledgerChoiceLists.ledgerService];
+           const v44AuthorityOptions=[...ledgerChoiceLists.ledgerAuthority];
+           const v44Id=()=> 'v44-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+           const v44Mandates=()=>Array.isArray(form.value.v44Mandates)?form.value.v44Mandates:(form.value.v44Mandates=[]);
+           const v44Filings=()=>Array.isArray(form.value.v44Filings)?form.value.v44Filings:(form.value.v44Filings=[]);
+           const v44AddMandate=()=>v44Mandates().push({id:v44Id(),owner:'',acceptedAt:form.value.contractDate||'',acceptedReason:'',service:'',scope:'',clients:'',handling:'',createdAt:new Date().toISOString()});
+           const v44ImportLegacyMandate=()=>{
+             if(!String(form.value.ledgerAgent||'').trim()){alert('先於原第三頁選擇實際受託地政士，再複製供核對。');return;}
+             if(!confirm('只「複製」原第三頁既有委任內容到新增紀錄供人工核對；不會修改原第三頁。確定？'))return;
+             const clients=ledgerConfirmedClients.value.map(row=>`${row.person.name||''}｜${row.person.ledgerAddress||''}`).join('\n');
+             v44Mandates().push({id:v44Id(),owner:form.value.ledgerAgent,acceptedAt:form.value.contractDate||'',acceptedReason:'',service:form.value.ledgerService||'',scope:form.value.ledgerContent||'',clients,handling:form.value.ledgerHandling||'',createdAt:new Date().toISOString(),fromLegacy:true});
+           };
+           const v44RemoveMandate=i=>{const m=v44Mandates()[i];if(!m)return;if(v44Filings().some(f=>f.mandateId===m.id)){alert('此委任已關聯送件明細，請先重新指定該送件的委任，才能移除。');return;}if(confirm('確定移除此新增委任紀錄？原第三頁不受影響。'))v44Mandates().splice(i,1);};
+           const v44AddFiling=(kind='')=>{const mandates=v44Mandates();v44Filings().push({id:v44Id(),kind,authority:'',filedAt:'',receiptYear:'',receiptNo:'',mandateId:mandates.length===1?mandates[0].id:'',agent:'',deliverer:'',status:'草稿',verified:false,note:'',createdAt:new Date().toISOString()});};
+           const v44AddThree=()=>{if(v44Filings().length && !confirm('再新增買賣、設定、塗銷三筆草稿？不會刪除現有明細，也不計入已送件數。'))return;['買賣移轉','抵押設定','抵押塗銷'].forEach(v44AddFiling);};
+           const v44RemoveFiling=i=>{if(confirm('移除此新增送件明細？請先確認不是已申報／已覆核的收件。'))v44Filings().splice(i,1);};
+           const v44ReceiptYear=f=>{const v=String(f?.receiptYear||'').trim();if(/^\d{2,3}$/.test(v))return v;const d=String(f?.filedAt||'');return /^\d{4}-\d{2}-\d{2}$/.test(d)?String(Number(d.slice(0,4))-1911):'';};
+           const v44Identity=f=>{const a=String(f?.authority||'').replace(/\s|台/g,'').trim();const y=v44ReceiptYear(f);const n=String(f?.receiptNo||'').replace(/[\s\u3000]/g,'').trim();return (a&&y&&n)?`${a}|${y}|${n}`:'';};
+           const v44HasReceipt=f=>f&&f.status!=='草稿'&&!!f.filedAt&&!!f.authority&&!!f.receiptNo;
+           const v44Ready=f=>v44HasReceipt(f)&&!!f.agent&&!!v44ReceiptYear(f);
+           const v44FilingLabel=f=>f.status==='草稿'?'草稿（不計件）':(!v44Ready(f)?'資料待補':(f.verified?'已勾選覆核':'待人工核對'));
+           const v44FilingExplanation=f=>!v44HasReceipt(f)?'沒有正式收件證據的資料，只作草稿或待補，不進送件統計。':(!v44Ready(f)?'請補正式申請日期、收件字號、機關與代理地政士。':'如更換送件代理，應保留實際委任與送件證明，不以本欄自行改變法定受託人。');
+           const v44CaseSnapshot=c=>{try{const x=c?._form_json;return typeof x==='string'?JSON.parse(x):(x&&typeof x==='object'?x:{});}catch{return {};}};
+           const v44CaseFilings=c=>{const x=v44CaseSnapshot(c);return Array.isArray(x.v44Filings)?x.v44Filings.filter(f=>f&&typeof f==='object'):[];};
+           const v44RecordList=computed(()=>cases.value.flatMap((c,caseIndex)=>{const snap=v44CaseSnapshot(c);const ms=Array.isArray(snap.v44Mandates)?snap.v44Mandates:[];return v44CaseFilings(c).map(f=>({ ...f, caseIndex, caseName:String(c['案名']||c['地址']||'未命名案件'),caseNumber:c['編號']||'',owner:ms.find(m=>m.id===f.mandateId)?.owner||'',receiptYearEffective:v44ReceiptYear(f)}));}));
+           const v44ReportYear=ref(String(new Date().getFullYear()-1911));
+           const v44ReportAgent=ref('');
+           const v44ReportKind=ref('');
+           const v44AvailableYears=computed(()=>Array.from(new Set([v44ReportYear.value,String(new Date().getFullYear()-1911),...v44RecordList.value.map(f=>f.receiptYearEffective).filter(Boolean)])).sort((a,b)=>Number(b)-Number(a)));
+           const v44FilteredRecords=computed(()=>{
+             const filtered=v44RecordList.value.filter(f=>f.receiptYearEffective===v44ReportYear.value&&(!v44ReportAgent.value||f.agent===v44ReportAgent.value)&&(!v44ReportKind.value||f.kind===v44ReportKind.value));
+             const keyCounts=new Map();v44RecordList.value.filter(f=>v44HasReceipt(f)).forEach(f=>{const k=v44Identity(f);if(k)keyCounts.set(k,(keyCounts.get(k)||0)+1);});
+             return filtered.map(f=>({...f,_duplicate:!!v44Identity(f)&&keyCounts.get(v44Identity(f))>1,_countable:v44Ready(f)&&f.verified===true&&keyCounts.get(v44Identity(f))===1,_recorded:v44HasReceipt(f),_flag:!v44HasReceipt(f)?'草稿／資訊不足':!v44Ready(f)?'待補欄位':(keyCounts.get(v44Identity(f))>1?'疑似重複，待查':f.verified===true?'已覆核':'待人工核對')}));
+           });
+           const v44Stats=computed(()=>{const r=v44FilteredRecords.value;const recorded=r.filter(f=>f._recorded).length;const verified=r.filter(f=>f._countable).length;return {recorded,verified,pending:recorded-verified};});
+           const v44CountsFor=agent=>{const r=v44FilteredRecords.value.filter(f=>f.agent===agent);const recorded=r.filter(f=>f._recorded).length;const verified=r.filter(f=>f._countable).length;return {recorded,verified,pending:recorded-verified};};
+           const v44CsvSafe=v=>{let s=String(v??'').replace(/\r?\n/g,' ');if(/^[=+@\-\t]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+           const v44ExportCsv=()=>{const cols=['民國收件年度','案件編號','案名','受託地政士','登記代理地政士','實際送件人','送件日期','申請類別','地政所','收件字號','辦理狀態','是否核對','判斷結果'];const lines=[cols.map(v44CsvSafe).join(',')];v44FilteredRecords.value.forEach(r=>lines.push([r.receiptYearEffective,r.caseNumber,r.caseName,r.owner,r.agent,r.deliverer,r.filedAt,r.kind,r.authority,r.receiptNo,r.status,r.verified?'是':'否',r._flag].map(v44CsvSafe).join(',')));downloadFile('\uFEFF'+lines.join('\r\n'),`送件明細_民國${v44ReportYear.value}年_${v44ReportAgent.value||'兩位地政士'}.csv`,'text/csv;charset=utf-8');};
+           const v44OpenCase=idx=>{editCase(idx);};
+           const v44QuickAddCase=idx=>{editCase(idx);v44AddFiling();Vue.nextTick(()=>{const el=document.getElementById('v44-module');if(el){el.open=true;el.scrollIntoView({behavior:'smooth',block:'start'});}});};
+           const v44Escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+           const v44PrintMandate=m=>{
+             if(!m.owner){alert('請先核對此筆獨立委任的受託地政士');return;}
+             const filings=v44Filings().filter(f=>f.mandateId===m.id);
+             const fld=(label,val)=>`<p><b>${v44Escape(label)}：</b>${v44Escape(val)}</p>`;
+             const trs=filings.map(f=>`<tr><td>${v44Escape(f.kind)}</td><td>${v44Escape(f.filedAt)}</td><td>${v44Escape(f.authority)}</td><td>${v44Escape(f.receiptNo)}</td><td>${v44Escape(f.status)}</td><td>${f.verified?'已勾選覆核':'待核對'}</td></tr>`).join('')||'<tr><td colspan="6" style="height:28px"></td></tr>';
+             const html='<!DOCTYPE html><html lang="zh-TW"><head><meta charset="utf-8"><title>業務紀錄簿補充紀錄</title><style>body{font:14px/1.65 sans-serif;color:#1a2b39;max-width:760px;margin:30px auto}h1{border-bottom:3px solid #17354b;padding-bottom:8px;font-size:23px}section{margin:13px 0;border:1px solid #cdd8df;padding:13px}h2{font-size:17px}p{white-space:pre-wrap;min-height:22px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #cbd5db;padding:6px}button{padding:8px 16px;background:#17354b;color:white;border:0;border-radius:4px;cursor:pointer}@media print{button{display:none}body{margin:0}section{break-inside:avoid}}</style></head><body><button onclick="window.print()">列印／存為PDF</button><h1>地政士業務紀錄簿｜個別受託補充紀錄</h1><section>'+fld('受託地政士',m.owner)+fld('受託日期',m.acceptedAt)+fld('日期差異原因',m.acceptedReason)+fld('受託業務類別',m.service)+fld('受託內容',m.scope)+fld('委託人姓名與地址',m.clients)+fld('辦理情形',m.handling)+'</section><section><h2>本委任關聯之送件明細</h2><table><thead><tr><th>類別</th><th>申請日</th><th>機關</th><th>收件字號</th><th>狀態</th><th>證明核對</th></tr></thead><tbody>'+trs+'</tbody></table></section><p>本表為新增補充紀錄。原第三頁與原始受託文件仍須對照，未填處應留白；列印前由受託地政士人工核實。</p></body></html>';
+             const win=window.open('','_blank');if(!win){alert('瀏覽器阻擋列印視窗，請允許此網站開啟彈出視窗');return;}win.document.open();win.document.write(html);win.document.close();
+           };
            const ledgerCustomOpen = reactive({});
            const ledgerChoiceOptions = key => ledgerChoiceLists[key] || [];
            const ledgerChoiceValue = key => {
@@ -22787,6 +22952,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            };
  
            return {
+               v44Practitioners,v44Kinds,v44ServiceOptions,v44AuthorityOptions,v44AddMandate,v44ImportLegacyMandate,v44RemoveMandate,v44AddFiling,v44AddThree,v44RemoveFiling,v44FilingLabel,v44FilingExplanation,v44CaseFilings,v44QuickAddCase,v44PrintMandate,v44OpenCase,v44ReportYear,v44ReportAgent,v44ReportKind,v44AvailableYears,v44FilteredRecords,v44Stats,v44CountsFor,v44ExportCsv,
                caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerConfirmedClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, ledgerAgentFields, ledgerChoiceOptions, ledgerChoiceValue, setLedgerChoice, ledgerNarrativeOptions, appendLedgerText, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
                cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
