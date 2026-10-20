@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>宏國x易丞地政 - 背表・履保開戶・業務紀錄簿 2026.09.16</title>
+   <title>宏國x易丞地政 - 背表・履保開戶・業務紀錄簿・送件年度統計 V46</title>
     
    <!-- Bundled vue.global.js SHA256 b191cf809aa83452971804f9df2d8c67de65de34caa40f0fcf828c508c7099e2 -->
 <script>
@@ -19530,6 +19530,49 @@ License: MIT
 @media print{.ledger-sheet .ledger-write-line{min-height:9mm}.ledger-sheet .ledger-text{min-height:8mm}}
 @media(max-width:700px){.escrow-panel .field-grid{grid-template-columns:1fr}}
 
+/* V44 minimal additive styles: original V41 components and print sheets remain intact. */
+
+/* V45: add only. Data origin, visible annual stats, Excel action. */
+.v45-source-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:11px 16px;border-bottom:1px solid #d6e1ea;background:#edf4f7;font-size:12px;color:#24465c}
+.v45-source-sub{margin-left:10px;color:#455d70}.v45-source-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v45-source-alert{color:#9b5812;font-weight:700}.v45-manager-shortcut{font-size:12px;font-weight:800;background:#f5e8bc;color:#173b54;padding:7px 11px;border-radius:5px;border:1px solid #c6a56a;white-space:nowrap}
+.v45-xlsx-btn{background:#16724b;border-color:#16724b}.v45-xlsx-btn:hover{background:#11583a}
+.v45-person-section{background:#fff;border:1px solid #d7e2e8;border-radius:6px;padding:12px;margin:12px 0}
+.v45-person-section h4{font-size:14px;font-weight:800;color:#173b54;margin:0 0 10px}.v45-person-section h4 span{font-size:11px;font-weight:400;color:#687f91;margin-left:7px}
+.v45-tab{background:#eee4c8!important;color:#173b54!important;border:1px solid #d3bb81!important}.v45-tab.bg-navy{background:#173b54!important;color:#fff!important}
+@media(max-width:700px){.v45-source-sub{display:block;margin-left:0;margin-top:3px}.v45-source-actions{width:100%;justify-content:space-between}.v45-manager-shortcut{font-size:11px}}
+
+.v44-card{background:#fff;border:1px solid #cfdae4;border-top:3px solid #16384f;border-radius:7px;padding:15px;margin:14px 0;color:#17354b}
+.v44-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:9px}
+.v44-head h3{font-size:17px;font-weight:800;margin:0;color:#16384f}
+.v44-help{font-size:12px;color:#53697d;line-height:1.7;margin:6px 0 10px}
+.v44-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:8px 0}
+.v44-fields label{display:flex;flex-direction:column;font-size:12px;font-weight:700;gap:3px;min-width:0;color:#395064}
+.v44-fields input,.v44-fields select,.v44-fields textarea,.v44-filter input,.v44-filter select{width:100%;min-width:0;border:1px solid #b9c9d7;border-radius:4px;background:#fff;padding:7px;font-size:13px;color:#17354b}
+.v44-list{border:1px solid #e0e6eb;background:#fafcfe;border-radius:6px;padding:11px;margin:9px 0}
+.v44-list-title{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.v44-list-title strong{font-size:14px;color:#153b59}.v44-tag{display:inline-block;padding:3px 6px;border-radius:3px;font-size:11px;background:#e8f1f8;color:#164c70}
+.v44-tag.warn{background:#fff5e4;color:#84520f}.v44-tag.good{background:#e7f5ec;color:#17683b}
+.v44-action{background:#123b58;color:#fff;border:1px solid #123b58;padding:7px 12px;border-radius:5px;font-weight:700;font-size:12px;cursor:pointer}
+.v44-action.secondary{background:#fff;color:#173c59;border-color:#b5ccdb}
+.v44-action.danger{background:#fff;color:#a23127;border-color:#e6bcb6}
+.v44-action:disabled{opacity:.45;cursor:not-allowed}.v44-inline{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.v44-note{padding:8px 10px;border-left:3px solid #c29d5e;background:#fffbf3;font-size:12px;line-height:1.7;margin-top:8px;color:#775a28}
+.v44-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.v44-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.v44-metric{border:1px solid #d8e1e8;border-radius:6px;background:white;padding:11px}
+.v44-metric .n{font-size:22px;font-weight:800;color:#173b54;line-height:1.3}
+.v44-metric .t{font-size:12px;color:#596c7a}
+.v44-table{width:100%;border-collapse:collapse;font-size:12px}
+.v44-table th,.v44-table td{padding:7px 9px;border:1px solid #dce4ea;vertical-align:top;word-break:break-word}
+.v44-table th{background:#eaf1f7;color:#23415a;white-space:nowrap}
+.v44-mini{display:inline-flex;gap:4px;flex-wrap:wrap;max-width:250px;line-height:1.65}
+.v44-mini span{border:1px solid #d4dee6;border-radius:3px;background:#f5f9fc;padding:0 4px;font-size:11px;color:#244b65}
+.v44-scroll{overflow-x:auto}.v44-empty{padding:12px;color:#63778b;font-size:13px;background:#f7f9fb;border-radius:6px}
+@media(max-width:900px){.v44-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.v44-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.v44-fields,.v44-filter{grid-template-columns:1fr}.v44-table{font-size:11px}}
+@media print{.v44-card,.v44-tab,.v44-manager-cell{display:none!important}}
+
 </style>
 <script>/*!
 
@@ -19597,8 +19640,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
          <div class="report-two-col">
            <section class="paper-box"><h3>賣方</h3><p v-for="(p,idx) in form.sellers" :key="idx">{{p.role || '本人'}}　{{p.name || '________________'}}　{{p.phone || '________________'}}</p></section>
            <section class="paper-box"><h3>買方</h3><p v-for="(p,idx) in form.buyers" :key="idx">{{p.role || '本人'}}　{{p.name || '________________'}}　{{p.phone || '________________'}}</p></section>
-           <section class="paper-box"><h3>銷售仲介</h3><p v-for="(p,idx) in form.salesAgents" :key="idx">{{p.name || '________'}}　{{p.store || '________'}}　{{p.phone || '________'}}</p></section>
            <section class="paper-box"><h3>開發仲介</h3><p v-for="(p,idx) in form.devAgents" :key="idx">{{p.name || '________'}}　{{p.store || '________'}}　{{p.phone || '________'}}</p></section>
+           <section class="paper-box"><h3>銷售仲介</h3><p v-for="(p,idx) in form.salesAgents" :key="idx">{{p.name || '________'}}　{{p.store || '________'}}　{{p.phone || '________'}}</p></section>
          </div>
          <section class="paper-box"><h3>文件、申請與稅費</h3><p><b>賣方</b> {{docText.seller}}　／　<b>買方</b> {{docText.buyer}}</p><p><b>申請</b> {{docText.apply}}</p><div class="report-two-col"><div><p><b>前次取得</b> {{form.prevTransferDate || '—'}}</p><p v-if="taxBracketInfo"><b>持有期間概算提示（適用資格待核）</b> {{taxBracketInfo.error || (taxBracketInfo.holdYears + '年／' + taxBracketInfo.currentRate)}}<span v-if="taxBracketInfo.nextDropDate">；下次區間 {{taxBracketInfo.nextDropDate}}／{{taxBracketInfo.nextRate}}</span></p><p><b>增值稅</b> {{form.taxTypeGeneral ? '☑' : '□'}} 一般　{{form.taxTypeSelf ? '☑' : '□'}} 自用</p><p><b>契稅案號</b> {{form.deedTaxId || '—'}}　<b>土增案號</b> {{form.landTaxId || '—'}}</p></div><div><p><b>水／電號</b> {{form.waterId || '—'}}　<b>管理費</b> {{form.mgmtFee || '—'}}</p><p><b>買方預收</b> {{form.buyerPrePay || '—'}} 元　{{form.buyerPrePayRemit ? '☑ 已匯' : '□ 未確認入帳'}}　{{form.buyerPrePayDate}}</p></div></div></section>
          <section v-if="roadmapType === 'construction'" class="paper-box"><h3>建商保存、初驗與複驗節點</h3><p><b>保存後追加建物擔保</b> {{form.buildingCollateral}}　<b>初驗完成</b> {{form.initialInspectionDate || '—'}}</p><p><b>過戶送件</b> {{form.transferDate || '—'}}　<b>銀行撥款</b> {{form.disbursementDate || '—'}}　<b>複驗／點交</b> {{form.reinspectionDate || '—'}}</p><p v-if="constructionTimingWarning" class="paper-warning">{{constructionTimingWarning}}</p></section>
@@ -19673,7 +19716,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-navy tracking-wide leading-tight print:text-xl">宏國 x 易丞地政</h1>
                     <div class="flex items-center gap-2">
-                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v40.09</p>
+                        <p class="text-xs text-gold font-bold tracking-widest print:text-[10pt]">SMART COMMAND v40.09 <span class="text-[10px] ml-1 border border-gold rounded px-1 no-print" title="在 V41 原版基礎上增量新增送件及年度統計功能">＋送件統計 V46</span></p>
                       <span v-if="GAS_URL" class="text-[10px] ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold no-print flex items-center">
                             <i v-if="syncStatus === 'syncing'" class="fas fa-spinner fa-spin mr-1"></i>
                             <i v-else-if="syncStatus === 'success'" class="fas fa-check-circle text-green-600 mr-1"></i>
@@ -20213,6 +20256,80 @@ https://github.com/nodeca/pako/blob/main/LICENSE
          <div class="ledger-actions"><button @click="printLedger">只印紀錄簿／存為 PDF</button><button @click="printPage">列印三頁（背表＋流程＋紀錄簿）</button></div>
          <p>保存提醒：紀錄簿至少十五年，從向相關機關申請日起算；不代表契約、洗錢防制或其他應保存資料均可銷毀。本工具不刪除原案資料。</p>
        </section>
+
+<!-- V44 BEGIN: new additive filing/mandate editor; original V41 third page remains unchanged. -->
+<section class="v44-card no-print" id="v44-filing-editor" data-testid="v44-filing-editor">
+  <div class="v44-head"><h3><i class="fas fa-folder-plus mr-1"></i>送件紀錄｜一案多筆</h3>
+    <div class="v44-inline">
+       <button type="button" class="v44-action secondary" @click="v45OpenStats" title="統計僅包含已儲存案件，請先存檔"><i class="fas fa-chart-bar mr-1"></i>查詢個別送件統計</button>
+       <button type="button" class="v44-action secondary" @click="v44AddThree">＋買賣／設定／塗銷草稿</button>
+      <button type="button" class="v44-action" @click="v44AddFiling()">＋單筆送件</button>
+    </div>
+  </div>
+  <p class="v44-help">同一交易案件可登載不同地政所、收件字號、登記代理地政士。所有內容會跟著原本的「存檔」寫入案件快照；不另建立資料庫或調整原有日曆、履保。資料未存檔前不納入總覽統計。</p>
+  <div v-if="!form.v44Filings.length" class="v44-empty">本案尚未新增送件明細。原有業務紀錄簿及原案件資料仍保留；此處空白不代表實際未送件。</div>
+  <div v-for="(f,i) in form.v44Filings" :key="f.id" class="v44-list">
+    <div class="v44-list-title">
+      <strong>第 {{i+1}} 筆｜{{f.kind || '未選擇申請類別'}}</strong>
+      <div class="v44-inline"><span class="v44-tag" :class="v44IsVerified(f) ? 'good' : 'warn'">{{v44IsVerified(f)?'已覆核':'待核對'}}</span>
+        <button type="button" class="v44-action secondary" @click="v44Verify(f)">覆核收件</button>
+        <button type="button" class="v44-action danger" @click="v44RemoveFiling(i)">移除</button>
+      </div>
+    </div>
+    <div class="v44-fields">
+      <label>申請類別<select v-model="f.kind"><option value="">請選擇</option><option v-for="t in v44FilingKinds" :key="t" :value="t">{{t}}</option><option value="其他">其他</option></select></label>
+      <label v-if="f.kind==='其他'">其他申請類別<input v-model="f.customKind" placeholder="例如第一次登記"></label>
+      <label>送件／申請日<input type="date" v-model="f.filedDate"></label>
+      <label>地政事務所<select v-model="f.agency"><option value="">請選擇</option><option v-for="name in ledgerChoiceOptions('ledgerAuthority')" :key="name" :value="name">{{name}}</option><option value="其他機關">其他機關</option></select></label>
+      <label v-if="f.agency==='其他機關'">其他機關名稱<input v-model="f.customAgency" placeholder="請填機關正式名稱"></label>
+      <label>收件字號<input v-model.trim="f.receipt" placeholder="依正式收件單據填寫"></label>
+      <label>登記代理地政士<select v-model="f.registrar"><option value="">待確認</option><option value="楊明宗">楊明宗</option><option value="楊翊晟">楊翊晟</option><option value="其他">其他</option></select></label>
+      <label v-if="f.registrar==='其他'">其他登記代理人<input v-model="f.customRegistrar" placeholder="依實際證明文件"></label>
+      <label>受託紀錄（獨立簿冊）<select v-model="f.mandateId"><option value="">尚未連結／待確認</option><option v-for="m in form.v44Mandates" :key="m.id" :value="m.id">{{m.scrivener||'未選地政士'}}｜{{m.mandateDate||'未填受託日'}}｜{{m.service||'未填業務類別'}}</option></select></label>
+      <label>實際送件人（可與代理人不同）<input v-model="f.deliverer" placeholder="助理員／本人／其他"></label>
+      <label>辦理進度<select v-model="f.status"><option value="草稿">草稿／未確認送件</option><option value="已送件">已送件</option><option value="補正中">補正中</option><option value="已辦結">已辦結</option><option value="已撤回">已撤回</option></select></label>
+      <label>辦結日期<input type="date" v-model="f.completedDate"></label>
+      <label>土地筆數<input type="number" min="0" step="1" v-model="f.landCount" placeholder="未填留空"></label>
+      <label>建物棟數<input type="number" min="0" step="1" v-model="f.buildingCount" placeholder="未填留空"></label>
+    </div>
+    <label style="display:block;font-size:12px;font-weight:700;color:#395064">備註／補正及特殊情形
+      <textarea v-model="f.notes" rows="2" style="width:100%;border:1px solid #b9c9d7;border-radius:4px;padding:7px;font-size:13px;background:white" placeholder="實際案件情形；不影響原案件備註"></textarea>
+    </label>
+    <p v-if="v44FilingWarning(f)" class="v44-note">{{v44FilingWarning(f)}}</p>
+    <p v-if="v44IsVerified(f)" class="v44-help">覆核人：{{f.reviewedBy || ''}}｜覆核時間：{{f.reviewedAt || ''}}。修改申請類別、收件字號、日期、機關或代理人後，原覆核自動失效。</p>
+  </div>
+</section>
+<section class="v44-card no-print" id="v44-mandate-editor" data-testid="v44-mandate-editor">
+  <div class="v44-head"><h3><i class="fas fa-book mr-1"></i>雙地政士獨立受託紀錄</h3><div class="v44-inline">
+    <button type="button" class="v44-action secondary" @click="v44SeedV41Mandate">從原第三頁複製受託資料</button>
+    <button type="button" class="v44-action" @click="v44AddMandate">＋新增受託紀錄</button>
+  </div></div>
+  <p class="v44-help">原第三頁業務紀錄簿維持不動。這裡另存各地政士<strong>實際受託</strong>資料：一個案件可有兩位分別受託，也可以只有一位。複製只建立可核對草稿，不會自動認定另一位已受託；各別輸出不混用。</p>
+  <div v-if="!form.v44Mandates.length" class="v44-empty">尚未建立個別受託紀錄。請依委任書或實際受託文件確認，不以登記代理欄位推定受託。</div>
+  <div v-for="(m,i) in form.v44Mandates" :key="m.id" class="v44-list">
+    <div class="v44-list-title"><strong>受託紀錄 {{i+1}}｜{{m.scrivener || '未指定地政士'}}</strong><div class="v44-inline">
+      <span class="v44-tag" :class="m.confirmed==='已核對'?'good':'warn'">{{m.confirmed==='已核對'?'委任已核對':'委任待核對'}}</span>
+      <button type="button" class="v44-action secondary" @click="v44PrintMandate(m)">列印本筆個別紀錄</button>
+      <button type="button" class="v44-action danger" @click="v44RemoveMandate(i)">移除</button>
+    </div></div>
+    <div class="v44-fields">
+      <label>受託地政士<select v-model="m.scrivener"><option value="">請選擇</option><option value="楊明宗">楊明宗</option><option value="楊翊晟">楊翊晟</option></select></label>
+      <label>受託日期（預設簽約日）<input type="date" v-model="m.mandateDate"></label>
+      <label>受託業務類別<select v-model="m.service"><option value="">請選擇</option><option v-for="t in ledgerChoiceOptions('ledgerService')" :key="t" :value="t">{{t}}</option><option value="其他">其他（於內容說明）</option></select></label>
+      <label>委任文件索引<input v-model="m.basis" placeholder="委任書／簽名日期／案號"></label>
+      <label>委託人姓名或名稱<input v-model="m.clientName" placeholder="按實際委任關係確認"></label>
+      <label>委託人地址<input v-model="m.clientAddress" placeholder="不得自動以標的地址取代"></label>
+      <label>委任核對<select v-model="m.confirmed"><option value="待核對">待核對</option><option value="已核對">已核對（已查委任文件）</option></select></label>
+      <label>辦理情形<select v-model="m.status"><option value="">留空</option><option>已受託尚未申請</option><option>已送件辦理中</option><option>補正中</option><option>已辦結</option><option>委任終止</option></select></label>
+      <label>辦結日期<input type="date" v-model="m.completedDate"></label>
+    </div>
+    <label style="display:block;font-size:12px;font-weight:700;color:#395064">受託實際內容<textarea v-model="m.content" rows="2" style="width:100%;border:1px solid #b9c9d7;border-radius:4px;padding:7px;font-size:13px;background:white"></textarea></label>
+    <label style="display:block;font-size:12px;font-weight:700;color:#395064">辦理情形／補正／終止備註<textarea v-model="m.notes" rows="2" style="width:100%;border:1px solid #b9c9d7;border-radius:4px;padding:7px;font-size:13px;background:white"></textarea></label>
+    <div class="v44-note">已關聯本筆受託紀錄的送件：{{v44LinkedFilings(m.id).length}} 筆。只有收件資料已覆核者才計入「已覆核送件數」。未填資料列印時留白。</div>
+  </div>
+</section>
+<!-- V44 END additive editor -->
+
        <div class="card bg-green-50 border border-green-200 rounded p-3 mt-2 no-print">
            <div class="flex justify-between items-center mb-1 border-b border-green-200 pb-1">
                 <h3 class="text-xs font-bold text-green-800"><i class="fab fa-line mr-1"></i> LINE 案件進度回報快傳</h3>
@@ -20352,14 +20469,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
    <div v-if="showManager" class="manager-overlay no-print" @click.self="showManager = false">
        <div class="manager-panel">
            <div class="manager-header flex justify-between items-center p-4 bg-navy text-white shadow-md z-10 relative">
-                <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>全域資料庫 (共 {{cases.length}} 筆)</h2>
-                <div class="flex items-center gap-4">
-                    <span v-if="currentUserRole === 'CEO'" class="text-xs bg-gold text-navy px-2 py-1 rounded font-bold">CEO 模式解鎖</span>
+                 <h2 class="text-lg font-bold"><i class="fas fa-database mr-2"></i>全域資料庫 (目前載入 {{cases.length}} 筆)</h2>
+                 <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
+                     <button type="button" class="v45-manager-shortcut" @click="v45OpenStats" title="開啟兩位地政士的年度、每月、案件及 Excel 統計"><i class="fas fa-chart-bar mr-1"></i> 地政士統計／Excel</button>
+                     <span v-if="currentUserRole === 'CEO'" class="text-xs bg-gold text-navy px-2 py-1 rounded font-bold">CEO 模式解鎖</span>
                     <button @click="showManager = false" class="text-white hover:text-gray-300"><i class="fas fa-times text-xl"></i></button>
                 </div>
            </div>
  
-           <div v-if="currentUserRole === 'CEO' || currentUserRole === 'Manager'" class="p-4 bg-gray-100 border-b border-gray-300">
+            <!-- V45: data-source transparency. A local file is NOT the cloud database. -->
+            <div class="v45-source-banner" data-testid="v45-data-source">
+                <div><strong><i class="fas fa-database mr-1"></i>案件資料來源：{{caseLoadSource}}</strong><span class="v45-source-sub">目前畫面 {{cases.length}} 筆<span v-if="cloudCaseCount !== null"> ｜最近查核雲端 {{cloudCaseCount}} 筆</span></span></div>
+                <div class="v45-source-actions"><span v-if="IS_LOCAL_FILE_PREVIEW" class="v45-source-alert">本機自動嘗試唯讀載入雲端；不會將本機修改上傳雲端</span><button type="button" class="v44-action secondary" @click="loadFromCloud" title="重新唯讀載入 Supabase 的完整案件清單">重新載入雲端案件</button><button type="button" class="v44-action secondary" @click="v45CheckCloudCount" :disabled="cloudCheckBusy">{{cloudCheckBusy?'查核中…':'唯讀查核雲端件數'}}</button></div>
+            </div>
+            <div v-if="currentUserRole === 'CEO' || currentUserRole === 'Manager'" class="p-4 bg-gray-100 border-b border-gray-300">
                 <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-chart-pie mr-1"></i> 財務預測儀表板 (進行中案件 / 以每案 2.5 萬代書費估算)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div class="ceo-dashboard-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
@@ -20387,10 +20510,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
  
            <div class="flex gap-1 px-4 pt-3 bg-gray-200 border-b overflow-x-auto whitespace-nowrap">
                 <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中 ({{activeCasesList.length}})</button>
-                <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
+                 <button @click="managerTab = 'v44Filings'" :class="managerTab === 'v44Filings' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="v44-tab v45-tab px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-chart-pie mr-1"></i> 地政士送件統計／Excel</button>
+                 <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
                 <button @click="managerTab = 'archived'" :class="managerTab === 'archived' ? 'bg-red-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">封存 ({{archivedCasesList.length}})</button>
                 <button @click="managerTab = 'crm'" :class="managerTab === 'crm' ? 'bg-purple-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors ml-auto"><i class="fas fa-bullhorn mr-1"></i> CRM喚醒系統</button>
                 <button @click="managerTab = 'settings'" :class="managerTab === 'settings' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-cog mr-1"></i> 字典設定</button>
+
            </div>
  
                        <div v-if="managerTab === 'settings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
@@ -20459,6 +20584,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             <th class="p-2 border-b">總價(萬)</th>
                             <th class="p-2 border-b hidden md:table-cell">承辦</th>
                             <th class="p-2 border-b hidden md:table-cell">最後異動</th>
+                            <th class="p-2 border-b v44-manager-cell">登記送件</th>
                             <th class="p-2 border-b">操作</th>
                         </tr>
                     </thead>
@@ -20477,6 +20603,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                 <div class="text-gray-400">{{ c['_updatedAt'] || c['_createdAt'] || '-' }}</div>
                                 <div v-if="c['_lastAction']" class="text-blue-600">{{ c['_lastAction'] }}</div>
                             </td>
+                            <td class="p-2 border-b v44-manager-cell" style="min-width:145px">
+                              <div class="v44-mini"><span v-for="(f,j) in v44CaseFilings(c).slice(0,5)" :key="f.id || j">{{v44FilingLabel(f)}} · {{v44Registrar(f) || '未指定'}} · {{v44Agency(f) || '待選機關'}} · {{f.receipt || '未填收件號'}}</span></div>
+                              <div v-if="!v44CaseFilings(c).length" style="font-size:11px;color:#667b8e">尚未登載</div>
+                              <button type="button" class="v44-action secondary" style="margin-top:5px;padding:4px 8px" @click="v44OpenCaseFiling(c.originalIndex)">＋送件</button>
+                            </td>
                            <td class="p-2 border-b whitespace-nowrap">
                                 <button @click="editCase(c.originalIndex)" class="text-blue-600 hover:text-blue-800 mr-2 bg-blue-100 px-2 py-1 rounded font-bold text-xs" title="編輯"><i class="fas fa-edit"></i> 檢視</button>
                                 <button v-if="managerTab !== 'archived'" @click="toggleCaseStatus(c.originalIndex)" class="text-emerald-700 hover:text-white hover:bg-emerald-600 bg-emerald-50 px-2 py-1 rounded font-bold transition-colors text-xs mr-1" :title="c['結案時間'] ? '取消結案' : '標記結案'"><i class="fas" :class="c['結案時間'] ? 'fa-rotate-left' : 'fa-circle-check'"></i> {{ c['結案時間'] ? '取消結案' : '結案' }}</button>
@@ -20485,12 +20616,58 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             </td>
                         </tr>
                         <tr v-if="managerCaseList.length === 0">
-                            <td colspan="7" class="text-center py-8 text-gray-400">尚無符合條件的案件。</td>
+                            <td colspan="8" class="text-center py-8 text-gray-400">尚無符合條件的案件。</td>
                         </tr>
                     </tbody>
                 </table>
            </div>
  
+
+<!-- V44 BEGIN manager: annual records, no new database tables -->
+<div v-if="managerTab==='v44Filings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto" data-testid="v44-manager">
+   <div class="v44-head"><h3>雙地政士送件統計｜年度／月份／案件明細</h3><div class="v44-inline"><button type="button" class="v44-action v45-xlsx-btn" @click="v45ExportXlsx" :disabled="v45ExportBusy"><i class="fas fa-file-excel mr-1"></i>{{v45ExportBusy?'正在產生 Excel…':'匯出 Excel（.xlsx）'}}</button><button type="button" class="v44-action secondary" @click="v44ExportAnnual">匯出新系統 CSV</button></div></div>
+   <p class="v44-help">資料來源分兩層：<b>歷史 Excel 原始登載</b>（已載入115年度兩位地政士逐月數量／類別，不含對外公開客戶個資）及 <b>本系統新增送件</b>（依各案件儲存的收件明細）。<b>兩者可能重複，不能直接加總當作實際唯一收件或報稅件數。</b>原有案件、業務紀錄簿及收款帳不受影響。</p>
+   <section class="v45-person-section" data-testid="v46-imported-history" style="border-left:4px solid #bf9248;background:#fffaf1">
+      <h4>已帶入 Excel 歷史送件基準｜民國115年 <span>來源：楊明宗總經理.xlsx、楊翊晟.xlsx；按原月份工作表計數，未去重，不能視為稅務核定件數</span></h4>
+      <div class="v44-grid" style="margin:10px 0">
+        <div class="v44-metric"><div class="t">楊明宗｜Excel 原始登載</div><div class="n">{{v46HistoryFor('楊明宗').count}}</div></div>
+        <div class="v44-metric"><div class="t">楊翊晟｜Excel 原始登載</div><div class="n">{{v46HistoryFor('楊翊晟').count}}</div></div>
+        <div class="v44-metric"><div class="t">115年原始登載合計</div><div class="n">{{v46History.people[0].count+v46History.people[1].count}}</div></div>
+        <div class="v44-metric"><div class="t">未填收件號（需補核）</div><div class="n">{{v46History.people[0].blankReceipt+v46History.people[1].blankReceipt}}</div></div>
+      </div>
+      <div v-if="v46HistoryVisible" class="v44-scroll"><table class="v44-table"><thead><tr><th>地政士</th><th>Excel 登載列數</th><th>有收件號</th><th>缺收件號</th><th>新系統登載（所有年度）</th><th>系統已覆核（所有年度）</th></tr></thead><tbody><tr v-for="r in v46HistoryAgentRows" :key="r.name"><td><strong>{{r.name}}</strong></td><td>{{r.count}}</td><td>{{r.withReceipt}}</td><td>{{r.missingReceipt}}</td><td>{{r.newEntered}}</td><td>{{r.verified}}</td></tr></tbody></table></div>
+      <p class="v44-help" style="margin-top:8px">舊 Excel 按115年度各月份工作表計算；11、12月原表尚未登載，不能視為最終零件；部分送件日期與工作表月份不一致，須人工覆核。由於網站是公開 GitHub，僅內建去識別化的統計數量，不公開原始客戶姓名與收件號，也不增加原案件筆數。</p>
+      <details open v-if="v46HistoryVisible" style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">查看115年逐月歷史統計（兩位地政士）</summary><div class="v44-scroll"><table class="v44-table"><thead><tr><th>月份</th><th>楊明宗</th><th>楊翊晟</th><th>兩人合計</th><th>已填收件號</th><th>待補收件號</th></tr></thead><tbody><tr v-for="m in v46HistoryMonthly" :key="m.month"><td>{{m.month}}月</td><td>{{m.father}}</td><td>{{m.son}}</td><td><b>{{m.total}}</b></td><td>{{m.withReceipt}}</td><td>{{m.missingReceipt}}</td></tr></tbody></table></div></details>
+      <details v-if="v46HistoryVisible" style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">查看兩位地政士 Excel 原始申請類別分布（保留原寫法）</summary><div class="v44-scroll"><table class="v44-table"><thead><tr><th>地政士</th><th>原始類別</th><th>登載列數</th></tr></thead><tbody><tr v-for="(r,i) in v46HistoryKindRows" :key="r.name+r.kind+i"><td>{{r.name}}</td><td>{{r.kind}}</td><td>{{r.count}}</td></tr></tbody></table></div></details>
+   </section>
+   <div class="v45-person-section" data-testid="v45-lifetime"><h4>新系統送件累計｜逐案可編輯 <span>這裡只計案件總庫新登載；歷史 Excel 已在上方另列，不會重複灌入案件</span></h4>
+     <div class="v44-scroll"><table class="v44-table"><thead><tr><th>登記代理</th><th>涉及案件數</th><th>送件筆數</th><th>已覆核</th><th>待核對</th><th>未填日期</th></tr></thead><tbody><tr v-for="row in v45LifetimeSummary" :key="'all-'+row.name"><td><strong>{{row.name}}</strong></td><td>{{row.caseCount}}</td><td>{{row.entered}}</td><td>{{row.verified}}</td><td>{{row.pending}}</td><td>{{row.noDate}}</td></tr></tbody></table></div></div>
+   <div class="v44-filter">
+     <label>民國年度<select v-model.number="v44FilterYear"><option v-for="y in v44AvailableYears" :key="y" :value="y">{{y}} 年</option></select></label>
+    <label>登記代理地政士<select v-model="v44FilterAgent"><option value="">全部地政士</option><option>楊明宗</option><option>楊翊晟</option><option value="其他">其他／未指定</option></select></label>
+    <label>申請類別<select v-model="v44FilterKind"><option value="">全部類別</option><option v-for="k in v44FilingKinds" :key="k" :value="k">{{k}}</option><option value="其他">其他</option></select></label>
+  </div>
+  <div class="v44-grid">
+    <div class="v44-metric"><div class="t">新系統登載（不含歷史Excel）</div><div class="n">{{v44YearSummary.entered}}</div></div>
+    <div class="v44-metric"><div class="t">新系統已覆核（去重）</div><div class="n">{{v44YearSummary.verified}}</div></div>
+    <div class="v44-metric"><div class="t">新系統待核對／重複疑慮</div><div class="n">{{v44YearSummary.pending}}</div></div>
+    <div class="v44-metric"><div class="t">跨年度日期未填送件</div><div class="n">{{v44AllNoDate}}</div></div>
+  </div>
+   <div class="v44-scroll"><table class="v44-table" style="margin:10px 0"><thead><tr><th>登記代理</th><th>涉及案件</th><th>已登載送件</th><th>已覆核（去重）</th><th>待核對／疑似重複</th><th>快速篩選</th></tr></thead><tbody>
+     <tr v-for="row in v44ScrivenerSummary" :key="row.name"><td><strong>{{row.name}}</strong></td><td>{{row.caseCount}}</td><td>{{row.entered}}</td><td>{{row.verified}}</td><td>{{row.pending}}</td><td><button type="button" class="v44-action secondary" @click="v45SelectAgent(row.name)">查看案件</button></td></tr>
+  </tbody></table></div>
+
+   <div class="v45-person-section"><h4>新系統逐月送件分布 <span>依所選年度及案件類別；不受人員明細篩選影響</span></h4><div class="v44-scroll"><table class="v44-table"><thead><tr><th>月份</th><th>地政士</th><th>涉及案件數</th><th>已登載送件</th><th>已覆核</th><th>待核對</th></tr></thead><tbody><tr v-for="r in v45MonthlyByAgent" :key="r.name+'-'+r.month"><td>{{r.month}}月</td><td>{{r.name}}</td><td>{{r.caseCount}}</td><td>{{r.entered}}</td><td>{{r.verified}}</td><td>{{r.pending}}</td></tr></tbody></table></div></div>
+   <details style="margin:10px 0"><summary style="cursor:pointer;color:#173b54;font-weight:700;padding:6px">依目前篩選的每月送件分布</summary>
+    <div class="v44-scroll"><table class="v44-table"><thead><tr><th>月份</th><th>已登載</th><th>已覆核</th><th>待核對</th></tr></thead><tbody><tr v-for="r in v44MonthSummary" :key="r.month"><td>{{r.month}}月</td><td>{{r.entered}}</td><td>{{r.verified}}</td><td>{{r.pending}}</td></tr></tbody></table></div>
+  </details>
+  <div class="v44-scroll"><table class="v44-table"><thead><tr><th>案件編號／案名</th><th>送件日</th><th>類別</th><th>登記代理</th><th>地政機關</th><th>收件字號</th><th>狀態</th><th>覆核／異常</th><th>操作</th></tr></thead><tbody>
+    <tr v-for="r in v44FilteredAnnual" :key="r.caseIndex+'-'+r.filing.id"><td>{{r.caseNo}}<div style="font-size:11px;color:#688095">{{r.caseName}}</div></td><td>{{r.filing.filedDate || ''}}</td><td>{{v44FilingLabel(r.filing)}}</td><td>{{v44Registrar(r.filing)}}</td><td>{{v44Agency(r.filing)}}</td><td>{{r.filing.receipt || ''}}</td><td>{{r.filing.status || ''}}</td><td><span class="v44-tag" :class="r.counted?'good':'warn'">{{r.counted?'已覆核':r.problem}}</span></td><td><button class="v44-action secondary" @click="v44OpenCaseFiling(r.caseIndex)">編輯</button></td></tr>
+    <tr v-if="!v44FilteredAnnual.length"><td colspan="9" class="v44-empty">本年度尚無符合篩選的已登載送件；請先核對舊 Excel 或逐案補登，不能以此認定實際零送件。</td></tr>
+  </tbody></table></div>
+</div>
+<!-- V44 END manager -->
+
            <div v-if="managerTab === 'crm'" class="p-4 bg-gray-50 flex-1 overflow-y-auto">
                 <div class="bg-purple-100 border-l-4 border-purple-600 text-purple-800 p-4 rounded mb-4 shadow-sm">
                     <h3 class="font-bold text-sm mb-1"><i class="fas fa-bullhorn mr-2"></i> 家族辦公室 CRM 喚醒雷達</h3>
@@ -21363,12 +21540,39 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const reportStaffFilter = ref('');
            const reportNotes = ref('');
            
-           const syncStatus = ref(''); 
+           const syncStatus = ref('');
+           let v44CloudBaseline = null;
+           const v44StableJson = value => JSON.stringify(value,(_,v)=>v && typeof v==='object' && !Array.isArray(v) ? Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}) : v); 
            const quickReportStep = ref('已順利簽約');
            const quickReportMsg = ref('');
            const isPdfExporting = ref(false); 
  
-           const cases = ref([]);
+            const cases = ref([]);
+            const caseLoadSource = ref(IS_LOCAL_FILE_PREVIEW ? '本機預覽｜正在唯讀載入雲端案件' : '正在載入 Supabase 正式雲端案件');
+            const cloudCaseCount = ref(null);
+            const cloudCheckBusy = ref(false);
+            const v45ExportBusy = ref(false);
+            const v45OpenStats = () => { managerTab.value='v44Filings'; showManager.value=true; };
+            const v45CheckCloudCount = async () => {
+                if (cloudCheckBusy.value || !SUPABASE_ENABLED) return;
+                cloudCheckBusy.value = true;
+                try {
+                    const r = await fetch(SUPABASE_ENDPOINT + '&select=payload', {
+                        method:'GET', cache:'no-store',
+                        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Accept':'application/json'}
+                    });
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    const data = await r.json();
+                    if (!Array.isArray(data) || !Array.isArray(data[0]?.payload)) throw new Error('伺服器資料格式不符');
+                    cloudCaseCount.value = data[0].payload.length;
+                    // This is a read-only count check. Never change cases/localStorage or cloud baseline here.
+                    if(cloudCaseCount.value!==cases.value.length){
+                        alert(`已查核正式雲端 ${cloudCaseCount.value} 筆；目前畫面 ${cases.value.length} 筆，兩者不同。請點「重新載入雲端案件」後再操作；此查核不會修改任何案件。`);
+                    }
+                } catch(e) {
+                    alert('雲端件數唯讀查核失敗：'+(e.message||String(e))+'。目前畫面上的案件數仍是本機來源，未執行資料寫入。');
+                } finally { cloudCheckBusy.value=false; }
+            };
            const activeStaffList = computed(() => staffList.filter(staff => staff.active !== false));
            const staffHistoryFilterList = computed(() => {
                const byName = new Map(staffList.map(staff => [staff.name, staff]));
@@ -21390,7 +21594,222 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                return activeCasesList.value;
            });
  
-           const roadmapType = ref('house');
+
+           // V44: additive, case-scoped filing and mandate records; read from existing form snapshot only.
+           // The original V41 ledger, case identity, CRM, Google Calendar, escrow, print and CSV paths stay intact.
+           // V46: Source is two user-provided 115-year Excel workbooks. PUBLIC GitHub is not a suitable place for the personal data in the source rows. Only month/type aggregates are bundled below.
+           // Entries are historical source lines (NOT verified filings, unique cases, or tax counts). Do not write this static reference data to Supabase cases.
+           const v46History = {"year":115,"sources":["楊明宗總經理.xlsx","楊翊晟.xlsx"],"people":[{"name":"楊明宗","count":225,"hasReceipt":219,"blankReceipt":6,"dateIssues":10,"months":[{"month":1,"count":50,"withReceipt":50,"missingReceipt":0,"missingDate":0,"kinds":{"塗銷":5,"買賣":17,"設定":20,"建物合併":1,"配偶贈與":1,"擔保物減少":2,"建物第一次測量":1,"建物第一次登記":1,"贈與":2},"dateIssues":0},{"month":2,"count":47,"withReceipt":47,"missingReceipt":0,"missingDate":0,"kinds":{"買賣":17,"設定":20,"塗銷":5,"買設":1,"第一次":2,"部分塗銷":1,"擔保物減少":1},"dateIssues":4},{"month":3,"count":61,"withReceipt":58,"missingReceipt":3,"missingDate":0,"kinds":{"清償":5,"權利內容等變更":1,"設定":25,"買賣":21,"塗銷":7,"繼承":1,"權利範圍變更":1},"dateIssues":1},{"month":4,"count":44,"withReceipt":42,"missingReceipt":2,"missingDate":0,"kinds":{"塗銷":10,"買賣":13,"次序變更":1,"設定":13,"繼承":1,"共有型態變更":1,"權變":3,"分割繼承":1,"未填類別":1},"dateIssues":1},{"month":5,"count":16,"withReceipt":15,"missingReceipt":1,"missingDate":0,"kinds":{"買賣":6,"設定":6,"分割":1,"贈與":1,"部塗":1,"權變":1},"dateIssues":1},{"month":6,"count":5,"withReceipt":5,"missingReceipt":0,"missingDate":0,"kinds":{"買賣":1,"設定":4},"dateIssues":2},{"month":7,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0},{"month":8,"count":1,"withReceipt":1,"missingReceipt":0,"missingDate":0,"kinds":{"買賣":1},"dateIssues":1},{"month":9,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0},{"month":10,"count":1,"withReceipt":1,"missingReceipt":0,"missingDate":0,"kinds":{"贈與":1},"dateIssues":0},{"month":11,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0},{"month":12,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0}],"kinds":{"塗銷":27,"買賣":76,"設定":88,"建物合併":1,"配偶贈與":1,"擔保物減少":3,"建物第一次測量":1,"建物第一次登記":1,"贈與":4,"買設":1,"第一次":2,"部分塗銷":1,"清償":5,"權利內容等變更":1,"繼承":2,"權利範圍變更":1,"次序變更":1,"共有型態變更":1,"權變":4,"分割繼承":1,"未填類別":1,"分割":1,"部塗":1}},{"name":"楊翊晟","count":249,"hasReceipt":242,"blankReceipt":7,"dateIssues":3,"months":[{"month":1,"count":1,"withReceipt":1,"missingReceipt":0,"missingDate":0,"kinds":{"塗銷":1},"dateIssues":0},{"month":2,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0},{"month":3,"count":2,"withReceipt":2,"missingReceipt":0,"missingDate":0,"kinds":{"設定(抵押權)":1,"設定(地上權)":1},"dateIssues":0},{"month":4,"count":2,"withReceipt":2,"missingReceipt":0,"missingDate":0,"kinds":{"設定":1,"買賣":1},"dateIssues":0},{"month":5,"count":23,"withReceipt":22,"missingReceipt":1,"missingDate":0,"kinds":{"買賣":10,"塗銷":5,"設定":7,"權變":1},"dateIssues":1},{"month":6,"count":57,"withReceipt":57,"missingReceipt":0,"missingDate":0,"kinds":{"預告登記":1,"買賣":15,"設定":12,"塗銷":7,"清償":1,"繼承":4,"擔保物減少":4,"鑑界":2,"土地分割":2,"剩餘財產分配":1,"建物測量":1,"保存登記":1,"擔保物增加":1,"第一次測量":1,"權變":1,"塗銷信託":1,"第一次登記":1,"權利內容變更":1},"dateIssues":1},{"month":7,"count":47,"withReceipt":47,"missingReceipt":0,"missingDate":0,"kinds":{"塗銷":6,"書狀補發":1,"買賣":13,"第一次測量":1,"土地法院囑託":1,"繼承":1,"共有物分割":1,"設定":12,"清償":2,"分割繼承":2,"擔保物增加":4,"保存登記":1,"鑑界":1,"自用住宅":1},"dateIssues":1},{"month":8,"count":32,"withReceipt":31,"missingReceipt":1,"missingDate":0,"kinds":{"設定":13,"權利內容變更":1,"買賣":9,"塗銷":2,"權變":2,"配偶贈與":1,"權利內容等變更":1,"權利範圍變更":1,"建物第一次測量":2},"dateIssues":0},{"month":9,"count":59,"withReceipt":54,"missingReceipt":5,"missingDate":0,"kinds":{"買賣":23,"設定":22,"拍賣":1,"清償":12,"贈與":1},"dateIssues":0},{"month":10,"count":26,"withReceipt":26,"missingReceipt":0,"missingDate":0,"kinds":{"買賣":9,"設定":9,"部塗":1,"擔保物減少":2,"贈與":1,"權變":4},"dateIssues":0},{"month":11,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0},{"month":12,"count":0,"withReceipt":0,"missingReceipt":0,"missingDate":0,"kinds":{},"dateIssues":0}],"kinds":{"塗銷":21,"設定(抵押權)":1,"設定(地上權)":1,"設定":76,"買賣":80,"權變":8,"預告登記":1,"清償":15,"繼承":5,"擔保物減少":6,"鑑界":3,"土地分割":2,"剩餘財產分配":1,"建物測量":1,"保存登記":2,"擔保物增加":5,"第一次測量":2,"塗銷信託":1,"第一次登記":1,"權利內容變更":2,"書狀補發":1,"土地法院囑託":1,"共有物分割":1,"分割繼承":2,"自用住宅":1,"配偶贈與":1,"權利內容等變更":1,"權利範圍變更":1,"建物第一次測量":2,"拍賣":1,"贈與":2,"部塗":1}}]};
+           const v46HistoryFor = name => v46History.people.find(p=>p.name===name);
+           const v46HistoryVisible = computed(()=>Number(v44FilterYear.value)===v46History.year);
+           const v46HistoryPerPerson = computed(()=>v46History.people.map(p=>({name:p.name, count:v46HistoryVisible.value?p.count:0, withReceipt:v46HistoryVisible.value?p.hasReceipt:0, missingReceipt:v46HistoryVisible.value?p.blankReceipt:0, dateIssues:v46HistoryVisible.value?p.dateIssues:0})));
+           const v46HistoryTotals = computed(()=>({entered:v46HistoryVisible.value?v46History.people.reduce((n,p)=>n+p.count,0):0, withReceipt:v46HistoryVisible.value?v46History.people.reduce((n,p)=>n+p.hasReceipt,0):0, missingReceipt:v46HistoryVisible.value?v46History.people.reduce((n,p)=>n+p.blankReceipt,0):0}));
+           const v46HistoryMonthly = computed(()=>Array.from({length:12},(_,i)=>{
+              const a=v46HistoryFor('楊明宗').months[i],b=v46HistoryFor('楊翊晟').months[i];
+              return {month:i+1, father:a.count,son:b.count,total:a.count+b.count,withReceipt:a.withReceipt+b.withReceipt,missingReceipt:a.missingReceipt+b.missingReceipt};
+           }));
+           const v46HistoryKindRows = computed(()=>v46History.people.flatMap(p=>Object.entries(p.kinds).map(([kind,count])=>({name:p.name,kind,count}))).sort((a,b)=>a.name.localeCompare(b.name,'zh-TW')||b.count-a.count));
+           const v46HistoryAgentRows = computed(()=>v46HistoryPerPerson.value.map(p=>{const n=v45LifetimeSummary.value.find(r=>r.name===p.name);return {...p,newEntered:n?.entered||0,verified:n?.verified||0};}));
+           const v44FilingKinds = ['買賣移轉','抵押權設定','抵押權塗銷','贈與移轉','繼承登記','分割繼承','建物第一次登記','共有物分割','信託登記','信託塗銷'];
+           const v44FilterYear = ref(new Date().getFullYear() - 1911);
+           const v44FilterAgent = ref('');
+           const v44FilterKind = ref('');
+           const v44Uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'v44-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+           const v44SafeArray = a => Array.isArray(a) ? a.filter(v => v && typeof v === 'object' && !Array.isArray(v)) : [];
+           const v44CaseForm = c => { try { return c && c._form_json ? JSON.parse(c._form_json) : {}; } catch(e) { return {}; } };
+           const v44CaseFilings = c => v44SafeArray(v44CaseForm(c).v44Filings);
+           const v44FilingLabel = f => f?.kind==='其他' ? (f.customKind || '其他') : (f?.kind || '');
+           const v44Agency = f => f?.agency==='其他機關' ? String(f.customAgency||'').trim() : String(f?.agency||'').trim();
+           const v44Registrar = f => f?.registrar==='其他' ? String(f.customRegistrar||'').trim() : String(f?.registrar||'').trim();
+           const v44Year = date => /^\d{4}-\d{2}-\d{2}$/.test(String(date||'')) ? Number(date.slice(0,4))-1911 : null;
+           const v44Fingerprint = f => JSON.stringify([f?.kind||'',f?.customKind||'',f?.filedDate||'',v44Agency(f),String(f?.receipt||'').trim(),v44Registrar(f),f?.status||'']);
+           const v44IsVerified = f => !!(f && f.verified==='已覆核' && f.reviewedFingerprint && f.reviewedFingerprint === v44Fingerprint(f));
+           const v44FilingKey = f => { const d=f?.filedDate||'';const y=v44Year(d);const a=v44Agency(f).replace(/\s/g,'').toLowerCase();const n=String(f?.receipt||'').replace(/[\s－–—_\-字號年月日()（）]/g,'').toLowerCase();return y&&a&&n?`${y}|${a}|${n}`:''; };
+           const v44NewFiling = kind => ({id:v44Uid(),kind:kind||'',customKind:'',filedDate:'',agency:'',customAgency:'',receipt:'',registrar:'',customRegistrar:'',mandateId:'',deliverer:'',status:'草稿',completedDate:'',landCount:'',buildingCount:'',notes:'',verified:'待核對',reviewedFingerprint:'',reviewedBy:'',reviewedAt:''});
+           const v44AddFiling = kind => { if(!Array.isArray(form.value.v44Filings))form.value.v44Filings=[];form.value.v44Filings.push(v44NewFiling(kind)); };
+           const v44AddThree = () => ['買賣移轉','抵押權設定','抵押權塗銷'].forEach(v44AddFiling);
+           const v44RemoveFiling = i => { if(confirm('確認移除本筆送件明細？原案件其他資料不受影響。'))form.value.v44Filings.splice(i,1); };
+           const v44AllFilings = computed(() => cases.value.flatMap((c,i) => v44CaseFilings(c).map((f,j)=>({caseIndex:i,caseNo:c['編號']||'',caseName:c['案名']||'',caseId:c._caseId||'',filing:f,ordinal:j}))));
+           const v44FilingWarning = f => {
+             if(!f)return '';
+             const notes=[];
+             if(f.status==='草稿')notes.push('草稿不列入已送件數。');
+             if(f.status!=='草稿' && (!f.filedDate||!v44Agency(f)||!String(f.receipt||'').trim()||!v44Registrar(f)))notes.push('缺少日期、機關、收件字號或登記代理地政士，不得標示已覆核。');
+             const key=v44FilingKey(f);
+             if(key){
+               const current=form.value.v44Filings.filter(x=>v44FilingKey(x)===key).length;
+               const cross=v44AllFilings.value.filter(r=>v44FilingKey(r.filing)===key && (currentCaseIndex.value<0 || r.caseIndex!==currentCaseIndex.value)).length;
+               if(current+cross>1)notes.push('同年度／同機關／同收件字號疑似重複，請人工核對。');
+             }
+             if(f.mandateId && !form.value.v44Mandates.some(m=>m.id===f.mandateId))notes.push('關聯委任已移除，須重新指定。');
+             if(!f.mandateId)notes.push('尚未連結個別受託紀錄；送件代理人不當然等於受託人。');
+             else if(!form.value.v44Mandates.some(m=>m.id===f.mandateId && m.confirmed==='已核對' && m.scrivener && m.mandateDate && m.service && m.content && m.clientName && m.clientAddress))notes.push('所連結受託紀錄尚未完整核對，正式統計列待核對。');
+             return notes.join(' ');
+           };
+           const v44Verify = f => {
+             const missing=[];
+             if(!f.filedDate)missing.push('送件日期');
+             if(!v44Agency(f))missing.push('地政機關');
+             if(!String(f.receipt||'').trim())missing.push('收件字號');
+             if(!v44Registrar(f))missing.push('登記代理人');
+             if(!v44FilingLabel(f))missing.push('申請類別');
+             if(f.status==='草稿')missing.push('辦理進度仍為草稿');
+             const mandate=form.value.v44Mandates.find(m=>m.id===f.mandateId);
+             if(!mandate)missing.push('未連結個別受託紀錄');
+             else if(mandate.confirmed!=='已核對'||!mandate.scrivener||!mandate.mandateDate||!mandate.service||!mandate.content||!mandate.clientName||!mandate.clientAddress)missing.push('個別受託紀錄尚未核對完整');
+             const key=v44FilingKey(f);
+             const localDuplicates=key?form.value.v44Filings.filter(x=>v44FilingKey(x)===key && x.id!==f.id):[];
+             const otherDuplicates=key?v44AllFilings.value.filter(r=>v44FilingKey(r.filing)===key && (currentCaseIndex.value<0 || r.caseIndex!==currentCaseIndex.value)):[];
+             if(localDuplicates.length||otherDuplicates.length)missing.push('同機關同年度收件號重複');
+             if(missing.length)return alert('暫不可覆核：'+missing.join('、')+'。請核對正式收件資料。');
+             f.verified='已覆核';f.reviewedFingerprint=v44Fingerprint(f);f.reviewedBy=currentOperator.value.name||'待補覆核人';f.reviewedAt=new Date().toLocaleString('zh-TW',{hour12:false});
+           };
+           const v44NewMandate = () => ({id:v44Uid(),scrivener:'',mandateDate:form.value.contractDate||'',service:'',basis:'',clientName:'',clientAddress:'',confirmed:'待核對',status:'',completedDate:'',content:'',notes:''});
+           const v44AddMandate = () => {if(!Array.isArray(form.value.v44Mandates))form.value.v44Mandates=[];form.value.v44Mandates.push(v44NewMandate());};
+           const v44SeedV41Mandate = () => {
+             const name=String(form.value.ledgerAgent||'').trim();
+             if(!name)return alert('原第三頁尚未選擇受託地政士，請先核對實際委任文件。');
+             if(form.value.v44Mandates.some(m=>m.scrivener===name && m.mandateDate===(form.value.ledgerAccepted||form.value.contractDate||'') && m.service===(form.value.ledgerService||'')))return alert('已存在同地政士、日期及業務類別的個別受託紀錄，請先確認，避免重複登載。');
+             const m=v44NewMandate();m.scrivener=name;m.mandateDate=form.value.ledgerAccepted||form.value.contractDate||'';m.service=form.value.ledgerService||'';m.basis=form.value.ledgerDelegationBasis||'';m.status=form.value.ledgerStatus||'';m.completedDate=form.value.ledgerCompleted||'';m.content=form.value.ledgerContent||'';m.notes=form.value.ledgerHandling||'';
+             const clients=[...form.value.sellers,...form.value.buyers,...(form.value.ledgerExtraClients||[])].filter(p=>p.ledgerClient==='是');
+             m.clientName=clients.map(p=>p.name||'').filter(Boolean).join('、');m.clientAddress=clients.map(p=>p.ledgerAddress||'').filter(Boolean).join('；');
+             m.confirmed='待核對';form.value.v44Mandates.push(m);
+           };
+           const v44LinkedFilings = id => v44SafeArray(form.value.v44Filings).filter(f=>f.mandateId===id);
+           const v44RemoveMandate = i => {const m=form.value.v44Mandates[i]; if(v44LinkedFilings(m.id).length)return alert('本筆委任仍連結送件明細，請先修改其委任關聯。'); if(confirm('確認移除此筆個別受託紀錄？'))form.value.v44Mandates.splice(i,1);};
+           const v44Esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+           const v44PrintMandate = m => {
+             if(!m?.scrivener)return alert('請先選擇受託地政士。');
+             const win=window.open('','_blank');if(!win)return alert('瀏覽器阻擋列印視窗，請允許本站彈出視窗。');
+             const f=form.value;const filings=v44LinkedFilings(m.id);
+             const cell = (s)=>`<td>${v44Esc(s)}</td>`;
+             const row=(label,value)=>`<tr><th>${v44Esc(label)}</th>${cell(value)}</tr>`;
+             const lines=filings.map(x=>`<tr>${cell(x.filedDate)}${cell(v44FilingLabel(x))}${cell(v44Agency(x))}${cell(x.receipt)}${cell(v44Registrar(x))}${cell(x.status)}${cell(v44IsVerified(x)?'已覆核':'')}</tr>`).join('');
+             const html=`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>${v44Esc(m.scrivener)}_業務紀錄簿</title><style>@page{size:A4;margin:15mm}body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:12px;color:#17354b;line-height:1.65}h1{text-align:center;font-size:19px;border-bottom:2px solid #17354b;padding-bottom:8px}h2{font-size:14px;margin:18px 0 5px}table{border-collapse:collapse;width:100%;table-layout:fixed}th,td{border:1px solid #aebec8;padding:7px;text-align:left;vertical-align:top;word-break:break-word}th{background:#f1f5f8;width:24%}td{min-height:16px}.filings th{width:auto}small{color:#526b7f}.note{white-space:pre-wrap;min-height:25px}</style></head><body><h1>地政士業務紀錄簿｜個別受託紀錄</h1>
+             <small>本表依本案經確認的個別委任及送件資料整理；未填欄位留白，不代表已完成或已依法申報。</small>
+             <h2>受託案件</h2><table>${row('受託地政士',m.scrivener)}${row('案件編號',currentCaseIndex.value>=0?cases.value[currentCaseIndex.value]?.['編號']||'':'')}${row('案名',f.propertyName)}${row('標的',f.address)}${row('地／建號',f.landBuildNo)}${row('業務類別',m.service)}${row('受託內容',m.content)}</table>
+             <h2>委任人及受託日期</h2><table>${row('委託人姓名或名稱',m.clientName)}${row('委託人地址',m.clientAddress)}${row('受託日期',m.mandateDate)}${row('委任文件索引',m.basis)}${row('委任資料核對',m.confirmed==='已核對'?'已核對':'')}</table>
+             <h2>申請日期及辦理情形</h2><table>${row('辦理情形',m.status)}${row('辦結／終止日',m.completedDate)}${row('補正／辦理紀錄',m.notes)}</table>
+             <h2>關聯送件明細（${filings.length} 筆）</h2><table class="filings"><thead><tr><th>申請日</th><th>類別</th><th>申請機關</th><th>收件字號</th><th>登記代理</th><th>狀態</th><th>收件覆核</th></tr></thead><tbody>${lines||'<tr><td colspan="7">　</td></tr>'}</tbody></table>
+             <p><small>送件明細與受託關係分開登載；本表不會將實際送件人、協辦人自動視為本地政士。涉及法定簽證案件者，另應依原簽證紀錄保存所需資料。</small></p></body></html>`;
+             win.document.open();win.document.write(html);win.document.close();win.focus();win.setTimeout(()=>win.print(),300);
+           };
+           const v44OpenCaseFiling = async idx => {
+             editCase(idx);
+             await Vue.nextTick();
+             document.getElementById('v44-filing-editor')?.scrollIntoView({behavior:'smooth',block:'start'});
+           };
+           const v44AvailableYears = computed(()=>{const ys=new Set([new Date().getFullYear()-1911,v44FilterYear.value]);v44AllFilings.value.forEach(r=>{const y=v44Year(r.filing.filedDate);if(y && y>=90&&y<200)ys.add(y)});return Array.from(ys).sort((a,b)=>b-a);});
+           const v44AllNoDate = computed(()=>v44AllFilings.value.filter(r=>r.filing.status!=='草稿'&&!v44Year(r.filing.filedDate)).length);
+           const v44MandateMatched = (f, caseIndex) => {
+             const data=v44CaseForm(cases.value[caseIndex]);
+             return v44SafeArray(data.v44Mandates).some(m=>m.id===f.mandateId && m.confirmed==='已核對' && m.scrivener && m.mandateDate && m.service && m.content && m.clientName && m.clientAddress);
+           };
+                       // V45: single source for verified annotations, then yearly/person views.
+            const v45AllAnnotated = computed(()=>{
+              const rows=v44AllFilings.value;
+              const keyCount=new Map();rows.forEach(r=>{if(r.filing.status==='草稿')return;const k=v44FilingKey(r.filing);if(k)keyCount.set(k,(keyCount.get(k)||0)+1);});
+              return rows.map(r=>{
+                const f=r.filing,key=v44FilingKey(f),duplicate=key && keyCount.get(key)>1;
+                const complete=!!(f.filedDate&&v44Agency(f)&&f.receipt&&v44Registrar(f)&&v44FilingLabel(f)&&f.status!=='草稿');
+                const mandateOK=v44MandateMatched(f,r.caseIndex);
+                const counted=complete&&v44IsVerified(f)&&mandateOK&&!duplicate;
+                return {...r,counted,problem:duplicate?'疑似重複':f.status==='草稿'?'草稿':!complete?'資料未齊':!mandateOK?'受託紀錄未核對':'待人工覆核'};
+              });
+            });
+            const v44AnnualBase = computed(()=>v45AllAnnotated.value.filter(r=>v44Year(r.filing.filedDate)===Number(v44FilterYear.value))
+                .filter(r=>!v44FilterKind.value || r.filing.kind===v44FilterKind.value));
+            const v44FilteredAnnual = computed(()=>v44AnnualBase.value.filter(r=>!v44FilterAgent.value ||
+                (v44FilterAgent.value==='其他' ? !['楊明宗','楊翊晟'].includes(v44Registrar(r.filing)) : v44Registrar(r.filing)===v44FilterAgent.value)));
+            const v45CaseCount = rows => new Set(rows.filter(r=>r.filing.status!=='草稿').map(r=>r.caseId || `row-${r.caseIndex}`)).size;
+            const v44YearSummary=computed(()=>({entered:v44FilteredAnnual.value.filter(r=>r.filing.status!=='草稿').length,verified:v44FilteredAnnual.value.filter(r=>r.counted).length,pending:v44FilteredAnnual.value.filter(r=>r.filing.status!=='草稿'&&!r.counted).length}));
+            const v44MonthSummary = computed(()=>Array.from({length:12},(_,index)=>{
+              const rows=v44FilteredAnnual.value.filter(r=>Number((r.filing.filedDate||'').slice(5,7))===index+1);
+              return {month:index+1,entered:rows.filter(r=>r.filing.status!=='草稿').length,verified:rows.filter(r=>r.counted).length,pending:rows.filter(r=>r.filing.status!=='草稿'&&!r.counted).length};
+            }));
+            const v44ScrivenerSummary=computed(()=>['楊明宗','楊翊晟','其他／未指定'].map(name=>{
+              const rows=v44AnnualBase.value.filter(r=>name==='其他／未指定' ? !['楊明宗','楊翊晟'].includes(v44Registrar(r.filing)) : v44Registrar(r.filing)===name);
+              return {name,caseCount:v45CaseCount(rows),entered:rows.filter(r=>r.filing.status!=='草稿').length,verified:rows.filter(r=>r.counted).length,pending:rows.filter(r=>r.filing.status!=='草稿'&&!r.counted).length};
+            }));
+            const v45MonthlyByAgent = computed(()=>['楊明宗','楊翊晟'].flatMap(name=>Array.from({length:12},(_,i)=>{
+              const rows=v44AnnualBase.value.filter(r=>v44Registrar(r.filing)===name && Number((r.filing.filedDate||'').slice(5,7))===i+1);
+              return {name,month:i+1,caseCount:v45CaseCount(rows),entered:rows.filter(r=>r.filing.status!=='草稿').length,verified:rows.filter(r=>r.counted).length,pending:rows.filter(r=>r.filing.status!=='草稿'&&!r.counted).length};
+            })));
+            const v45SelectAgent = name => { v44FilterAgent.value = name==='其他／未指定'?'其他':name; };
+            const v45LifetimeSummary = computed(()=>['楊明宗','楊翊晟','其他／未指定'].map(name=>{
+                const rows=v45AllAnnotated.value.filter(r=>name==='其他／未指定'? !['楊明宗','楊翊晟'].includes(v44Registrar(r.filing)) : v44Registrar(r.filing)===name);
+                return {name,caseCount:v45CaseCount(rows),entered:rows.filter(r=>r.filing.status!=='草稿').length,verified:rows.filter(r=>r.counted).length,pending:rows.filter(r=>r.filing.status!=='草稿'&&!r.counted).length,noDate:rows.filter(r=>r.filing.status!=='草稿'&&!v44Year(r.filing.filedDate)).length};
+            }));
+
+const v44ExportAnnual=()=>{
+             const head=['案件編號','案名','申請日','申請類別','登記代理地政士','實際送件人','地政機關','收件字號','土地筆數','建物棟數','狀態','覆核狀態','個別受託紀錄ID','備註'];
+             const quote=v=>{let s=String(v??'');if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+             const data=v44FilteredAnnual.value.map(r=>{const f=r.filing;return [r.caseNo,r.caseName,f.filedDate,v44FilingLabel(f),v44Registrar(f),f.deliverer,v44Agency(f),f.receipt,f.landCount,f.buildingCount,f.status,r.counted?'已覆核':r.problem,f.mandateId,f.notes].map(quote).join(',');});
+             const csv='\ufeff'+[head.map(quote).join(','),...data].join('\r\n');
+             downloadFile(csv,`地政士送件明細_民國${v44FilterYear.value}年.csv`,'text/csv;charset=utf-8;');
+           };
+
+            // V45 actual Excel (OOXML XLSX). Uses JSZip already bundled in V41; no added remote JS file.
+            const v45Xml = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+            const v45XlsxCol = index => {let result='';for(let n=index+1;n>0;n=Math.floor((n-1)/26))result=String.fromCharCode(65+(n-1)%26)+result;return result;};
+            const v45XlsxSheet = (rows,wideCols=[]) => {
+                const cells=rows.map((row,ri)=>`<row r="${ri+1}">${row.map((v,ci)=>{
+                    const cell=v45XlsxCol(ci)+(ri+1);
+                    if(typeof v==='number' && Number.isFinite(v))return `<c r="${cell}"${ri===0?' s="1"':''}><v>${v}</v></c>`;
+                    return `<c r="${cell}" t="inlineStr"${ri===0?' s="1"':''}><is><t xml:space="preserve">${v45Xml(v)}</t></is></c>`;
+                }).join('')}</row>`).join('');
+                const maxCols=Math.max(1,...rows.map(r=>r.length));
+                const widths=Array.from({length:maxCols},(_,i)=>{
+                    const width=wideCols[i]||Math.min(38,Math.max(14,Math.round(String(rows[0]?.[i]||'').length*1.5)+8));
+                    return `<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`;
+                }).join('');
+                const last=v45XlsxCol(maxCols-1);
+                return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths}</cols><sheetData>${cells}</sheetData><autoFilter ref="A1:${last}${Math.max(1,rows.length)}"/></worksheet>`;
+            };
+            const v45ExportXlsx = async () => {
+                if(v45ExportBusy.value)return;
+                if(typeof JSZip==='undefined')return alert('Excel 內建打包元件未載入，請確認 HTML 完整。');
+                v45ExportBusy.value=true;
+                try {
+                    const year=v44FilterYear.value;
+                    const head=['案件編號','案件名稱','送件日期','申請類別','登記代理地政士','實際送件人','地政事務所','收件字號','土地筆數','建物棟數','辦理進度','覆核狀態','受託紀錄連結','受託地政士','受託核對','辦結日期','備註'];
+                    const rowData = r=>{
+                        const f=r.filing, mandates=v44SafeArray(v44CaseForm(cases.value[r.caseIndex]).v44Mandates),m=mandates.find(x=>x.id===f.mandateId);
+                        return [r.caseNo,r.caseName,f.filedDate,v44FilingLabel(f),v44Registrar(f),f.deliverer,v44Agency(f),f.receipt,f.landCount,f.buildingCount,f.status,r.counted?'已覆核':r.problem,f.mandateId,m?.scrivener||'',m?.confirmed||'',f.completedDate,f.notes];
+                    };
+                    const summaryHead=['地政士','涉及案件數','已登載送件','已覆核（去重）','待核對／疑似重複'];
+                    const sheets=[
+                        {name:'年度總覽',rows:[['項目','內容'],['民國年度',Number(year)],['案件資料來源',caseLoadSource.value],['目前載入案件數',cases.value.length],['最近查核雲端件數',cloudCaseCount.value===null?'未查核':cloudCaseCount.value],['115年原 Excel 楊明宗',v46History.people[0].count],['115年原 Excel 楊翊晟',v46History.people[1].count],['115年原 Excel 合計（未去重）',v46History.people.reduce((n,p)=>n+p.count,0)],['申請類別篩選',v44FilterKind.value||'全部'],['目前人員明細篩選',v44FilterAgent.value||'全部'],['更新日期',new Date().toLocaleString('zh-TW',{hour12:false})],['說明','上方系統送件為目前案件已儲存明細；Excel 115年歷史基準另列獨立工作表，兩者可能重疊，禁止作為稅務去重件數。'],[],summaryHead,...v44ScrivenerSummary.value.map(r=>[r.name,r.caseCount,r.entered,r.verified,r.pending]),['合計',v45CaseCount(v44AnnualBase.value),v44AnnualBase.value.filter(r=>r.filing.status!=='草稿').length,v44AnnualBase.value.filter(r=>r.counted).length,v44AnnualBase.value.filter(r=>r.filing.status!=='草稿'&&!r.counted).length]],widths:[26,25,28,28,29]},
+                        {name:'歷年累計',rows:[['登記代理地政士','涉及案件數','已登載送件','已覆核','待核對','未填送件日'],...v45LifetimeSummary.value.map(r=>[r.name,r.caseCount,r.entered,r.verified,r.pending,r.noDate])],widths:[22,18,19,17,17,19]},
+                        {name:'兩人每月統計',rows:[['民國年度','月份','地政士','涉及案件數','已登載','已覆核','待核對'],...v45MonthlyByAgent.value.map(r=>[Number(year),r.month,r.name,r.caseCount,r.entered,r.verified,r.pending])],widths:[16,12,18,20,17,17,18]},
+                        {name:'楊明宗送件明細',rows:[head,...v44AnnualBase.value.filter(r=>v44Registrar(r.filing)==='楊明宗').map(rowData)],widths:[16,27,17,19,22,18,24,25,13,13,15,21,25,17,17,17,35]},
+                        {name:'楊翊晟送件明細',rows:[head,...v44AnnualBase.value.filter(r=>v44Registrar(r.filing)==='楊翊晟').map(rowData)],widths:[16,27,17,19,22,18,24,25,13,13,15,21,25,17,17,17,35]},
+                        {name:'其他與未指定',rows:[head,...v44AnnualBase.value.filter(r=>!['楊明宗','楊翊晟'].includes(v44Registrar(r.filing))).map(rowData)],widths:[16,27,17,19,22,18,24,25,13,13,15,21,25,17,17,17,35]},
+                        {name:'目前篩選明細',rows:[head,...v44FilteredAnnual.value.map(rowData)],widths:[16,27,17,19,22,18,24,25,13,13,15,21,25,17,17,17,35]},
+                        {name:'115年Excel歷史總覽',rows:[['統計項目','楊明宗','楊翊晟','合計'],['歷史登載列數',v46History.people[0].count,v46History.people[1].count,v46History.people.reduce((n,p)=>n+p.count,0)],['已有收件號',v46History.people[0].hasReceipt,v46History.people[1].hasReceipt,v46History.people.reduce((n,p)=>n+p.hasReceipt,0)],['未填收件號',v46History.people[0].blankReceipt,v46History.people[1].blankReceipt,v46History.people.reduce((n,p)=>n+p.blankReceipt,0)],['日期與工作表可能不一致',v46History.people[0].dateIssues,v46History.people[1].dateIssues,v46History.people.reduce((n,p)=>n+p.dateIssues,0)],['資料性質','115年原工作表有效登載列，尚未逐案核對正式收件；與現行系統送件可能重複，不能直接累加或當作稅務件數']],widths:[35,23,23,25]},
+                        {name:'115年Excel逐月',rows:[['民國年度','月份','楊明宗登載','楊翊晟登載','兩人合計','有收件號','未填收件號'],...v46HistoryMonthly.value.map(m=>[115,m.month,m.father,m.son,m.total,m.withReceipt,m.missingReceipt]),['合計','',v46History.people[0].count,v46History.people[1].count,v46History.people.reduce((n,p)=>n+p.count,0),v46History.people.reduce((n,p)=>n+p.hasReceipt,0),v46History.people.reduce((n,p)=>n+p.blankReceipt,0)]],widths:[16,12,21,21,20,18,19]},
+                        {name:'115年Excel類別',rows:[['地政士','原始 Excel 類別','登載列數','來源','核對狀態'],...v46HistoryKindRows.value.map(r=>[r.name,r.kind,r.count,r.name==='楊明宗'?'楊明宗總經理.xlsx':'楊翊晟.xlsx','歷史登載／待核對'])],widths:[19,30,19,26,23]},
+                        {name:'使用與核對說明',rows:[['核對項目','說明'],['資料來源','以本次開啟頁面「目前載入」的案件為準。file:// 本機預覽不等於正式雲端。'],['統計年度','依每筆送件日期所在的民國年度；未填送件日者不列入當年度。'],['涉及案件數','同一代理地政士在同年度的不同送件，僅算一次案件數；不同地政士可分別參與同一交易案件。'],['已登載送件','非草稿的送件明細筆數；不等於申報計件數。'],['已覆核','需有送件日期、地政機關、收件字號、登記代理人、人工覆核且連結完整委任紀錄，同年度同機關同收件號不重複列入。'],['未核對','未填資料、未完成委任對照或收件號疑似重複者列入待核對。'],['歷史資料','115年兩份舊 Excel 已以不含客戶個資的逐月與原始類別彙總內建；只代表歷史登載列，不表示已逐案回填或正式覆核。'],['報稅','本表不是正式報稅件數，收據、收款、收入歸屬及年度標準應另由會計核定。'],['獨立執業','楊明宗與楊翊晟各自獨立受託、收款、開立收據及記帳。'],['資料安全','Excel 檔由使用者瀏覽器本機產製，不上傳至外部轉檔服務。']],widths:[26,82]}
+                    ];
+                    const zip=new JSZip();
+                    const typeNs='http://schemas.openxmlformats.org/package/2006/content-types';
+                    const relNs='http://schemas.openxmlformats.org/package/2006/relationships';
+                    const mainNs='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+                    const docRel='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+                    zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="${typeNs}"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`);
+                    zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="${relNs}"><Relationship Id="rId1" Type="${docRel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+                    zip.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="${mainNs}" xmlns:r="${docRel}"><sheets>${sheets.map((s,i)=>`<sheet name="${v45Xml(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`);
+                    zip.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="${relNs}">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="${docRel}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="${docRel}/styles" Target="styles.xml"/></Relationships>`);
+                    zip.file('xl/styles.xml',`<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="${mainNs}"><fonts count="2"><font><sz val="11"/><name val="Microsoft JhengHei"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Microsoft JhengHei"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF173B54"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
+                    sheets.forEach((sheet,i)=>zip.file(`xl/worksheets/sheet${i+1}.xml`,v45XlsxSheet(sheet.rows,sheet.widths)));
+                    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5}});
+                    const url=URL.createObjectURL(blob),a=document.createElement('a');
+                    a.href=url;a.download=`宏國易丞地政_民國${year}年_雙地政士送件統計.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+                }catch(e){console.error('Excel 匯出失敗',e);alert('Excel 匯出未成功：'+(e?.message||String(e)));}
+                finally {v45ExportBusy.value=false;}
+            };
+
+            const roadmapType = ref('house');
 
  
            const escrowOptions = ref({
@@ -21400,6 +21819,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            });
  
            const form = ref({
+               v44Filings: [], v44Mandates: [],
                escrowProvider: '', escrowValues: {}, escrowFinalAmountSource: '', escrowScrivenerSource: '', ledgerSigningAgent: '', ledgerEscrowAgent: '', ledgerRegistrationAgent: '', ledgerRoleNotes: '', ledgerDelegatedAgent: '', ledgerDelegationBasis: '', ledgerCertifier: '',
                ledgerNumber: '', ledgerService: '', ledgerContent: '', ledgerAccepted: '', ledgerApplied: '', ledgerAuthority: '', ledgerReceipt: '', ledgerStatus: '', ledgerCompleted: '', ledgerHandling: '', ledgerAgent: '', ledgerCertification: '待確認', ledgerExtraClients: [],
                sopChecks: {}, sopPrivateLien: false, sopCalcDeed: '', sopCalcLoan: '',
@@ -21470,6 +21890,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const normalizeSopState = () => {
                if(!form.value.escrowValues || typeof form.value.escrowValues!=='object' || Array.isArray(form.value.escrowValues)) form.value.escrowValues={};
                if (!Array.isArray(form.value.ledgerExtraClients)) form.value.ledgerExtraClients=[];
+               if (!Array.isArray(form.value.v44Filings)) form.value.v44Filings=[];
+               if (!Array.isArray(form.value.v44Mandates)) form.value.v44Mandates=[];
                // V41: 現有快照保留，畫面/輸出一律以簽約日為受託日期；重新存檔時同步舊欄位。
                form.value.ledgerAccepted = form.value.contractDate || '';
                Object.keys(ledgerCustomOpen).forEach(key => { ledgerCustomOpen[key] = false; });
@@ -21952,7 +22374,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                     appendAudit(c, isCurrentlyClosed ? '取消結案' : '標記結案', oldData, `狀態切換為${targetStatus}`);
                     sortAndRenumberCases();
                     try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); }catch(e){}
-                    if(GAS_URL) syncToCloud(c).then(() => alert(`✅ 已更新並同步雲端！`));
+                    if(GAS_URL) syncToCloud(c).then(ok => {if(ok)alert(`✅ 已更新並同步雲端！`);});
                     else alert(`✅ 已更新！`);
                 }
            };
@@ -22072,28 +22494,33 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
                     if (Array.isArray(result) && result.length > 0) {
                         const remotePayload = result[0].payload;
+                         if(Array.isArray(remotePayload)){v44CloudBaseline=v44StableJson(remotePayload);cloudCaseCount.value=remotePayload.length;}
 
                         if (Array.isArray(remotePayload)) {
-                            const remoteCases = remotePayload.filter(looksLikeCase);
+                            const remoteCases = remotePayload.filter(c=>c && typeof c==='object' && !Array.isArray(c));
+                            if(remoteCases.length !== remotePayload.length) throw new Error('雲端案件含異常紀錄；停止自動取代本機資料，請先核對。');
 
                             // 防覆蓋保護：如果雲端筆數明顯少於本機，不自動覆蓋。
                             if (localBefore.length > remoteCases.length && localBefore.length >= 5) {
                                 const doMerge = confirm(`⚠️ 偵測到雲端案件較少，已啟動防覆蓋保護。\n\n本機：${localBefore.length} 筆\n雲端：${remoteCases.length} 筆\n\n建議選「確定」合併資料；選「取消」則保留本機資料，不用雲端覆蓋。`);
                                 if (doMerge) {
-                                    cases.value = mergeCaseArrays(localBefore, remoteCases);
-                                    sortAndRenumberCases();
+                                     cases.value = mergeCaseArrays(localBefore, remoteCases);
+                                     caseLoadSource.value='本機＋雲端合併（待核對）';
+                                     sortAndRenumberCases();
                                     try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e) {}
                                     autoLoadedMsg.value = `已安全合併本機 ${localBefore.length} 筆與雲端 ${remoteCases.length} 筆，共 ${cases.value.length} 筆`;
                                 } else {
-                                    cases.value = localBefore;
-                                    sortAndRenumberCases();
+                                     cases.value = localBefore;
+                                     caseLoadSource.value='保留本機資料（與雲端不同）';
+                                     sortAndRenumberCases();
                                     try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e) {}
                                     autoLoadedMsg.value = `已保留本機 ${cases.value.length} 筆，未被雲端 ${remoteCases.length} 筆覆蓋`;
                                 }
                                 setTimeout(() => autoLoadedMsg.value = null, 6000);
                             } else {
-                                cases.value = remoteCases;
-                                sortAndRenumberCases();
+                                 cases.value = remoteCases;
+                                 caseLoadSource.value=IS_LOCAL_FILE_PREVIEW?'Supabase 雲端唯讀資料（本機預覽，不可雲端儲存）':'Supabase 正式雲端資料（已載入）';
+                                 sortAndRenumberCases();
                                 try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e){}
                                 autoLoadedMsg.value = `已從 Supabase 載入 ${cases.value.length} 筆案件`;
                                 setTimeout(() => autoLoadedMsg.value = null, 3000);
@@ -22103,20 +22530,24 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             if (!localBefore.length) cases.value = [];
                             else cases.value = localBefore;
                             try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(e){}
-                            autoLoadedMsg.value = `雲端資料格式不是案件陣列，已保留本機 ${cases.value.length} 筆`;
+                             caseLoadSource.value='雲端格式異常｜保留本機資料';
+                             autoLoadedMsg.value = `雲端資料格式不是案件陣列，已保留本機 ${cases.value.length} 筆`;
                             setTimeout(() => autoLoadedMsg.value = null, 5000);
                         }
                     }
 
                     syncStatus.value = 'success';
                 } catch (error) {
-                    console.error("Supabase 讀取失敗:", error);
-                    syncStatus.value = 'error';
+                     console.error("Supabase 讀取失敗:", error);
+                     caseLoadSource.value='⚠️ 雲端讀取失敗｜顯示本機舊暫存（非正式完整件數）';
+                     syncStatus.value = 'error';
+                     autoLoadedMsg.value='⚠️ 雲端讀取失敗：請重新載入雲端案件，不可依本機件數判斷正式總量';
                 }
            };
 
            const syncToCloud = async (currentSavedData = null) => {
-                if (!SUPABASE_ENABLED) return;
+                if (!SUPABASE_ENABLED) return false;
+                if(IS_LOCAL_FILE_PREVIEW){alert('目前是本機 HTML：可唯讀查看正式雲端案件，但任何修改只留在此瀏覽器，不能直接回寫雲端。正式使用請替換 GitHub 上的 index.html。');return false;}
                 try {
                     syncStatus.value = 'syncing';
 
@@ -22134,6 +22565,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
                     const payload = { payload: normalizedCases };
 
+                    // V44 non-destructive preflight; GET/PATCH race still requires database-level mitigation.
+                    if(v44CloudBaseline === null) throw new Error('尚未完成雲端讀取；請確認連線並重新載入案件。');
+                    const preflight = await fetch(SUPABASE_ENDPOINT, {
+                        method: 'GET',
+                        headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Accept':'application/json'},
+                        cache: 'no-store'
+                    });
+                    if(!preflight.ok) throw new Error('存檔前雲端比對失敗：'+preflight.status);
+                    const remoteNow = await preflight.json();
+                    if(!Array.isArray(remoteNow)||!Array.isArray(remoteNow[0]?.payload)) throw new Error('雲端案件資料格式錯誤，已停止同步。');
+                    if(v44StableJson(remoteNow[0].payload)!==v44CloudBaseline) throw new Error('其他同仁已更新雲端案件。本機草稿仍在，請先匯出交接 CSV、核對差異，再重新載入，避免覆寫。');
+
                     const response = await fetch(SUPABASE_ENDPOINT, {
                         method: 'PATCH',
                         headers: {
@@ -22150,11 +22593,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                         throw new Error(`Supabase 同步失敗：${response.status} ${errorText}`);
                     }
 
-                    syncStatus.value = 'success';
+                     v44CloudBaseline=v44StableJson(normalizedCases);
+                     caseLoadSource.value='Supabase 正式雲端資料（同步完成）';
+                     cloudCaseCount.value=normalizedCases.length;
+                     syncStatus.value = 'success';
+                    return true;
                 } catch (error) {
                     console.error("Supabase 同步失敗:", error);
                     syncStatus.value = 'error';
-                    alert('⚠️ Supabase 同步失敗，資料已先保存在本機。請打開瀏覽器 Console 查看錯誤。');
+                    alert('⚠️ Supabase 同步未完成，資料已先保存在本機。'+(error.message || '請檢查連線')+'；請勿誤以為雲端存檔成功。');
+                    return false;
                 }
            };
 
@@ -22446,8 +22894,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                try {
                    const savedCases = localStorage.getItem('nexus_cases_db');
                   if (savedCases && savedCases !== "undefined") {
-                       cases.value = JSON.parse(savedCases);
-                       sortAndRenumberCases();
+                        cases.value = JSON.parse(savedCases);
+                        caseLoadSource.value = IS_LOCAL_FILE_PREVIEW ? '本機暫存（正在唯讀載入正式雲端）' : '本機暫存（正在核對雲端）';
+                        sortAndRenumberCases();
                        autoLoadedMsg.value = `已安全載入 ${cases.value.length} 筆案件`;
                        setTimeout(() => autoLoadedMsg.value = null, 3000);
                    }
@@ -22460,7 +22909,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                  else {draftRestoreBlocked.value=true; sopDraftStatus.value='草稿無法唯一對應原案，請從總庫重開或另存新案';}
                }
                if(Array.isArray(form.value.sopDraftStaff)) selectedStaff.value=[...form.value.sopDraftStaff];
-               if(GAS_URL) loadFromCloud();
+               if(SUPABASE_ENABLED) loadFromCloud();
            });
  
             const editCase = (idx) => {
@@ -22656,7 +23105,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
                 
                 if (GAS_URL) {
-                  syncToCloud(rowData).then(() => alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'));
+                  syncToCloud(rowData).then(ok => { if(ok)alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'); });
                 } else { alert('✅ 存檔成功！(本機)'); }
            };
 
@@ -22787,8 +23236,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            };
  
            return {
+               v44FilingKinds,v44FilterYear,v44FilterAgent,v44FilterKind,v44AvailableYears,v44AllNoDate,v44FilteredAnnual,v44YearSummary,v44ScrivenerSummary,v44MonthSummary,
+               v44CaseFilings,v44FilingLabel,v44Agency,v44Registrar,v44IsVerified,v44FilingWarning,v44Verify,v44AddFiling,v44AddThree,v44RemoveFiling,v44AddMandate,v44SeedV41Mandate,v44RemoveMandate,v44LinkedFilings,v44PrintMandate,v44OpenCaseFiling,v44ExportAnnual,
                caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerConfirmedClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, ledgerAgentFields, ledgerChoiceOptions, ledgerChoiceValue, setLedgerChoice, ledgerNarrativeOptions, appendLedgerText, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
-               cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
+                cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
+                caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
                roadmapType, showPrivateLien, escrowOptions, staffList, activeStaffList, staffHistoryFilterList, staffStorageNotice, staffSaveStatus, selectedStaff, newStaff, addStaff, staffUsageCount, renameStaff, toggleStaffActive, deleteStaff, exportStaffDirectory, importStaffDirectory,
