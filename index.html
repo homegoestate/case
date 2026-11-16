@@ -19969,6 +19969,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                   <i class="fas fa-database mr-1"></i> 案件總庫
                 </button>
 
+                <!-- V51 地政士作業台入口（Claude 2026-11-16） -->
+                <button @click="openDesk" title="在新分頁開啟地政士作業台（標的明細、登記申請書、公契）。作業台讀的是雲端上次存檔的內容。" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 text-sm shadow-sm transition-colors border border-teal-600 font-bold" data-testid="desk-link">
+                  <i class="fas fa-file-signature mr-1"></i> 地政士作業台
+                </button>
+
                 <button @click="recoverLocalCaseBackups" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm shadow-sm transition-colors border border-orange-700 font-bold" title="掃描本機舊資料並合併回案件總庫">
                   <i class="fas fa-life-ring mr-1"></i> 救援本機資料
                 </button>
@@ -22650,6 +22655,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                w.document.open(); w.document.write(html); w.document.close();
            };
 
+           // V51 地政士作業台入口（Claude 2026-11-16）：有目前案件且已有識別碼時直接開該案；否則開作業台自行選案。
+           const openDesk = () => {
+               const c = currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : null;
+               const url = 'desk.html' + (c && c._caseId ? '?case=' + encodeURIComponent(c._caseId) : '');
+               const w = window.open(url, '_blank');
+               if (w) { try { w.opener = null; } catch (e) {} } else alert('瀏覽器擋住了新分頁，請允許此網站開啟新分頁後再按一次。');
+           };
+
            // V44: additive, case-scoped filing and mandate records; read from existing form snapshot only.
            // The original V41 ledger, case identity, CRM, Google Calendar, escrow, print and CSV paths stay intact.
            // V46: Source is two user-provided 115-year Excel workbooks. PUBLIC GitHub is not a suitable place for the personal data in the source rows. Only month/type aggregates are bundled below.
@@ -24303,6 +24316,7 @@ const v44ExportAnnual=()=>{
                 listFilter, resetListFilter, listFilterActive, listStaffOptions, listScrivenerOptions, listAttentionCounts, filteredManagerList, v47MetaOf,
                 statsGrain, statsOffset, statsBasis, statsDrill, statsPeriod, statsPeriodEndText, statsSets, statsTrend, statsBreakdown, statsBasisLabel, statsDrillList, setStatsBasis, setStatsGrain, moveStatsPeriod, pickStatsDrill, v48Sum, v48Fmt, v48Num,
                 v49Quotes, v49State, v49Filter, v49Edit, v49SaveMsg, v49PendingQuote, V49_STATUS, V49_TYPES, V49_CATS, V49_PAYERS, V49_PRESETS, v49FilterDefs, v49List, v49Counts, v49Dirty, v49EditTotals, v49StaffOptions, v49SourceOptions, v49ServiceOptions, v49ScrivenerOptions, v49No, v49ROC, v49Money, v49DateTime, v49Totals, v49StatusOf, v49IsConverted, v49CaseNoOf, v49PeopleText, v49Load, v49New, v49Open, v49Close, v49Copy, v49SaveQuote, v49SetVoid, v49Convert, v49OpenCase, v49CancelPending, v49Print, v49AddItem, v49RemoveItem, v49AddPerson, v49RemovePerson, v49AddAgent, v49RemoveAgent, v49HasStaff, v49ToggleStaff,
+                openDesk,
                 caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
