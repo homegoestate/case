@@ -20169,13 +20169,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                     </div>
                     <div class="space-y-2 relative z-0">
                         <div v-for="staff in staffList" :key="staff.name" data-testid="staff-row" class="flex flex-wrap items-center gap-2 bg-gray-50 px-2 py-2 rounded border">
-                            <label v-if="staff.active !== false" class="flex items-center cursor-pointer select-none print:bg-white print:border-0 print:p-0">
+                            <label v-if="staff.active !== false || selectedStaff.includes(staff.name)" class="flex items-center cursor-pointer select-none print:bg-white print:border-0 print:p-0">
                                 <input type="checkbox" :value="staff.name" v-model="selectedStaff" class="w-4 h-4 text-navy mr-1 rounded-sm cursor-pointer print:appearance-auto">
-                                <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span>
+                                <span class="text-sm font-bold print:text-[11pt]">{{staff.name}}</span><span v-if="staff.active === false" class="no-print text-[10px] bg-gray-200 text-gray-600 px-1 rounded ml-1">已停用</span>
                             </label>
                             <span v-else class="text-sm font-bold text-gray-500">{{staff.name}} <span class="text-[10px] bg-gray-200 px-1 rounded">已停用</span></span>
-                            <span class="text-[11px] text-gray-500">歷史引用 {{staffUsageCount(staff.name)}} 案</span>
-                            <div class="no-print ml-auto flex flex-wrap gap-1">
+                            <span class="text-[11px] text-gray-500">歷史引用 {{staffUsageCount(staff.name)}} 案</span><span v-if="staff.hr" class="no-print text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1 rounded">員工管理</span><span v-else-if="v52Hr.state === 'ok'" class="no-print text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1 rounded">本機</span>
+                            <div v-if="!staff.hr" class="no-print ml-auto flex flex-wrap gap-1">
                                 <button @click="renameStaff(staff)" class="border rounded px-2 py-1 text-xs">編輯</button>
                                 <button @click="toggleStaffActive(staff)" class="border rounded px-2 py-1 text-xs" :class="staff.active === false ? 'text-green-700' : 'text-amber-700'">{{staff.active === false ? '重新啟用' : '離職停用'}}</button>
                                 <button @click="deleteStaff(staff)" class="border rounded px-2 py-1 text-xs text-red-700">刪除</button>
@@ -20746,7 +20746,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 <div class="bg-white p-4 rounded shadow-sm border border-gray-200 mb-4">
                     <h3 class="font-bold mb-2 text-navy text-sm"><i class="fas fa-users-cog mr-1"></i> 承辦人名單管理</h3>
                     <p class="text-xs text-gray-600 mb-2">已被案件引用者請停用：歷史案件仍保留原姓名，但建立新案時不再顯示；查詢與週報篩選仍會列出並標示「已停用」。只有未被任何案件引用的人員可永久刪除。</p>
-                    <div class="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2 mb-3"><i class="fas fa-laptop mr-1"></i> 承辦名單只儲存在目前瀏覽器，不會跨裝置或同步到正式後端。換電腦前請匯出 JSON，再於另一台電腦匯入。</div>
+                    <div class="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2 mb-3"><i class="fas fa-laptop mr-1"></i> 同仁姓名與在職／離職由員工管理自動帶入（標「員工管理」），請到員工管理修改。電話與標「本機」的人員只存在目前瀏覽器，換電腦前請匯出 JSON，再於另一台電腦匯入。</div>
                     <div class="flex flex-wrap gap-2 mb-3 no-print">
                         <button @click="exportStaffDirectory" class="border border-blue-300 text-blue-700 rounded px-3 py-1 text-sm font-bold"><i class="fas fa-file-export mr-1"></i>匯出名單 JSON</button>
                         <label class="border border-green-300 text-green-700 rounded px-3 py-1 text-sm font-bold cursor-pointer"><i class="fas fa-file-import mr-1"></i>匯入名單 JSON<input type="file" accept="application/json,.json" class="hidden" @change="importStaffDirectory"></label>
@@ -20761,8 +20761,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             <span class="font-bold min-w-[5rem]">{{staff.name}}</span>
                             <span class="text-xs min-w-[7rem]">{{staff.phone || '未填電話'}}</span>
                             <span class="text-xs" :class="staffUsageCount(staff.name) ? 'text-blue-700' : 'text-gray-400'">歷史引用 {{staffUsageCount(staff.name)}} 案</span>
-                            <span v-if="staff.active === false" class="text-[11px] bg-gray-300 text-gray-700 px-2 py-0.5 rounded">已停用</span>
-                            <div class="ml-auto flex gap-1 no-print">
+                            <span v-if="staff.active === false" class="text-[11px] bg-gray-300 text-gray-700 px-2 py-0.5 rounded">已停用</span><span v-if="staff.hr" class="no-print text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1 rounded">員工管理</span><span v-else-if="v52Hr.state === 'ok'" class="no-print text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1 rounded">本機</span>
+                            <div v-if="!staff.hr" class="ml-auto flex gap-1 no-print">
                                 <button @click="renameStaff(staff)" class="border rounded px-2 py-1 hover:bg-gray-50">更名</button>
                                 <button @click="toggleStaffActive(staff)" class="border rounded px-2 py-1" :class="staff.active === false ? 'text-green-700' : 'text-amber-700'">{{staff.active === false ? '重新啟用' : '停用'}}</button>
                                 <button @click="deleteStaff(staff)" :disabled="staffUsageCount(staff.name) > 0" class="border rounded px-2 py-1 text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed" :title="staffUsageCount(staff.name) > 0 ? '已有歷史案件引用，請改用停用' : '永久刪除未引用人員'">刪除</button>
@@ -21953,7 +21953,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                    name: name || (role === 'CEO' ? '楊翊晟' : '單機測試'),
                    role,
                    roleLabel,
-                   shortName: OPERATOR_SHORT_NAME[name] || name,
+                   shortName: OPERATOR_SHORT_NAME[name] || v52ShortOfOperator(name),
                    source: raw.source || 'portal'
                };
            };
@@ -22063,7 +22063,98 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const STAFF_STORAGE_KEY = 'nexus_staff_directory_v2_round3';
            const staffList = reactive(DEFAULT_STAFF.map(s => ({...s})));
            const staffSavedAt = ref('');
-           const staffStorageNotice = computed(() => location.protocol === 'file:' ? '本機隔離名單，不連線 Supabase' : '本機名單，未跨裝置同步');
+           // V52 承辦人名單連動員工管理（Claude 2026-11-16）：只讀員工管理公開名單 roster（姓名、在職狀態）。
+           // 員工管理的人：姓名與在職／離職以員工管理為準，背表不能改；電話仍沿用這台電腦的名單。
+           // 不在員工管理的人：標示「本機」，維持原本的新增／停用／刪除。不改任何案件的「承辦」內容。
+           const v52Hr = ref({ state: 'idle', at: '', active: 0, left: 0, msg: '' });
+           let v52RosterRows = null;
+           const v52ShortFromFull = full => {
+               const d = DEFAULT_STAFF.find(s => s.fullName === full);
+               if (d) return d.name;
+               return /^[\u4e00-\u9fff]{3}$/.test(full) ? full.slice(1) : full;
+           };
+           const v52MergeRoster = (localRows, rosterRows) => {
+               const people = new Map();
+               (rosterRows || []).forEach(r => {
+                   if (!r || typeof r !== 'object') return;
+                   const full = String(r.name || '').trim();
+                   if (!full || full.length > 50 || /[、\u0000-\u001f\u007f]/.test(full)) return;
+                   const left = r.employmentStatus === 'archived' || r.loginDisabled === true;
+                   const prev = people.get(full);
+                   people.set(full, { full, active: (prev ? prev.active : false) || !left });
+               });
+               if (!people.size) return null;
+               const shortCount = new Map();
+               people.forEach(p => { p.short = v52ShortFromFull(p.full); shortCount.set(p.short, (shortCount.get(p.short) || 0) + 1); });
+               people.forEach(p => { if (shortCount.get(p.short) > 1) p.short = p.full; });
+               const matchOf = s => { for (const p of people.values()) { if (s.fullName === p.full || s.name === p.full || s.name === p.short) return p; } return null; };
+               const rows = [], emitted = new Set();
+               const hrRow = (p, phone) => {
+                   const d = DEFAULT_STAFF.find(x => x.fullName === p.full);
+                   return { name: p.short, fullName: p.full, phone: phone || (d && d.phone) || '', active: p.active, hr: true };
+               };
+               (localRows || []).forEach(s => {
+                   const p = matchOf(s);
+                   if (!p) { rows.push({ name: s.name, fullName: s.fullName || s.name, phone: s.phone || '', active: s.active !== false, hr: false }); return; }
+                   if (emitted.has(p.full)) { const row = rows.find(x => x.hr && x.fullName === p.full); if (row && !row.phone && s.phone) row.phone = s.phone; return; }
+                   emitted.add(p.full); rows.push(hrRow(p, s.phone));
+               });
+               people.forEach(p => { if (!emitted.has(p.full)) { emitted.add(p.full); rows.push(hrRow(p, '')); } });
+               let active = 0, left = 0; people.forEach(p => { if (p.active) active++; else left++; });
+               return { rows, active, left };
+           };
+           const v52ApplyRoster = () => {
+               if (!v52RosterRows) return null;
+               const merged = v52MergeRoster(staffList.map(s => ({ ...s })), v52RosterRows);
+               if (!merged) return null;
+               staffList.splice(0, staffList.length, ...merged.rows);
+               return merged;
+           };
+           function v52ShortOfOperator(name) {
+               try { const hit = staffList.find(s => s.fullName === name || s.name === name); return hit ? hit.name : name; } catch (e) { return name; }
+           }
+           const v52FixOperator = () => {
+               const op = currentOperator.value;
+               if (!op || !op.name || op.source === 'standalone') return;
+               const hit = staffList.find(s => s.active !== false && (s.fullName === op.name || s.name === op.name));
+               if (!hit) return;
+               if (op.shortName !== hit.name) currentOperator.value = { ...op, shortName: hit.name };
+               if (!selectedStaff.value.length && currentCaseIndex.value === -1) selectedStaff.value = [hit.name];
+           };
+           const v52LoadRoster = async () => {
+               if (location.protocol === 'file:' || typeof firebase === 'undefined' || typeof window.hgCaseToken !== 'function') return;
+               v52Hr.value = { ...v52Hr.value, state: 'loading', msg: '' };
+               try {
+                   await window.hgCaseToken();
+                   const app = firebase.apps.find(a => a.name === 'hg-shared');
+                   if (!app) throw new Error('找不到登入連線');
+                   const snap = await Promise.race([
+                       app.database().ref('roster').get(),
+                       new Promise((_, reject) => setTimeout(() => reject(new Error('讀取逾時')), 15000))
+                   ]);
+                   const val = snap && snap.val();
+                   const rows = val && typeof val === 'object' ? Object.values(val) : [];
+                   if (!rows.length) throw new Error('員工管理名單是空的');
+                   const before = JSON.stringify(staffList);
+                   v52RosterRows = rows;
+                   const merged = v52ApplyRoster();
+                   if (!merged) { v52RosterRows = null; throw new Error('員工管理名單沒有可用的姓名'); }
+                   if (JSON.stringify(staffList) !== before) persistStaffList();
+                   v52Hr.value = { state: 'ok', at: new Date().toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false, hour: '2-digit', minute: '2-digit' }), active: merged.active, left: merged.left, msg: '' };
+                   v52FixOperator();
+               } catch (e) {
+                   v52Hr.value = { ...v52Hr.value, state: 'error', msg: (e && e.message) || String(e) };
+                   console.warn('V52 員工管理名單讀取失敗，沿用本機名單', e);
+               }
+           };
+           const staffStorageNotice = computed(() => {
+               if (location.protocol === 'file:') return '本機隔離名單，不連線 Supabase';
+               const h = v52Hr.value;
+               if (h.state === 'ok') return '已連動員工管理名單（在職 ' + h.active + ' 位、離職 ' + h.left + ' 位，' + h.at + ' 讀取）。新進、離職請到員工管理修改；標「本機」的人員只存在這台電腦。';
+               if (h.state === 'loading') return '正在讀取員工管理名單…';
+               if (h.state === 'error') return '員工管理名單讀取失敗（' + h.msg + '），暫用這台電腦上次的名單。';
+               return '本機名單，未跨裝置同步';
+           });
            const staffSaveStatus = computed(() => staffSavedAt.value ? '已自動保存於此裝置｜'+staffSavedAt.value : '尚無本次修改；變更後會自動保存於此裝置');
            
            const selectedStaff = ref([]); 
@@ -23723,12 +23814,14 @@ const v44ExportAnnual=()=>{
            const addStaff = () => {
                 const name = normalizeStaffName(newStaff.value.name);
                 if (!name) return alert('請輸入承辦姓名。');
+                if (staffList.some(staff => staff.hr && (staff.fullName === name || staff.name === name))) return alert('此人已在員工管理名單中，不需另外新增。');
                 if (staffList.some(staff => staff.name === name)) return alert('此承辦姓名已存在；如已停用，請在名單管理按「重新啟用」。');
                 staffList.push({ name, fullName: name, phone: String(newStaff.value.phone || '').trim(), active: true });
                 persistStaffList();
                 newStaff.value = {name:'', phone:''};
            };
            const renameStaff = (staff) => {
+                if (staff && staff.hr) return alert('「' + staff.name + '」由員工管理名單自動帶入，姓名與在職狀態請到員工管理修改。');
                 const oldName = staff.name;
                 const nextName = normalizeStaffName(prompt(`承辦人更名：${oldName}\n歷史案件仍保留原姓名，不會批次改寫。`, oldName));
                 if (!nextName || nextName === oldName) return;
@@ -23740,6 +23833,7 @@ const v44ExportAnnual=()=>{
                 persistStaffList();
            };
            const toggleStaffActive = (staff) => {
+                if (staff && staff.hr) return alert('「' + staff.name + '」由員工管理名單自動帶入，姓名與在職狀態請到員工管理修改。');
                 const willActivate = staff.active === false;
                 if (!willActivate && !confirm(`停用「${staff.name}」？\n新案件指派將不再顯示；查詢與週報仍可依歷史姓名篩選，並標示「已停用」。`)) return;
                 staff.active = willActivate;
@@ -23749,6 +23843,7 @@ const v44ExportAnnual=()=>{
                 persistStaffList();
            };
            const deleteStaff = (staff) => {
+                if (staff && staff.hr) return alert('「' + staff.name + '」由員工管理名單自動帶入，姓名與在職狀態請到員工管理修改。');
                 const usage = staffUsageCount(staff.name);
                 if (usage > 0) return alert(`「${staff.name}」已被目前載入的 ${usage} 筆案件引用，為保留歷史不可刪除，請改用離職停用。`);
                 if (!confirm(`第一步確認：刪除未被目前載入案件引用的「${staff.name}」？`)) return;
@@ -23795,7 +23890,7 @@ const v44ExportAnnual=()=>{
                     try {
                         const imported = normalizeImportedStaff(JSON.parse(String(reader.result || '')));
                         if (!confirm(`將以匯入的 ${imported.length} 位承辦人取代目前本機名單？\n案件歷史資料不會改寫，也不會同步正式後端。`)) return;
-                        staffList.splice(0, staffList.length, ...imported);
+                        staffList.splice(0, staffList.length, ...imported); v52ApplyRoster();
                         selectedStaff.value = selectedStaff.value.filter(name => activeStaffList.value.some(staff => staff.name === name));
                         if (reportStaffFilter.value && !staffList.some(staff => staff.name === reportStaffFilter.value)) reportStaffFilter.value = '';
                         persistStaffList();
@@ -23926,6 +24021,7 @@ const v44ExportAnnual=()=>{
                        if (savedStaff && savedStaff.savedAt) staffSavedAt.value = savedStaff.savedAt;
                    }
                } catch(e) { console.warn('承辦名單載入失敗，改用內建名單', e); }
+               v52LoadRoster();
                loadPortalSession();
                try {
                    const savedEscrow = localStorage.getItem('nexus_escrow_options');
@@ -24316,7 +24412,7 @@ const v44ExportAnnual=()=>{
                 listFilter, resetListFilter, listFilterActive, listStaffOptions, listScrivenerOptions, listAttentionCounts, filteredManagerList, v47MetaOf,
                 statsGrain, statsOffset, statsBasis, statsDrill, statsPeriod, statsPeriodEndText, statsSets, statsTrend, statsBreakdown, statsBasisLabel, statsDrillList, setStatsBasis, setStatsGrain, moveStatsPeriod, pickStatsDrill, v48Sum, v48Fmt, v48Num,
                 v49Quotes, v49State, v49Filter, v49Edit, v49SaveMsg, v49PendingQuote, V49_STATUS, V49_TYPES, V49_CATS, V49_PAYERS, V49_PRESETS, v49FilterDefs, v49List, v49Counts, v49Dirty, v49EditTotals, v49StaffOptions, v49SourceOptions, v49ServiceOptions, v49ScrivenerOptions, v49No, v49ROC, v49Money, v49DateTime, v49Totals, v49StatusOf, v49IsConverted, v49CaseNoOf, v49PeopleText, v49Load, v49New, v49Open, v49Close, v49Copy, v49SaveQuote, v49SetVoid, v49Convert, v49OpenCase, v49CancelPending, v49Print, v49AddItem, v49RemoveItem, v49AddPerson, v49RemovePerson, v49AddAgent, v49RemoveAgent, v49HasStaff, v49ToggleStaff,
-                openDesk,
+                openDesk, v52Hr,
                 caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
