@@ -4,6 +4,101 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>宏國x易丞地政 - 背表・履保開戶・業務紀錄簿・送件年度統計 V46</title>
+   <!-- V46-login（Claude 2026-11-16）：同仁登入後才可讀寫案件。沿用總管理／員工系統的帳號（homego-system，hg-shared 同網域登入）。 -->
+   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+   <style>
+     #hg-case-login{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.72);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+     #hg-case-login form{background:#fff;color:#1e293b;border-radius:12px;padding:24px;width:100%;max-width:360px;box-shadow:0 20px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:12px}
+     #hg-case-login h2{margin:0;font-size:19px}
+     #hg-case-login p{margin:0;font-size:13px;color:#475569;line-height:1.6}
+     #hg-case-login input{font-size:16px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px}
+     #hg-case-login button{font-size:16px;padding:10px;border:0;border-radius:8px;background:#0f766e;color:#fff;font-weight:700;cursor:pointer}
+     #hg-case-login button:disabled{opacity:.6;cursor:wait}
+     #hg-case-login .err{color:#b91c1c;font-size:13px;min-height:1em}
+     #hg-case-badge{position:fixed;left:8px;bottom:8px;z-index:2147482000;background:#0f766e;color:#fff;font:13px system-ui,"Noto Sans TC",sans-serif;padding:6px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+     #hg-case-badge a{color:#fff;margin-left:8px;text-decoration:underline;cursor:pointer}
+   </style>
+   <script>
+   // 背表登入閘門：任何讀寫 Supabase 前都先確認同仁已登入，並改帶本人的登入權杖。
+   // 帳號、密碼與權限沿用 11/12 上線的總管理／員工系統（access/<uid>.active）。資料庫端另以同仁名單把關。
+   (function () {
+     var CFG = { apiKey: "AIzaSyCcSH0HQutt6rYcFWjCKOpTSWkBDeinyvw", authDomain: "homego-system.firebaseapp.com", databaseURL: "https://homego-system-default-rtdb.firebaseio.com", projectId: "homego-system", storageBucket: "homego-system.firebasestorage.app", messagingSenderId: "679007509034", appId: "1:679007509034:web:df50010c5ab8cd7f964153" };
+     var app = firebase.apps.find(function (a) { return a.name === 'hg-shared'; }) || firebase.initializeApp(CFG, 'hg-shared');
+     var auth = app.auth(), db = app.database();
+     var gate = null;
+     function loginKey(v) { return String(v || '').trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.#$\[\]\/]/g, '_'); }
+     function firstUser() { return new Promise(function (resolve) { var stop = auth.onAuthStateChanged(function (u) { stop(); resolve(u); }); }); }
+     async function checkAccess(user) {
+       var snap = await db.ref('access/' + user.uid).get();
+       var a = snap.exists() ? snap.val() : null;
+       if (!a || a.active !== true) throw new Error('此帳號目前沒有使用權限，請聯絡楊翊晟。');
+       return a;
+     }
+     function errText(e) {
+       var c = String(e && e.code || '');
+       if (c.indexOf('invalid') >= 0 || c.indexOf('wrong-password') >= 0 || c.indexOf('user-not-found') >= 0) return '帳號或密碼錯誤。';
+       if (c.indexOf('too-many') >= 0) return '嘗試次數過多，請稍後再試。';
+       if (c.indexOf('disabled') >= 0) return '此帳號已停用，請聯絡楊翊晟。';
+       if (c.indexOf('network') >= 0) return '目前無法連線，請確認網路後再試。';
+       return (e && e.message) || '登入失敗，請稍後再試。';
+     }
+     function showBadge(access) {
+       var old = document.getElementById('hg-case-badge'); if (old) old.remove();
+       var b = document.createElement('div'); b.id = 'hg-case-badge';
+       var who = document.createElement('span'); who.textContent = '已登入：' + (access.employee || access.account || access.empKey || '同仁');
+       var out = document.createElement('a'); out.textContent = '登出';
+       out.onclick = function () { auth.signOut().finally(function () { location.reload(); }); };
+       b.appendChild(who); b.appendChild(out); document.body.appendChild(b);
+     }
+     function showLogin(notice) {
+       return new Promise(function (resolve) {
+         var wrap = document.createElement('div'); wrap.id = 'hg-case-login';
+         wrap.innerHTML = '<form autocomplete="on"><h2>背表登入</h2><p></p>' +
+           '<input id="hgCaseUser" placeholder="帳號（與總管理相同）" autocomplete="username" required>' +
+           '<input id="hgCasePass" type="password" placeholder="密碼" autocomplete="current-password" required>' +
+           '<div class="err"></div><button type="submit">登入</button></form>';
+         wrap.querySelector('p').textContent = notice || '請用總管理的帳號與密碼登入。登入後才能讀取與存檔案件，這台裝置之後會保持登入。';
+         var form = wrap.querySelector('form'), err = wrap.querySelector('.err'), btn = wrap.querySelector('button');
+         form.addEventListener('submit', async function (ev) {
+           ev.preventDefault(); err.textContent = ''; btn.disabled = true;
+           try {
+             var name = document.getElementById('hgCaseUser').value.trim();
+             var pass = document.getElementById('hgCasePass').value;
+             var email = null, keys = [loginKey(name), loginKey(name.replace(/\s+/g, ''))];
+             for (var i = 0; i < keys.length && !email; i++) {
+               var s = await db.ref('loginIndex/' + keys[i]).get();
+               if (s.exists() && typeof s.val() === 'string') email = s.val();
+             }
+             if (!email) throw new Error('帳號或密碼錯誤。');
+             await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+             var cred = await auth.signInWithEmailAndPassword(email, pass);
+             var access;
+             try { access = await checkAccess(cred.user); } catch (e2) { await auth.signOut().catch(function () {}); throw e2; }
+             wrap.remove(); showBadge(access); resolve(cred.user);
+           } catch (e) { err.textContent = errText(e); btn.disabled = false; }
+         });
+         document.body.appendChild(wrap);
+         setTimeout(function () { var u = document.getElementById('hgCaseUser'); if (u) u.focus(); }, 0);
+       });
+     }
+     async function ensureLogin() {
+       var u = await firstUser();
+       if (u) {
+         try { var a = await checkAccess(u); showBadge(a); return u; }
+         catch (e) { await auth.signOut().catch(function () {}); return showLogin(e.message); }
+       }
+       return showLogin();
+     }
+     window.hgCaseToken = async function () {
+       if (!gate) gate = ensureLogin().catch(function (e) { gate = null; throw e; });
+       await gate;
+       if (!auth.currentUser) { gate = ensureLogin(); await gate; }
+       return auth.currentUser.getIdToken();
+     };
+   })();
+   </script>
     
    <!-- Bundled vue.global.js SHA256 b191cf809aa83452971804f9df2d8c67de65de34caa40f0fcf828c508c7099e2 -->
 <script>
@@ -21559,7 +21654,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 try {
                     const r = await fetch(SUPABASE_ENDPOINT + '&select=payload', {
                         method:'GET', cache:'no-store',
-                        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Accept':'application/json'}
+                        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${await window.hgCaseToken()}`,'Accept':'application/json'}
                     });
                     if (!r.ok) throw new Error(`HTTP ${r.status}`);
                     const data = await r.json();
@@ -22480,7 +22575,7 @@ const v44ExportAnnual=()=>{
                         method: 'GET',
                         headers: {
                             'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Authorization': `Bearer ${await window.hgCaseToken()}`,
                             'Accept': 'application/json'
                         }
                     });
@@ -22491,6 +22586,7 @@ const v44ExportAnnual=()=>{
                     }
 
                     const result = await response.json();
+                    if (Array.isArray(result) && result.length === 0) throw new Error('目前登入的帳號沒有背表讀取權限，請聯絡楊翊晟。');
 
                     if (Array.isArray(result) && result.length > 0) {
                         const remotePayload = result[0].payload;
@@ -22569,7 +22665,7 @@ const v44ExportAnnual=()=>{
                     if(v44CloudBaseline === null) throw new Error('尚未完成雲端讀取；請確認連線並重新載入案件。');
                     const preflight = await fetch(SUPABASE_ENDPOINT, {
                         method: 'GET',
-                        headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Accept':'application/json'},
+                        headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${await window.hgCaseToken()}`,'Accept':'application/json'},
                         cache: 'no-store'
                     });
                     if(!preflight.ok) throw new Error('存檔前雲端比對失敗：'+preflight.status);
@@ -22577,13 +22673,13 @@ const v44ExportAnnual=()=>{
                     if(!Array.isArray(remoteNow)||!Array.isArray(remoteNow[0]?.payload)) throw new Error('雲端案件資料格式錯誤，已停止同步。');
                     if(v44StableJson(remoteNow[0].payload)!==v44CloudBaseline) throw new Error('其他同仁已更新雲端案件。本機草稿仍在，請先匯出交接 CSV、核對差異，再重新載入，避免覆寫。');
 
-                    const response = await fetch(SUPABASE_ENDPOINT, {
+                    const response = await fetch(SUPABASE_ENDPOINT + '&select=id', {
                         method: 'PATCH',
                         headers: {
                             'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Authorization': `Bearer ${await window.hgCaseToken()}`,
                             'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
+                            'Prefer': 'return=representation'
                         },
                         body: JSON.stringify(payload)
                     });
@@ -22592,6 +22688,9 @@ const v44ExportAnnual=()=>{
                         const errorText = await response.text();
                         throw new Error(`Supabase 同步失敗：${response.status} ${errorText}`);
                     }
+                    // 確認真的寫入一筆；沒有權限時資料庫會回空清單而不是錯誤。
+                    const written = await response.json().catch(() => null);
+                    if (!Array.isArray(written) || written.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有存檔權限），請聯絡楊翊晟。');
 
                      v44CloudBaseline=v44StableJson(normalizedCases);
                      caseLoadSource.value='Supabase 正式雲端資料（同步完成）';
