@@ -19722,6 +19722,65 @@ License: MIT
 .v48-bars{display:flex;align-items:center;gap:6px;min-width:0}
 .v48-bar{height:12px;border-radius:3px;min-width:2px;max-width:calc(100% - 28px)}
 .v48-bar-num{font-variant-numeric:tabular-nums;color:#334e66;min-width:20px}
+/* V49 報價→轉案（Claude 2026-11-16） */
+.v49-bar{background:#fff;border:1px solid #dce4ea;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.v49-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.v49-input{border:1px solid #b9c8d4;border-radius:6px;padding:6px 8px;font-size:13px;background:#fff;color:#1f2937;min-width:0;width:100%;box-sizing:border-box}
+.v49-input:focus{outline:2px solid #93c5fd;outline-offset:0;border-color:#60a5fa}
+.v49-row .v49-input.grow{flex:1 1 240px;width:auto}
+.v49-btn{border:1px solid #b9c8d4;background:#fff;color:#173b54;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.v49-btn:hover{background:#f1f6fb}
+.v49-btn:disabled{opacity:.45;cursor:not-allowed}
+.v49-btn.primary{background:#173b54;border-color:#173b54;color:#fff}
+.v49-btn.primary:hover:not(:disabled){background:#0f2a3d}
+.v49-btn.danger{color:#b91c1c;border-color:#fca5a5}
+.v49-btn.sm{padding:3px 8px;font-size:12px}
+.v49-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.v49-chips button{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;color:#334e66;cursor:pointer}
+.v49-chips button.on{background:#173b54;border-color:#173b54;color:#fff}
+.v49-chips button b{font-variant-numeric:tabular-nums;margin-left:2px}
+.v49-check{font-size:12px;color:#5b7083;display:inline-flex;align-items:center;gap:4px;margin-left:6px}
+.v49-list{min-width:760px}
+.v49-list tbody tr{cursor:pointer}
+.v49-list tbody tr:hover{background:#f1f6fb}
+.v49-sub{font-size:11.5px;color:#64748b}
+.v49-empty{text-align:center;color:#64748b;padding:18px!important}
+.v49-st{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;background:#e2e8f0;color:#334155;white-space:nowrap}
+.v49-st.sent{background:#dbeafe;color:#1d4ed8}
+.v49-st.won{background:#fef3c7;color:#92400e}
+.v49-st.converted{background:#dcfce7;color:#166534}
+.v49-st.lost,.v49-st.void{background:#f1f5f9;color:#94a3b8}
+.v49-alert{border:1px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.v49-alert.warn{border-color:#fcd34d;background:#fffbeb;color:#92400e}
+.v49-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.v49-head h3{margin:0;font-size:16px;font-weight:800;color:#173b54;display:flex;align-items:center;gap:8px}
+.v49-save{font-size:12px;color:#166534}
+.v49-save.dirty{color:#b45309;font-weight:700}
+.v49-save.err{color:#b91c1c;font-weight:700}
+.v49-actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
+.v49-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.v49-fields label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#5b7083;font-weight:700}
+.v49-fields label.wide{grid-column:1/-1}
+.v49-staff{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12.5px;color:#5b7083;font-weight:700;margin-top:8px}
+.v49-staff label{font-weight:400;color:#1f2937;display:inline-flex;align-items:center;gap:3px}
+.v49-line{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.v49-x{border:none;background:none;color:#94a3b8;font-size:14px;padding:2px 6px;cursor:pointer}
+.v49-x:hover{color:#b91c1c}
+.v49-presets{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:12px;color:#5b7083;margin-bottom:8px}
+.v49-presets button{border:1px dashed #94a3b8;background:#f8fafc;border-radius:6px;padding:2px 8px;font-size:12px;color:#173b54;cursor:pointer}
+.v49-presets button:hover{background:#eaf1f7}
+.v49-items{min-width:680px}
+.v49-items td{padding:4px!important}
+.v49-items .v49-input{padding:4px 6px}
+.v49-items th:nth-child(1){width:100px}.v49-items th:nth-child(3){width:104px}.v49-items th:nth-child(4){width:120px}.v49-items th:nth-child(6){width:32px}
+.v49-input.num{text-align:right;font-variant-numeric:tabular-nums}
+.v49-totals{margin-left:auto;font-weight:400;font-size:12px;color:#5b7083;display:inline-flex;flex-wrap:wrap;gap:4px 12px}
+.v49-totals b{color:#173b54;font-variant-numeric:tabular-nums}
+.v49-convert p{font-size:12.5px;color:#334e66;margin:0 0 8px;line-height:1.6}
+.v49-void{margin-top:10px;padding-top:8px;border-top:1px dashed #e2e8f0}
+.v49-pending{position:sticky;top:0;z-index:45;background:#fffbeb;border:1px solid #f59e0b;color:#78350f;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:13px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.v49-pending button{margin-left:auto;border:1px solid #d97706;background:#fff;border-radius:6px;padding:2px 10px;font-size:12px;color:#92400e;cursor:pointer}
+@media(max-width:560px){.v49-fields{grid-template-columns:1fr}.v49-actions{margin-left:0}}
 @media(max-width:900px){.v44-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.v44-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.v44-fields,.v44-filter{grid-template-columns:1fr}.v44-table{font-size:11px}}
 @media print{.v44-card,.v44-tab,.v44-manager-cell{display:none!important}}
@@ -19757,6 +19816,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
    <div v-if="autoLoadedMsg" class="no-print fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 animate-bounce cursor-pointer" @click="autoLoadedMsg=null">
        <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>{{ autoLoadedMsg }}</p>
+   </div>
+   <!-- V49 報價轉案提示（Claude 2026-11-16） -->
+   <div v-if="v49PendingQuote" class="no-print v49-pending" data-testid="v49-pending">
+       <span><i class="fas fa-file-import mr-1"></i> 這是由報價 <b>{{ v49PendingQuote.no }}</b> 帶入的新案件：請核對資料後按「存檔」，案件才會建立，並自動標示該報價已轉案。</span>
+       <button type="button" @click="v49CancelPending">取消轉案</button>
    </div>
  
    <div class="no-print bg-[#1a202c] text-white px-4 py-1.5 flex flex-col md:flex-row justify-between md:items-center gap-2 text-xs mb-3 rounded shadow-md">
@@ -20664,6 +20728,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            <div class="flex gap-1 px-4 pt-3 bg-gray-200 border-b overflow-x-auto whitespace-nowrap">
                 <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中 ({{activeCasesList.length}})</button>
                  <button @click="managerTab = 'v48Stats'" :class="managerTab === 'v48Stats' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors" data-testid="v48-tab"><i class="fas fa-chart-bar mr-1"></i> 案件統計</button>
+                 <button @click="managerTab = 'v49Quotes'" :class="managerTab === 'v49Quotes' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors" data-testid="v49-tab"><i class="fas fa-file-invoice-dollar mr-1"></i> 報價</button>
                  <button @click="managerTab = 'v44Filings'" :class="managerTab === 'v44Filings' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="v44-tab v45-tab px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-chart-pie mr-1"></i> 地政士送件統計／Excel</button>
                  <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
                 <button @click="managerTab = 'archived'" :class="managerTab === 'archived' ? 'bg-red-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">封存 ({{archivedCasesList.length}})</button>
@@ -20850,6 +20915,160 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 </table>
            </div>
  
+
+<!-- V49 報價→轉案（Claude 2026-11-16）：報價存 Supabase case_quotes（同仁名單權限）；轉案沿用原「存檔」建立案件，同一張報價只能轉一次 -->
+<div v-if="managerTab === 'v49Quotes'" class="p-4 bg-gray-50 flex-1 overflow-y-auto" data-testid="v49-quotes">
+   <div v-if="v49State.error" class="v49-alert" :class="{warn: v49State.missingTable}" data-testid="v49-error">{{ v49State.error }}</div>
+
+   <template v-if="!v49Edit">
+      <div class="v49-bar" data-testid="v49-list-bar">
+         <div class="v49-row">
+            <button type="button" class="v49-btn primary" @click="v49New" :disabled="v49State.missingTable || !v49State.loaded" data-testid="v49-new"><i class="fas fa-plus mr-1"></i>新增報價</button>
+            <input v-model="v49Filter.q" type="search" class="v49-input grow" placeholder="搜尋報價編號、案名、地址、客戶、仲介、承辦" aria-label="搜尋報價">
+            <button type="button" class="v49-btn" @click="v49Load" :disabled="v49State.loading"><i class="fas fa-rotate-right mr-1"></i>{{ v49State.loading ? '載入中…' : '重新載入' }}</button>
+         </div>
+         <div class="v49-chips">
+            <button v-for="s in v49FilterDefs" :key="s.key" type="button" :class="{on: v49Filter.status === s.key}" @click="v49Filter.status = s.key">{{ s.label }} <b>{{ v49Counts[s.key] || 0 }}</b></button>
+            <label class="v49-check"><input type="checkbox" v-model="v49Filter.showVoid"> 含作廢（{{ v49Counts.void || 0 }}）</label>
+            <span v-if="v49State.at" class="v49-sub" style="margin-left:auto">雲端讀取 {{ v49State.at }}</span>
+         </div>
+      </div>
+      <div class="v48-card" style="padding:0;overflow-x:auto">
+         <table class="v48-table v49-list" data-testid="v49-list">
+            <thead><tr><th>報價編號</th><th>報價日</th><th>案名／標的</th><th>客戶</th><th>案源</th><th>承辦</th><th class="num">費用合計（元）</th><th>狀態</th><th></th></tr></thead>
+            <tbody>
+               <tr v-for="q in v49List" :key="q.id" @click="v49Open(q)">
+                  <td class="mono">{{ v49No(q) }}</td>
+                  <td class="mono">{{ v49ROC(q.quote_date) }}</td>
+                  <td><div class="font-bold">{{ q.property_name || '（未填案名）' }}</div><div class="v49-sub">{{ q.address }}</div></td>
+                  <td>{{ v49PeopleText(q) }}</td>
+                  <td>{{ q.source }}</td>
+                  <td>{{ q.staff }}</td>
+                  <td class="num">{{ v49Money(v49Totals(q).all) }}</td>
+                  <td><span class="v49-st" :class="v49StatusOf(q).key">{{ v49StatusOf(q).label }}</span><div v-if="v49CaseNoOf(q)" class="v49-sub">案件 {{ v49CaseNoOf(q) }}</div></td>
+                  <td><button type="button" class="v49-btn sm" @click.stop="v49Open(q)">開啟</button></td>
+               </tr>
+               <tr v-if="!v49List.length"><td colspan="9" class="v49-empty">{{ v49State.loading ? '載入中…' : (v49Quotes.length ? '沒有符合條件的報價' : '尚無報價，按「新增報價」開始') }}</td></tr>
+            </tbody>
+         </table>
+      </div>
+      <p class="v48-note">報價存在雲端「報價表」，只有背表名單內同仁登入後可讀寫；不能刪除，只能作廢。客戶接受後在報價裡按「轉成案件」，會開啟新案件表單並帶入資料，按「存檔」才建立案件；同一張報價只能轉一次。</p>
+   </template>
+
+   <template v-else>
+      <div class="v49-head">
+         <button type="button" class="v49-btn" @click="v49Close"><i class="fas fa-arrow-left mr-1"></i>返回清單</button>
+         <h3>報價 {{ v49No(v49Edit) }} <span class="v49-st" :class="v49StatusOf(v49Edit).key">{{ v49StatusOf(v49Edit).label }}</span></h3>
+         <span class="v49-save" :class="{err: !v49SaveMsg.ok, dirty: v49SaveMsg.ok && v49Dirty}" data-testid="v49-save-msg">{{ v49SaveMsg.ok && v49Dirty ? '有尚未存檔的修改' : v49SaveMsg.msg }}</span>
+         <div class="v49-actions">
+            <button type="button" class="v49-btn primary" @click="v49SaveQuote" :disabled="v49SaveMsg.busy || v49State.missingTable || v49Edit.deleted" data-testid="v49-save">{{ v49SaveMsg.busy ? '處理中…' : '存檔' }}</button>
+            <button type="button" class="v49-btn" @click="v49Print">列印報價單</button>
+            <button type="button" class="v49-btn" @click="v49Copy" :disabled="v49SaveMsg.busy">複製成新報價</button>
+         </div>
+      </div>
+
+      <div class="v48-grid">
+         <div class="v48-card">
+            <h4>基本資料</h4>
+            <div class="v49-fields">
+               <label>報價日期<input type="date" v-model="v49Edit.quote_date" class="v49-input"></label>
+               <label>狀態<select v-model="v49Edit.status" class="v49-input" :disabled="v49IsConverted(v49Edit)"><option v-for="(l, k) in V49_STATUS" :key="k" :value="k">{{ l }}</option></select></label>
+               <label>委辦項目<input v-model="v49Edit.service" list="v49-service-list" class="v49-input"></label>
+               <label>案件類型<select v-model="v49Edit.roadmap_type" class="v49-input"><option v-for="(l, k) in V49_TYPES" :key="k" :value="k">{{ l }}</option></select></label>
+               <label>案源<input v-model="v49Edit.source" list="v49-source-list" class="v49-input" placeholder="仲介店、自來客、介紹…"></label>
+               <label>地政士<input v-model="v49Edit.scrivener" list="v49-scrivener-list" class="v49-input"></label>
+            </div>
+            <div class="v49-staff">承辦：<label v-for="n in v49StaffOptions" :key="n"><input type="checkbox" :checked="v49HasStaff(n)" @change="v49ToggleStaff(n)"> {{ n }}</label></div>
+         </div>
+         <div class="v48-card">
+            <h4>標的</h4>
+            <div class="v49-fields">
+               <label class="wide">案名<input v-model="v49Edit.property_name" class="v49-input"></label>
+               <label class="wide">地址<input v-model="v49Edit.address" class="v49-input"></label>
+               <label class="wide">地建號<input v-model="v49Edit.land_build_no" class="v49-input"></label>
+               <label>成交總價（萬）<input v-model="v49Edit.total_price" inputmode="decimal" class="v49-input num"></label>
+            </div>
+         </div>
+      </div>
+
+      <div class="v48-grid">
+         <div class="v48-card" v-for="side in ['sellers', 'buyers']" :key="side">
+            <h4>{{ side === 'sellers' ? '賣方（義務人）' : '買方（權利人）' }}<button type="button" class="v49-btn sm" style="margin-left:auto" @click="v49AddPerson(side)">＋ 增加</button></h4>
+            <div v-for="(p, i) in v49Edit.parties[side]" :key="i" class="v49-line">
+               <input v-model="p.name" class="v49-input" placeholder="姓名">
+               <input v-model="p.phone" class="v49-input" placeholder="電話">
+               <button type="button" class="v49-x" @click="v49RemovePerson(side, i)" title="移除">✕</button>
+            </div>
+            <div v-if="!v49Edit.parties[side].length" class="v49-sub">尚未填寫</div>
+         </div>
+      </div>
+      <div class="v48-grid">
+         <div class="v48-card" v-for="side in ['sales', 'dev']" :key="side">
+            <h4>{{ side === 'sales' ? '銷售仲介' : '開發仲介' }}<button type="button" class="v49-btn sm" style="margin-left:auto" @click="v49AddAgent(side)">＋ 增加</button></h4>
+            <div v-for="(a, i) in v49Edit.agents[side]" :key="i" class="v49-line">
+               <input v-model="a.store" class="v49-input" placeholder="店名" list="v49-source-list">
+               <input v-model="a.name" class="v49-input" placeholder="姓名">
+               <input v-model="a.phone" class="v49-input" placeholder="電話">
+               <button type="button" class="v49-x" @click="v49RemoveAgent(side, i)" title="移除">✕</button>
+            </div>
+            <div v-if="!v49Edit.agents[side].length" class="v49-sub">尚未填寫</div>
+         </div>
+      </div>
+
+      <div class="v48-card">
+         <h4>費用明細（元）<span class="v49-totals" data-testid="v49-totals">買方合計 <b>{{ v49Money(v49EditTotals.buyer) }}</b> 賣方合計 <b>{{ v49Money(v49EditTotals.seller) }}</b> 總計 <b>{{ v49Money(v49EditTotals.all) }}</b></span></h4>
+         <div class="v49-presets">快速加入：<button v-for="p in V49_PRESETS" :key="p.name" type="button" @click="v49AddItem(p)">{{ p.name }}</button><button type="button" @click="v49AddItem(null)">＋ 自訂項目</button></div>
+         <div style="overflow-x:auto">
+            <table class="v48-table v49-items" data-testid="v49-items">
+               <thead><tr><th>類別</th><th>項目</th><th>負擔方</th><th class="num">金額</th><th>說明</th><th></th></tr></thead>
+               <tbody>
+                  <tr v-for="(it, i) in v49Edit.items" :key="i">
+                     <td><select v-model="it.cat" class="v49-input"><option v-for="c in V49_CATS" :key="c" :value="c">{{ c }}</option></select></td>
+                     <td><input v-model="it.name" class="v49-input"></td>
+                     <td><select v-model="it.payer" class="v49-input"><option v-for="p in V49_PAYERS" :key="p" :value="p">{{ p }}</option></select></td>
+                     <td><input v-model="it.amount" inputmode="numeric" class="v49-input num"></td>
+                     <td><input v-model="it.note" class="v49-input" placeholder="計算依據或備註"></td>
+                     <td><button type="button" class="v49-x" @click="v49RemoveItem(i)" title="移除">✕</button></td>
+                  </tr>
+                  <tr v-if="!v49Edit.items.length"><td colspan="6" class="v49-empty">尚無費用項目，可用上方「快速加入」</td></tr>
+               </tbody>
+            </table>
+         </div>
+         <p class="v48-note" style="margin:8px 0 0">稅費、規費為估算，以稽徵機關及地政事務所核定為準。「雙方各半」會平均列入買賣雙方合計。</p>
+      </div>
+
+      <div class="v48-card">
+         <h4>備註</h4>
+         <textarea v-model="v49Edit.notes" rows="3" class="v49-input"></textarea>
+      </div>
+
+      <div class="v48-card v49-convert" data-testid="v49-convert">
+         <h4>轉成案件</h4>
+         <template v-if="v49CaseNoOf(v49Edit)">
+            <p>已轉成案件 <b>{{ v49CaseNoOf(v49Edit) }}</b><span v-if="v49Edit.converted_by">（{{ v49Edit.converted_by }}　{{ v49DateTime(v49Edit.converted_at) }}）</span></p>
+            <button type="button" class="v49-btn primary" @click="v49OpenCase(v49Edit)">開啟案件</button>
+         </template>
+         <template v-else-if="v49Edit.case_id">
+            <p>此報價已轉案，但目前總庫找不到對應案件。請先在總庫重新載入雲端案件；仍找不到請聯絡楊翊晟。</p>
+         </template>
+         <template v-else>
+            <p>客戶接受後按此鈕，會開啟新案件表單並帶入：案名、地址、地建號、總價、買賣方、仲介、承辦、地政士、委辦項目及報價合計。核對後按「存檔」才建立案件；同一張報價只能轉一次。</p>
+            <button type="button" class="v49-btn primary" @click="v49Convert" :disabled="!v49Edit.id || v49Dirty || v49Edit.deleted || v49SaveMsg.busy" data-testid="v49-convert-btn">轉成案件</button>
+            <span v-if="!v49Edit.id" class="v49-sub">（請先存檔）</span>
+            <span v-else-if="v49Dirty" class="v49-sub">（請先存檔目前的修改）</span>
+         </template>
+         <div class="v49-void" v-if="v49Edit.id">
+            <button v-if="!v49Edit.deleted && !v49IsConverted(v49Edit)" type="button" class="v49-btn danger sm" @click="v49SetVoid(true)" :disabled="v49SaveMsg.busy">作廢這張報價</button>
+            <button v-if="v49Edit.deleted" type="button" class="v49-btn sm" @click="v49SetVoid(false)" :disabled="v49SaveMsg.busy">恢復這張報價</button>
+            <span class="v49-sub" style="margin-left:8px">建立：{{ v49Edit.created_by || '—' }} {{ v49DateTime(v49Edit.created_at) }}｜最後修改：{{ v49Edit.updated_by || '—' }} {{ v49DateTime(v49Edit.updated_at) }}</span>
+         </div>
+      </div>
+   </template>
+
+   <datalist id="v49-service-list"><option v-for="s in v49ServiceOptions" :key="s" :value="s"></option></datalist>
+   <datalist id="v49-source-list"><option v-for="s in v49SourceOptions" :key="s" :value="s"></option></datalist>
+   <datalist id="v49-scrivener-list"><option v-for="s in v49ScrivenerOptions" :key="s" :value="s"></option></datalist>
+</div>
 
 <!-- V48 案件統計（Claude 2026-11-16）：只讀統計，可點開查看構成案件 -->
 <div v-if="managerTab === 'v48Stats'" class="p-4 bg-gray-50 flex-1 overflow-y-auto" data-testid="v48-stats">
@@ -22115,6 +22334,321 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const setStatsGrain = g => { statsGrain.value = g; statsOffset.value = 0; statsDrill.value = null; };
            const moveStatsPeriod = d => { statsOffset.value = Math.min(0, statsOffset.value + d); statsDrill.value = null; };
            const pickStatsDrill = (dim, key) => { statsDrill.value = statsDrill.value && statsDrill.value.dim === dim && statsDrill.value.key === key ? null : { dim, key, label: v48Dims[dim].label + '：' + key }; };
+
+           // V49 報價→轉案（Claude 2026-11-16）：報價存 Supabase case_quotes（沿用背表同仁名單權限）。
+           // 轉案＝把報價帶入「新案件」表單，同仁核對後按原本的「存檔」才建立案件；案件記 _quoteId，報價記 case_id，同一張報價只轉一次。
+           const V49_URL = `${SUPABASE_PROJECT_URL}/rest/v1/case_quotes`;
+           const V49_STATUS = { draft: '草稿', sent: '已報價', won: '客戶接受', lost: '未成交' };
+           const V49_TYPES = { house: '房地', land: '純土地', construction: '建案' };
+           const V49_CATS = ['服務費', '規費', '稅費', '代收代付', '其他'];
+           const V49_PAYERS = ['買方', '賣方', '雙方各半'];
+           const V49_PRESETS = [
+               { cat: '服務費', name: '代書費（買方）', payer: '買方' },
+               { cat: '服務費', name: '代書費（賣方）', payer: '賣方' },
+               { cat: '服務費', name: '履約保證費', payer: '雙方各半' },
+               { cat: '規費', name: '登記規費', payer: '買方' },
+               { cat: '規費', name: '書狀費', payer: '買方' },
+               { cat: '規費', name: '謄本及地籍資料費', payer: '賣方' },
+               { cat: '稅費', name: '契稅', payer: '買方' },
+               { cat: '稅費', name: '印花稅', payer: '買方' },
+               { cat: '稅費', name: '土地增值稅', payer: '賣方' },
+               { cat: '代收代付', name: '房屋稅／地價稅分算', payer: '買方' },
+               { cat: '代收代付', name: '抵押權塗銷費用', payer: '賣方' }
+           ];
+           const v49FilterDefs = [
+               { key: 'all', label: '全部' }, { key: 'draft', label: '草稿' }, { key: 'sent', label: '已報價' },
+               { key: 'won', label: '客戶接受待轉案' }, { key: 'converted', label: '已轉案' }, { key: 'lost', label: '未成交' }
+           ];
+           const v49Quotes = ref([]);
+           const v49State = ref({ loaded: false, loading: false, error: '', missingTable: false, at: '' });
+           const v49Filter = reactive({ q: '', status: 'all', showVoid: false });
+           const v49Edit = ref(null);
+           const v49Base = ref('');
+           const v49SaveMsg = ref({ busy: false, msg: '', ok: true });
+           const v49PendingQuote = ref(null);
+
+           const v49Pad = n => String(n).padStart(2, '0');
+           const v49Today = () => { const d = new Date(); return `${d.getFullYear()}-${v49Pad(d.getMonth() + 1)}-${v49Pad(d.getDate())}`; };
+           const v49No = q => q && q.quote_no ? 'Q' + String(q.quote_no).padStart(4, '0') : '（未存檔）';
+           const v49ROC = iso => { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${Number(m[1]) - 1911}.${m[2]}.${m[3]}` : ''; };
+           const v49DateTime = ts => { if (!ts) return ''; const d = new Date(ts); return isNaN(d) ? '' : `${d.getFullYear() - 1911}.${v49Pad(d.getMonth() + 1)}.${v49Pad(d.getDate())} ${v49Pad(d.getHours())}:${v49Pad(d.getMinutes())}`; };
+           const v49Amt = v => { const n = Number(String(v ?? '').replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? n : 0; };
+           const v49Money = n => Math.round(Number(n) || 0).toLocaleString('zh-TW');
+           const v49Wan = n => (Number(n) || 0).toLocaleString('zh-TW', { maximumFractionDigits: 2 });
+           const v49Str = v => String(v ?? '').trim();
+
+           const v49Blank = () => ({
+               id: null, quote_no: null, version: null, status: 'draft', quote_date: v49Today(), source: '', service: '買賣所有權移轉登記',
+               roadmap_type: 'house', staff: (staffList.some(s => s.name === currentOperator.value.shortName) ? currentOperator.value.shortName : ''), scrivener: '',
+               property_name: '', address: '', land_build_no: '', total_price: '',
+               parties: { sellers: [{ name: '', phone: '' }], buyers: [{ name: '', phone: '' }] },
+               agents: { sales: [{ store: '', name: '', phone: '' }], dev: [] },
+               items: [], notes: '', case_id: null, converted_at: null, converted_by: '', deleted: false,
+               created_at: null, created_by: '', updated_at: null, updated_by: ''
+           });
+           const v49Normalize = src => {
+               const x = { ...v49Blank(), ...JSON.parse(JSON.stringify(src || {})) };
+               const arr = v => Array.isArray(v) ? v : [];
+               x.parties = { sellers: arr(x.parties && x.parties.sellers), buyers: arr(x.parties && x.parties.buyers) };
+               x.agents = { sales: arr(x.agents && x.agents.sales), dev: arr(x.agents && x.agents.dev) };
+               x.items = arr(x.items).map(it => ({ cat: it.cat || '其他', name: it.name || '', payer: it.payer || '買方', amount: it.amount === 0 || it.amount ? String(it.amount) : '', note: it.note || '' }));
+               x.total_price = x.total_price === null || x.total_price === undefined ? '' : String(x.total_price);
+               ['source', 'service', 'staff', 'scrivener', 'property_name', 'address', 'land_build_no', 'notes'].forEach(k => { x[k] = x[k] == null ? '' : String(x[k]); });
+               x.quote_date = x.quote_date ? String(x.quote_date).slice(0, 10) : '';
+               return x;
+           };
+           const v49Payload = q => {
+               const ppl = a => a.map(p => ({ name: v49Str(p.name), phone: v49Str(p.phone) })).filter(p => p.name || p.phone);
+               const ags = a => a.map(p => ({ store: v49Str(p.store), name: v49Str(p.name), phone: v49Str(p.phone) })).filter(p => p.store || p.name || p.phone);
+               return {
+                   status: q.status, quote_date: q.quote_date || null, source: v49Str(q.source), service: v49Str(q.service), roadmap_type: q.roadmap_type || 'house',
+                   staff: v49Str(q.staff), scrivener: v49Str(q.scrivener), property_name: v49Str(q.property_name), address: v49Str(q.address), land_build_no: v49Str(q.land_build_no),
+                   total_price: v49Str(q.total_price) === '' ? null : v49Amt(q.total_price),
+                   parties: { sellers: ppl(q.parties.sellers), buyers: ppl(q.parties.buyers) },
+                   agents: { sales: ags(q.agents.sales), dev: ags(q.agents.dev) },
+                   items: q.items.map(it => ({ cat: it.cat, name: v49Str(it.name), payer: it.payer, amount: v49Amt(it.amount), note: v49Str(it.note) })).filter(it => it.name || it.amount),
+                   notes: String(q.notes || '')
+               };
+           };
+           const v49Totals = q => {
+               const t = { buyer: 0, seller: 0, all: 0 };
+               ((q && q.items) || []).forEach(it => {
+                   const a = v49Amt(it.amount); if (!a) return;
+                   t.all += a;
+                   if (it.payer === '買方') t.buyer += a; else if (it.payer === '賣方') t.seller += a; else { t.buyer += a / 2; t.seller += a / 2; }
+               });
+               return t;
+           };
+           const v49Dirty = computed(() => !!v49Edit.value && JSON.stringify(v49Payload(v49Edit.value)) !== v49Base.value);
+           const v49EditTotals = computed(() => v49Edit.value ? v49Totals(v49Payload(v49Edit.value)) : { buyer: 0, seller: 0, all: 0 });
+           const v49CaseByQuote = computed(() => { const m = new Map(); cases.value.forEach((c, i) => { if (c && c._quoteId) m.set(c._quoteId, i); }); return m; });
+           const v49CaseIdx = q => (q && q.id && v49CaseByQuote.value.has(q.id)) ? v49CaseByQuote.value.get(q.id) : -1;
+           const v49IsConverted = q => !!(q && (q.case_id || v49CaseIdx(q) > -1));
+           const v49CaseNoOf = q => { const i = v49CaseIdx(q); return i > -1 ? (String(cases.value[i]['編號'] || '').trim() || '（未編號）') : ''; };
+           const v49StatusOf = q => {
+               if (!q) return { key: 'draft', label: '' };
+               if (q.deleted) return { key: 'void', label: '已作廢' };
+               if (v49IsConverted(q)) return { key: 'converted', label: '已轉案' };
+               return { key: q.status || 'draft', label: V49_STATUS[q.status] || '草稿' };
+           };
+           const v49PeopleText = q => {
+               const n = a => ((a) || []).map(p => p && p.name).filter(Boolean).join('、');
+               const s = n(q.parties && q.parties.sellers), b = n(q.parties && q.parties.buyers);
+               return [s ? '賣：' + s : '', b ? '買：' + b : ''].filter(Boolean).join('／');
+           };
+           const v49List = computed(() => {
+               const kw = v49Filter.q.trim().toLowerCase();
+               return v49Quotes.value.filter(q => {
+                   const st = v49StatusOf(q).key;
+                   if (st === 'void' && !v49Filter.showVoid) return false;
+                   if (v49Filter.status !== 'all' && st !== v49Filter.status) return false;
+                   if (!kw) return true;
+                   const p = q.parties || {}, a = q.agents || {};
+                   const text = [v49No(q), q.property_name, q.address, q.land_build_no, q.source, q.staff, q.scrivener, q.service, q.notes,
+                       ...[...(p.sellers || []), ...(p.buyers || [])].map(x => `${x.name || ''} ${x.phone || ''}`),
+                       ...[...(a.sales || []), ...(a.dev || [])].map(x => `${x.store || ''} ${x.name || ''} ${x.phone || ''}`)].join(' ').toLowerCase();
+                   return text.includes(kw);
+               });
+           });
+           const v49Counts = computed(() => {
+               const c = { all: 0, draft: 0, sent: 0, won: 0, converted: 0, lost: 0, void: 0 };
+               v49Quotes.value.forEach(q => { const k = v49StatusOf(q).key; c[k] = (c[k] || 0) + 1; if (k !== 'void') c.all++; });
+               return c;
+           });
+           const v49StaffOptions = computed(() => {
+               const cur = v49Str(v49Edit.value && v49Edit.value.staff).split('、').filter(Boolean);
+               return [...new Set([...staffList.filter(s => s.active !== false).map(s => s.name), ...cur])];
+           });
+           const v49HasStaff = n => v49Str(v49Edit.value && v49Edit.value.staff).split('、').includes(n);
+           const v49ToggleStaff = n => {
+               const cur = v49Str(v49Edit.value.staff).split('、').filter(Boolean);
+               const i = cur.indexOf(n); if (i > -1) cur.splice(i, 1); else cur.push(n);
+               v49Edit.value.staff = cur.join('、');
+           };
+           const v49ServiceOptions = computed(() => ledgerChoiceLists.ledgerService || []);
+           const v49ScrivenerOptions = computed(() => [...new Set([...ledgerScrivenerNames, ...listScrivenerOptions.value])]);
+           const v49SourceOptions = computed(() => {
+               const s = new Set(['自來客', '舊客戶介紹', '建商', '銀行']);
+               cases.value.forEach(c => { if (c && !c._archived) v48Sources(c).forEach(x => { if (x !== '未填仲介店') s.add(x); }); });
+               return [...s];
+           });
+           const v49AddItem = preset => { if (!v49Edit.value) return; v49Edit.value.items.push(preset ? { cat: preset.cat, name: preset.name, payer: preset.payer, amount: '', note: '' } : { cat: '服務費', name: '', payer: '買方', amount: '', note: '' }); };
+           const v49RemoveItem = i => v49Edit.value.items.splice(i, 1);
+           const v49AddPerson = side => v49Edit.value.parties[side].push({ name: '', phone: '' });
+           const v49RemovePerson = (side, i) => v49Edit.value.parties[side].splice(i, 1);
+           const v49AddAgent = side => v49Edit.value.agents[side].push({ store: '', name: '', phone: '' });
+           const v49RemoveAgent = (side, i) => v49Edit.value.agents[side].splice(i, 1);
+
+           const v49Fetch = async (url, opt = {}) => {
+               const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${await window.hgCaseToken()}`, Accept: 'application/json', ...(opt.body ? { 'Content-Type': 'application/json' } : {}), ...(opt.headers || {}) };
+               const res = await fetch(url, { ...opt, headers, cache: 'no-store' });
+               const text = await res.text();
+               let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) {}
+               if (!res.ok) { const err = new Error((data && (data.message || data.hint)) || text || ('HTTP ' + res.status)); err.status = res.status; err.code = data && data.code; throw err; }
+               return data;
+           };
+           const v49Load = async () => {
+               if (!GAS_URL) { v49State.value = { ...v49State.value, loaded: true, error: '本機預覽不連線雲端，無法使用報價。' }; return; }
+               if (v49State.value.loading) return;
+               v49State.value.loading = true; v49State.value.error = '';
+               try {
+                   const rows = await v49Fetch(`${V49_URL}?select=*&order=quote_no.desc`);
+                   v49Quotes.value = Array.isArray(rows) ? rows : [];
+                   v49State.value.missingTable = false;
+                   v49State.value.at = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+               } catch (e) {
+                   const missing = e.status === 404 || e.code === 'PGRST205' || e.code === '42P01';
+                   v49State.value.missingTable = missing;
+                   v49State.value.error = missing ? '報價資料表尚未建立（需楊翊晟核准後在 Supabase 建立），目前還不能存報價。' : ('報價讀取失敗：' + e.message);
+               } finally { v49State.value.loading = false; v49State.value.loaded = true; }
+           };
+           watch(() => managerTab.value, t => { if (t === 'v49Quotes' && !v49State.value.loaded) v49Load(); });
+
+           const v49SetEdit = row => { const x = v49Normalize(row); v49Edit.value = x; v49Base.value = JSON.stringify(v49Payload(x)); };
+           const v49Upsert = row => { const i = v49Quotes.value.findIndex(x => x.id === row.id); if (i > -1) v49Quotes.value.splice(i, 1, row); else v49Quotes.value.unshift(row); };
+           const v49ConfirmLeave = () => !v49Dirty.value || confirm('這張報價有尚未存檔的修改，確定要放棄嗎？');
+           const v49New = () => { if (!v49ConfirmLeave()) return; v49SetEdit(v49Blank()); v49SaveMsg.value = { busy: false, msg: '新報價，尚未存檔', ok: true }; };
+           const v49Open = q => { if (!v49ConfirmLeave()) return; v49SetEdit(q); v49SaveMsg.value = { busy: false, msg: '', ok: true }; };
+           const v49Close = () => { if (!v49ConfirmLeave()) return; v49Edit.value = null; };
+           const v49Copy = () => {
+               if (!v49Edit.value || !v49ConfirmLeave()) return;
+               const x = v49Normalize({ ...v49Payload(v49Edit.value), status: 'draft', quote_date: v49Today() });
+               v49Edit.value = x; v49Base.value = '';
+               v49SaveMsg.value = { busy: false, msg: '已複製成新報價，尚未存檔', ok: true };
+           };
+           const v49Who = () => currentOperator.value.name || '';
+           const v49SaveQuote = async () => {
+               const q = v49Edit.value; if (!q || v49SaveMsg.value.busy) return false;
+               if (v49State.value.missingTable) { alert('報價資料表尚未建立，暫時無法存檔。'); return false; }
+               const body = v49Payload(q);
+               if (!body.property_name && !body.address && !body.parties.sellers.length && !body.parties.buyers.length) { alert('請至少填寫案名、地址或一位客戶，再存檔。'); return false; }
+               v49SaveMsg.value = { busy: true, msg: '儲存中…', ok: true };
+               try {
+                   let rows;
+                   if (!q.id) {
+                       rows = await v49Fetch(`${V49_URL}?select=*`, { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...body, created_by: v49Who(), updated_by: v49Who() }) });
+                   } else {
+                       rows = await v49Fetch(`${V49_URL}?id=eq.${encodeURIComponent(q.id)}&version=eq.${Number(q.version) || 0}&select=*`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...body, updated_by: v49Who() }) });
+                       if (Array.isArray(rows) && rows.length === 0) {
+                           const now = await v49Fetch(`${V49_URL}?id=eq.${encodeURIComponent(q.id)}&select=version,updated_by,updated_at`);
+                           if (Array.isArray(now) && now.length) throw new Error(`這張報價已被${now[0].updated_by || '其他同仁'}在 ${v49DateTime(now[0].updated_at)} 修改過。為避免互相覆蓋，這次沒有存檔；請記下您的修改，返回清單按「重新載入」後再改。`);
+                           throw new Error('雲端沒有寫入（目前帳號可能沒有報價權限），請聯絡楊翊晟。');
+                       }
+                   }
+                   if (!Array.isArray(rows) || rows.length !== 1) throw new Error('雲端沒有回傳存檔結果，請重新載入確認。');
+                   v49Upsert(rows[0]); v49SetEdit(rows[0]);
+                   v49SaveMsg.value = { busy: false, msg: `已存檔 ${new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`, ok: true };
+                   return true;
+               } catch (e) {
+                   v49SaveMsg.value = { busy: false, msg: '存檔失敗：' + e.message, ok: false };
+                   return false;
+               }
+           };
+           const v49SetVoid = async flag => {
+               const q = v49Edit.value; if (!q || !q.id) return;
+               if (v49IsConverted(q)) return alert('已轉案的報價不能作廢。');
+               if (v49Dirty.value) return alert('請先存檔或放棄目前的修改。');
+               if (flag && !confirm(`確定作廢報價 ${v49No(q)}？\n作廢後清單預設不顯示，勾選「含作廢」可找回並恢復。`)) return;
+               v49SaveMsg.value = { busy: true, msg: '處理中…', ok: true };
+               try {
+                   const rows = await v49Fetch(`${V49_URL}?id=eq.${encodeURIComponent(q.id)}&version=eq.${Number(q.version) || 0}&select=*`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ deleted: !!flag, updated_by: v49Who() }) });
+                   if (!Array.isArray(rows) || rows.length !== 1) throw new Error('報價已被其他同仁修改或沒有權限，請重新載入。');
+                   v49Upsert(rows[0]); v49SetEdit(rows[0]);
+                   v49SaveMsg.value = { busy: false, msg: flag ? '已作廢' : '已恢復', ok: true };
+               } catch (e) { v49SaveMsg.value = { busy: false, msg: '處理失敗：' + e.message, ok: false }; }
+           };
+           // 只在報價尚未連結案件時寫入 case_id（資料庫也禁止改連其他案件）。
+           const v49Link = async (quoteId, caseId) => {
+               const rows = await v49Fetch(`${V49_URL}?id=eq.${encodeURIComponent(quoteId)}&case_id=is.null&select=*`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ case_id: caseId, converted_by: v49Who(), status: 'won', updated_by: v49Who() }) });
+               let row = Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+               if (!row) { const now = await v49Fetch(`${V49_URL}?id=eq.${encodeURIComponent(quoteId)}&select=*`); row = Array.isArray(now) && now.length === 1 && now[0].case_id === caseId ? now[0] : null; }
+               if (!row) return false;
+               v49Upsert(row);
+               if (v49Edit.value && v49Edit.value.id === quoteId) v49SetEdit(row);
+               return true;
+           };
+           const v49OpenCase = q => {
+               const i = v49CaseIdx(q);
+               if (i < 0) return alert('目前總庫找不到這張報價轉成的案件，請先重新載入雲端案件。');
+               if (!v49ConfirmLeave()) return;
+               if (q.id && !q.case_id && cases.value[i]._caseId) v49Link(q.id, cases.value[i]._caseId).catch(() => {});
+               editCase(i);
+           };
+           const v49Convert = () => {
+               const q = v49Edit.value; if (!q) return;
+               if (!q.id) return alert('請先存檔報價，再轉成案件。');
+               if (v49Dirty.value) return alert('報價有尚未存檔的修改，請先存檔再轉案。');
+               if (q.deleted) return alert('已作廢的報價不能轉案。');
+               if (v49CaseIdx(q) > -1) { alert('這張報價已經轉成案件，將開啟該案件。'); return v49OpenCase(q); }
+               if (q.case_id) return alert('這張報價已轉案，但目前總庫找不到對應案件。請先重新載入雲端案件；仍找不到請聯絡楊翊晟。');
+               if (GAS_URL && v44CloudBaseline === null) return alert('雲端案件尚未載入完成，請稍候再轉案。');
+               if (q.status !== 'won' && !confirm('此報價尚未標示「客戶接受」，仍要轉成案件嗎？')) return;
+               if (!confirm(`將開啟「新案件」表單並帶入報價 ${v49No(q)} 的資料。\n請核對後按「存檔」，案件才會建立，並自動標示此報價已轉案。\n\n目前案件表單若有未存檔內容會被清除，確定繼續？`)) return;
+               resetForm(false);
+               const f = form.value;
+               f.propertyName = q.property_name || '';
+               f.address = q.address || '';
+               f.landBuildNo = q.land_build_no || '';
+               f.totalPrice = v49Str(q.total_price);
+               const ppl = a => a.filter(p => v49Str(p.name)).map(p => ({ name: v49Str(p.name), phone: v49Str(p.phone), role: '本人' }));
+               const ags = a => a.filter(p => v49Str(p.name) || v49Str(p.store)).map(p => ({ name: v49Str(p.name), phone: v49Str(p.phone), store: v49Str(p.store) }));
+               const sellers = ppl(q.parties.sellers), buyers = ppl(q.parties.buyers), sales = ags(q.agents.sales), dev = ags(q.agents.dev);
+               if (sellers.length) f.sellers = sellers;
+               if (buyers.length) f.buyers = buyers;
+               if (sales.length) f.salesAgents = sales;
+               if (dev.length) f.devAgents = dev;
+               if (q.service) f.ledgerService = q.service;
+               if (q.scrivener) f.ledgerAgent = q.scrivener;
+               const t = v49Totals(q);
+               f.notes = [`由報價 ${v49No(q)} 轉入（報價日 ${v49ROC(q.quote_date) || '—'}${q.source ? '，案源 ' + q.source : ''}）；報價合計 買方 ${v49Money(t.buyer)} 元／賣方 ${v49Money(t.seller)} 元。`, q.notes || ''].filter(Boolean).join('\n');
+               selectedStaff.value = v49Str(q.staff).split('、').map(s => s.trim()).filter(Boolean);
+               roadmapType.value = q.roadmap_type || 'house';
+               v49PendingQuote.value = { id: q.id, no: v49No(q) };
+               showManager.value = false;
+               try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+           };
+           const v49CancelPending = () => {
+               if (!confirm('取消轉案並清空這張尚未存檔的新案件表單？\n（報價不受影響，之後可再轉案）')) return;
+               resetForm(false);
+           };
+           // 由 saveLocal 在新案件存檔後呼叫：雲端同步成功才標示報價已轉案。
+           const v49AfterCaseSaved = async (pq, caseId, cloudOk) => {
+               v49PendingQuote.value = null;
+               if (!cloudOk) { alert(`案件尚未同步到雲端，所以報價 ${pq.no} 還沒標示已轉案。雲端同步成功後，回到報價按「轉成案件」會自動補上連結（不會重複建案）。`); return; }
+               try {
+                   const ok = await v49Link(pq.id, caseId);
+                   if (!ok) alert(`案件已建立，但報價 ${pq.no} 未能標示已轉案（可能已被其他同仁轉案）。請到「報價」清單核對，避免同一報價有兩件案件。`);
+               } catch (e) {
+                   alert(`案件已建立，但報價 ${pq.no} 標示已轉案失敗：${e.message}。回到報價按「轉成案件」會自動補上連結。`);
+               }
+           };
+           const v49Print = () => {
+               const q = v49Edit.value; if (!q) return;
+               const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+               const p = v49Payload(q), t = v49Totals(p);
+               const contact = p.staff.split('、').filter(Boolean).map(n => { const s = staffList.find(x => x.name === n); return esc(s ? (s.fullName || n) + (s.phone ? ' ' + s.phone : '') : n); }).join('、') || '—';
+               const names = a => a.map(x => esc(x.name)).filter(Boolean).join('、') || '—';
+               const rows = who => {
+                   const r = p.items.filter(it => it.payer === who || it.payer === '雙方各半');
+                   return r.length ? r.map(it => `<tr><td>${esc(it.cat)}</td><td>${esc(it.name)}${it.payer === '雙方各半' ? '<small>（雙方各半）</small>' : ''}</td><td class="n">${v49Money(it.payer === '雙方各半' ? it.amount / 2 : it.amount)}</td><td>${esc(it.note)}</td></tr>`).join('') : '<tr><td colspan="4" class="e">無</td></tr>';
+               };
+               const block = (title, who, total) => `<h2>${title}</h2><table><thead><tr><th style="width:14%">類別</th><th>項目</th><th style="width:18%" class="n">金額（元）</th><th style="width:30%">說明</th></tr></thead><tbody>${rows(who)}</tbody><tfoot><tr><td colspan="2">小計</td><td class="n">${v49Money(total)}</td><td></td></tr></tfoot></table>`;
+               const css = 'body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#1f2937;margin:0;padding:24px;background:#fff}.sheet{max-width:760px;margin:0 auto}.bar{max-width:760px;margin:0 auto 12px;text-align:right}.bar button{font-size:14px;padding:6px 14px;border:1px solid #173b54;background:#173b54;color:#fff;border-radius:6px;cursor:pointer}h1{font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:2px}.sub{text-align:center;color:#64748b;font-size:12px;margin-bottom:16px}dl{display:grid;grid-template-columns:90px 1fr 90px 1fr;gap:6px 10px;font-size:13px;margin:0 0 14px;border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px}dt{color:#64748b}dd{margin:0}h2{font-size:15px;margin:16px 0 6px;color:#173b54}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #cbd5e1;padding:5px 8px;text-align:left;vertical-align:top}th{background:#eef3f8}.n{text-align:right;font-variant-numeric:tabular-nums}.e{text-align:center;color:#94a3b8}tfoot td{font-weight:700;background:#f8fafc}small{color:#64748b}.total{margin-top:14px;font-size:14px;text-align:right}.note{margin-top:16px;font-size:12px;color:#475569;line-height:1.7;border-top:1px solid #e2e8f0;padding-top:8px}@media print{.bar{display:none}body{padding:0}}@media(max-width:560px){dl{grid-template-columns:80px 1fr}}';
+               const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>報價單 ${esc(v49No(q))}</title><style>${css}</style></head><body>`
+                   + `<div class="bar"><button type="button" onclick="window.print()">列印／另存 PDF</button></div><div class="sheet">`
+                   + `<h1>費用報價單</h1><div class="sub">報價編號 ${esc(v49No(q))}　報價日期 ${esc(v49ROC(p.quote_date) || '—')}</div>`
+                   + `<dl><dt>委辦項目</dt><dd>${esc(p.service || '—')}</dd><dt>成交總價</dt><dd>${p.total_price === null ? '—' : esc(v49Wan(p.total_price)) + ' 萬元'}</dd>`
+                   + `<dt>案名</dt><dd>${esc(p.property_name || '—')}</dd><dt>地建號</dt><dd>${esc(p.land_build_no || '—')}</dd>`
+                   + `<dt>地址</dt><dd style="grid-column:2/-1">${esc(p.address || '—')}</dd>`
+                   + `<dt>賣方</dt><dd>${names(p.parties.sellers)}</dd><dt>買方</dt><dd>${names(p.parties.buyers)}</dd></dl>`
+                   + block('買方應付費用', '買方', t.buyer) + block('賣方應付費用', '賣方', t.seller)
+                   + `<div class="total">買方合計 <b>${v49Money(t.buyer)}</b> 元　賣方合計 <b>${v49Money(t.seller)}</b> 元　總計 <b>${v49Money(t.all)}</b> 元</div>`
+                   + `<div class="note">說明：本報價依目前提供之資料估算；稅費以稽徵機關核定為準，規費以地政事務所實收為準，如有增減將另行說明。<br>承辦：${contact}</div>`
+                   + `</div></body></html>`;
+               const w = window.open('', '_blank');
+               if (!w) return alert('瀏覽器擋住了新視窗，請允許此網站開啟新視窗後再按一次。');
+               w.document.open(); w.document.write(html); w.document.close();
+           };
 
            // V44: additive, case-scoped filing and mandate records; read from existing form snapshot only.
            // The original V41 ledger, case identity, CRM, Google Calendar, escrow, print and CSV paths stay intact.
@@ -23437,7 +23971,7 @@ const v44ExportAnnual=()=>{
                if(SUPABASE_ENABLED) loadFromCloud();
            });
  
-            const editCase = (idx) => {
+            const editCase = (idx) => { v49PendingQuote.value = null;
                 currentCaseIndex.value = idx;
                 const c = cases.value[idx];
                 Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
@@ -23537,7 +24071,7 @@ const v44ExportAnnual=()=>{
                 if(GAS_URL) syncToCloud();
            };
 
-           const resetForm = (switchToNew = false) => {
+           const resetForm = (switchToNew = false) => { v49PendingQuote.value = null;
                 currentCaseIndex.value = -1;
                 roadmapType.value = 'house';
                 selectedStaff.value=[]; draftRestoreBlocked.value=false;
@@ -23615,6 +24149,7 @@ const v44ExportAnnual=()=>{
                     '_form_json': JSON.stringify(form.value)
                 };
 
+                const v49Q = (currentCaseIndex.value === -1 && v49PendingQuote.value) ? v49PendingQuote.value : null; if (v49Q) rowData._quoteId = v49Q.id;
                 appendAudit(rowData, actionName, oldData);
                 if (currentCaseIndex.value > -1) Object.assign(cases.value[currentCaseIndex.value], rowData);
                 else { cases.value.push(rowData); currentCaseIndex.value = cases.value.length - 1; }
@@ -23630,8 +24165,8 @@ const v44ExportAnnual=()=>{
 
                 
                 if (GAS_URL) {
-                  syncToCloud(rowData).then(ok => { if(ok)alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'); });
-                } else { alert('✅ 存檔成功！(本機)'); }
+                  syncToCloud(rowData).then(ok => { if(ok)alert(isSaveAsNew ? '✅ 已成功「另存新案」並同步雲端！' : '✅ 存檔成功並同步雲端！'); if(v49Q) v49AfterCaseSaved(v49Q, stableId, ok); });
+                } else { alert('✅ 存檔成功！(本機)'); if(v49Q) v49AfterCaseSaved(v49Q, stableId, false); }
            };
 
            const formatDate = (d) => {
@@ -23767,6 +24302,7 @@ const v44ExportAnnual=()=>{
                 cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
                 listFilter, resetListFilter, listFilterActive, listStaffOptions, listScrivenerOptions, listAttentionCounts, filteredManagerList, v47MetaOf,
                 statsGrain, statsOffset, statsBasis, statsDrill, statsPeriod, statsPeriodEndText, statsSets, statsTrend, statsBreakdown, statsBasisLabel, statsDrillList, setStatsBasis, setStatsGrain, moveStatsPeriod, pickStatsDrill, v48Sum, v48Fmt, v48Num,
+                v49Quotes, v49State, v49Filter, v49Edit, v49SaveMsg, v49PendingQuote, V49_STATUS, V49_TYPES, V49_CATS, V49_PAYERS, V49_PRESETS, v49FilterDefs, v49List, v49Counts, v49Dirty, v49EditTotals, v49StaffOptions, v49SourceOptions, v49ServiceOptions, v49ScrivenerOptions, v49No, v49ROC, v49Money, v49DateTime, v49Totals, v49StatusOf, v49IsConverted, v49CaseNoOf, v49PeopleText, v49Load, v49New, v49Open, v49Close, v49Copy, v49SaveQuote, v49SetVoid, v49Convert, v49OpenCase, v49CancelPending, v49Print, v49AddItem, v49RemoveItem, v49AddPerson, v49RemovePerson, v49AddAgent, v49RemoveAgent, v49HasStaff, v49ToggleStaff,
                 caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
