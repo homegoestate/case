@@ -19664,6 +19664,24 @@ License: MIT
 .v44-mini{display:inline-flex;gap:4px;flex-wrap:wrap;max-width:250px;line-height:1.65}
 .v44-mini span{border:1px solid #d4dee6;border-radius:3px;background:#f5f9fc;padding:0 4px;font-size:11px;color:#244b65}
 .v44-scroll{overflow-x:auto}.v44-empty{padding:12px;color:#63778b;font-size:13px;background:#f7f9fb;border-radius:6px}
+/* V47 案件清單強化（Claude 2026-11-16） */
+.v47-bar{background:#fff;border:1px solid #dce4ea;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.v47-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.v47-search{flex:1 1 260px;min-width:0;border:1px solid #b9c8d4;border-radius:6px;padding:7px 10px;font-size:14px}
+.v47-sel{border:1px solid #b9c8d4;border-radius:6px;padding:6px 8px;font-size:13px;background:#fff;max-width:100%}
+.v47-chip{border:1px solid #cbd5df;background:#f5f8fb;color:#334e66;border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.v47-chip.on{background:#173b54;border-color:#173b54;color:#fff}
+.v47-chip b{font-variant-numeric:tabular-nums}
+.v47-meta{font-size:12px;color:#5b7083;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.v47-clear{border:0;background:none;color:#0f766e;text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
+.v47-name{font-weight:700;color:#1e293b;font-size:13px}
+.v47-sub{font-size:11px;color:#64748b;margin-top:2px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v47-stage{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap}
+.v47-stage.none{background:#eef2f6;color:#64748b}.v47-stage.planned{background:#e0ecff;color:#1d4ed8}.v47-stage.soon{background:#fef3c7;color:#92400e}.v47-stage.overdue{background:#fee2e2;color:#b91c1c}.v47-stage.closed{background:#e2e8f0;color:#334155}
+.v47-alerts{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.v47-alert{font-size:10.5px;border-radius:3px;padding:0 5px;line-height:1.7;white-space:nowrap}
+.v47-alert.danger{background:#fee2e2;color:#b91c1c}.v47-alert.warn{background:#fef3c7;color:#92400e}.v47-alert.info{background:#f1f5f9;color:#475569}
+.v47-rules{font-size:11.5px;color:#64748b;line-height:1.6}
 @media(max-width:900px){.v44-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.v44-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.v44-fields,.v44-filter{grid-template-columns:1fr}.v44-table{font-size:11px}}
 @media print{.v44-card,.v44-tab,.v44-manager-cell{display:none!important}}
@@ -20670,12 +20688,73 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 <div class="mb-3 flex justify-between items-center text-xs text-gray-500">
                     <span class="font-bold"><i class="fas fa-info-circle text-blue-500 mr-1"></i> 全員可新增正式案件、編輯與切換結案；刪除已改為封存並保留操作紀錄。</span>
                 </div>
+                <!-- V47 案件清單強化：搜尋／篩選／排序／提醒（只影響本機畫面，不改案件資料） -->
+                <div class="v47-bar no-print" data-testid="v47-list-bar">
+                    <div class="v47-row">
+                        <input v-model="listFilter.q" class="v47-search" type="search" placeholder="搜尋案名、編號、地址、地建號、買賣方姓名或電話、仲介、承辦…" aria-label="搜尋案件">
+                        <select v-model="listFilter.sort" class="v47-sel" aria-label="排序">
+                            <option value="default">排序：原順序（編號）</option>
+                            <option value="contract_desc">簽約日 新→舊</option>
+                            <option value="contract_asc">簽約日 舊→新</option>
+                            <option value="updated_desc">最後異動 新→舊</option>
+                            <option value="price_desc">總價 高→低</option>
+                            <option value="close_asc">預定結案日 近→遠</option>
+                        </select>
+                    </div>
+                    <div class="v47-row">
+                        <select v-model="listFilter.staff" class="v47-sel" aria-label="承辦">
+                            <option value="">全部承辦</option>
+                            <option v-for="s in listStaffOptions" :key="'st'+s" :value="s">承辦：{{ s }}</option>
+                        </select>
+                        <select v-model="listFilter.scrivener" class="v47-sel" aria-label="地政士">
+                            <option value="">全部地政士</option>
+                            <option v-for="s in listScrivenerOptions" :key="'sc'+s" :value="s">地政士：{{ s }}</option>
+                        </select>
+                        <select v-if="managerTab === 'active'" v-model="listFilter.stage" class="v47-sel" aria-label="時程">
+                            <option value="">全部時程</option>
+                            <option value="soon">7 天內有時程</option>
+                            <option value="planned">已排時程（7 天後）</option>
+                            <option value="overdue">預定結案已過</option>
+                            <option value="none">未排時程</option>
+                        </select>
+                        <select v-model="listFilter.type" class="v47-sel" aria-label="案件類型">
+                            <option value="">全部類型</option>
+                            <option value="house">房地</option>
+                            <option value="land">純土地</option>
+                            <option value="construction">建設公司／新成屋</option>
+                            <option value="privateLien">含私人設定／限制登記</option>
+                        </select>
+                        <select v-model="listFilter.period" class="v47-sel" :aria-label="managerTab === 'closed' ? '結案期間' : '簽約期間'">
+                            <option value="all">{{ managerTab === 'closed' ? '結案' : '簽約' }}期間：全部</option>
+                            <option value="thisMonth">本月</option>
+                            <option value="lastMonth">上月</option>
+                            <option value="90d">近 90 天</option>
+                            <option value="thisYear">今年</option>
+                            <option value="lastYear">去年</option>
+                        </select>
+                    </div>
+                    <div v-if="managerTab === 'active'" class="v47-row">
+                        <span class="text-xs text-gray-500 font-bold mr-1">需注意：</span>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'any'}" @click="listFilter.attention = listFilter.attention === 'any' ? '' : 'any'">全部提醒 <b>{{ listAttentionCounts.any }}</b></button>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'overdue'}" @click="listFilter.attention = listFilter.attention === 'overdue' ? '' : 'overdue'">預定結案已過 <b>{{ listAttentionCounts.overdue }}</b></button>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'tax30'}" @click="listFilter.attention = listFilter.attention === 'tax30' ? '' : 'tax30'">30 日申報倒數 <b>{{ listAttentionCounts.tax30 }}</b></button>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'missing'}" @click="listFilter.attention = listFilter.attention === 'missing' ? '' : 'missing'">資料缺漏 <b>{{ listAttentionCounts.missing }}</b></button>
+                    </div>
+                    <div class="v47-meta">
+                        <span>顯示 <b>{{ filteredManagerList.length }}</b> / {{ managerCaseList.length }} 件</span>
+                        <button v-if="listFilterActive" type="button" class="v47-clear" @click="resetListFilter">清除搜尋與篩選</button>
+                        <details class="v47-rules"><summary style="cursor:pointer">提醒怎麼算？</summary>
+                            「時程」取自表單上約定的用印、完稅、交屋、結案日期，顯示下一個節點；這些是約定日，不代表已完成。「預定結案已過」：約定結案日已過，但還沒按「結案」，請確認是否已辦結。「30 日申報倒數」：依本頁 SOP「一般案件自訂約日起 30 日內申報」，簽約後 30 天內倒數，剩 7 天內轉紅；SOP 已勾「土地增值稅申報」就不再提醒。「資料缺漏」：缺承辦、簽約日、地建號或總價。提醒只是內部參考，實際期限以契約與法規為準；篩選條件只記在這台裝置。
+                        </details>
+                    </div>
+                </div>
                 <table class="case-table bg-white shadow-sm border border-gray-200 w-full text-left">
                     <thead>
                         <tr>
                             <th class="p-2 border-b">編號</th>
                             <th class="p-2 border-b">立約/結案日</th>
-                            <th class="p-2 border-b">客戶姓名</th>
+                            <th class="p-2 border-b">案件／客戶</th>
+                            <th class="p-2 border-b">時程／提醒</th>
                             <th class="p-2 border-b">總價(萬)</th>
                             <th class="p-2 border-b hidden md:table-cell">承辦</th>
                             <th class="p-2 border-b hidden md:table-cell">最後異動</th>
@@ -20684,12 +20763,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="c in managerCaseList" :key="c.originalIndex" :class="{'bg-yellow-50': c.originalIndex === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
+                        <tr v-for="c in filteredManagerList" :key="c.originalIndex" :class="{'bg-yellow-50': c.originalIndex === currentCaseIndex}" class="hover:bg-blue-50 transition-colors">
                             <td class="p-2 border-b font-mono text-xs">{{ c['編號'] }}</td>
                             <td class="p-2 border-b font-mono text-xs">{{ managerTab === 'active' ? c['簽約日'] : (managerTab === 'closed' ? c['結案時間'] : c['_archivedAt']) }}</td>
-                            <td class="p-2 border-b font-bold text-xs">
-                                {{ String(c['客戶姓名(買/賣方)'] || '').split('、')[0] }}...
-                                <span v-if="checkVVIP(c)" class="ml-1 text-[10px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded border border-purple-200">VVIP</span>
+                            <td class="p-2 border-b text-xs">
+                                <div class="v47-name">{{ c['案名'] || String(c['客戶姓名(買/賣方)'] || '').split('、')[0] || '（未填案名）' }}
+                                    <span v-if="checkVVIP(c)" class="ml-1 text-[10px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded border border-purple-200">VVIP</span>
+                                </div>
+                                <div class="v47-sub" :title="c['客戶姓名(買/賣方)']">{{ c['客戶姓名(買/賣方)'] || '未填客戶' }}</div>
+                                <div v-if="c['地址']" class="v47-sub" :title="c['地址']">{{ c['地址'] }}</div>
+                            </td>
+                            <td class="p-2 border-b text-xs" style="min-width:150px">
+                                <span class="v47-stage" :class="v47MetaOf(c).scheduleKey">{{ v47MetaOf(c).scheduleText }}</span>
+                                <span v-if="v47MetaOf(c).typeLabel && v47MetaOf(c).type !== 'house'" class="v47-alert info" style="margin-left:4px">{{ v47MetaOf(c).typeLabel }}</span>
+                                <div v-if="v47MetaOf(c).alerts.length" class="v47-alerts">
+                                    <span v-for="a in v47MetaOf(c).alerts" :key="a.key" class="v47-alert" :class="a.level">{{ a.text }}</span>
+                                </div>
                             </td>
                             <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] }}</td>
                             <td class="p-2 border-b text-xs hidden md:table-cell">{{ c['承辦'] }}</td>
@@ -20710,8 +20799,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                 <button v-if="managerTab === 'archived' && canRestoreCases" @click="restoreCase(c.originalIndex)" class="text-green-700 hover:text-white hover:bg-green-600 bg-green-50 px-2 py-1 rounded font-bold transition-colors text-xs" title="還原"><i class="fas fa-rotate-left"></i> 還原</button>
                             </td>
                         </tr>
-                        <tr v-if="managerCaseList.length === 0">
-                            <td colspan="8" class="text-center py-8 text-gray-400">尚無符合條件的案件。</td>
+                        <tr v-if="filteredManagerList.length === 0">
+                            <td colspan="9" class="text-center py-8 text-gray-400">
+                                {{ managerCaseList.length && listFilterActive ? '沒有符合搜尋或篩選條件的案件。' : '尚無符合條件的案件。' }}
+                                <button v-if="managerCaseList.length && listFilterActive" type="button" class="v47-clear" style="margin-left:6px" @click="resetListFilter">清除搜尋與篩選</button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -21687,6 +21779,126 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                if (managerTab.value === 'closed') return closedCasesList.value;
                if (managerTab.value === 'archived') return archivedCasesList.value;
                return activeCasesList.value;
+           });
+
+           // V47 案件清單強化（Claude 2026-11-16）：搜尋、篩選、排序與提醒。只讀既有欄位與 _form_json，不改案件資料結構，也不寫雲端。
+           const V47_PREF_KEY = 'hg_case_list_filters_v47';
+           const v47Defaults = { q: '', staff: '', scrivener: '', stage: '', type: '', period: 'all', attention: '', sort: 'default' };
+           const v47LoadPrefs = () => { try { return Object.assign({}, v47Defaults, JSON.parse(localStorage.getItem(V47_PREF_KEY) || '{}')); } catch (e) { return { ...v47Defaults }; } };
+           const listFilter = ref(v47LoadPrefs());
+           watch(listFilter, v => { try { localStorage.setItem(V47_PREF_KEY, JSON.stringify(v)); } catch (e) {} }, { deep: true });
+           const resetListFilter = () => { listFilter.value = { ...v47Defaults }; };
+           const listFilterActive = computed(() => Object.keys(v47Defaults).some(k => listFilter.value[k] !== v47Defaults[k]));
+           const v47Date = s => {
+               if (!s) return null;
+               const t = String(s).trim();
+               let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+               if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+               m = t.match(/^(\d{2,3})[./-](\d{1,2})[./-](\d{1,2})/);
+               if (m) return new Date(+m[1] + 1911, +m[2] - 1, +m[3]);
+               return null;
+           };
+           const v47ROC = d => d ? `${d.getFullYear() - 1911}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}` : '';
+           const v47TypeLabels = { house: '房地', land: '純土地', construction: '建設公司／新成屋' };
+           const v47Meta = computed(() => {
+               const today = new Date(); today.setHours(0, 0, 0, 0);
+               const map = new Map();
+               casesWithIndex.value.forEach(c => {
+                   const f = v44CaseForm(c);
+                   const contract = v47Date(f.contractDate) || v47Date(c['簽約日']);
+                   // 表單上的用印／完稅／交屋／結案日期是「約定時程」，不是實際完成日；是否結案只看「結案時間」。
+                   const isClosed = !!c['結案時間'];
+                   const closed = v47Date(c['結案時間']);
+                   const plannedClose = v47Date(f.closingDate);
+                   const milestones = [['用印', v47Date(f.sealDate)], ['完稅', v47Date(f.taxDate)], ['交屋', v47Date(f.handoverDate)], ['結案', plannedClose]]
+                       .filter(x => x[1]).sort((a, b) => a[1] - b[1]);
+                   const dayDiff = d => Math.round((d - today) / 86400000);
+                   const next = milestones.find(x => x[1] >= today) || null;
+                   const days = contract ? Math.floor((today - contract) / 86400000) : null;
+                   let scheduleKey = 'none', scheduleText = '未排時程';
+                   if (isClosed) { scheduleKey = 'closed'; scheduleText = '已結案' + (closed ? ' ' + v47ROC(closed) : ''); }
+                   else if (plannedClose && plannedClose < today) { scheduleKey = 'overdue'; scheduleText = `預定結案 ${v47ROC(plannedClose)} 已過`; }
+                   else if (next) { const n = dayDiff(next[1]); scheduleKey = n <= 7 ? 'soon' : 'planned'; scheduleText = `下一步 ${next[0]} ${v47ROC(next[1])}（${n === 0 ? '今天' : n + ' 天後'}）`; }
+                   const scriveners = [...new Set([f.ledgerSigningAgent, f.ledgerEscrowAgent, f.ledgerRegistrationAgent, f.ledgerAgent, ...v44CaseFilings(c).map(x => v44Registrar(x))]
+                       .map(v => String(v || '').trim()).filter(v => v && !/其他|自行填寫|請選擇/.test(v)))];
+                   const alerts = [];
+                   if (!c['_archived'] && !isClosed) {
+                       if (scheduleKey === 'overdue') alerts.push({ key: 'overdue', level: 'danger', text: `預定結案已過 ${-dayDiff(plannedClose)} 天，請確認是否結案` });
+                       // 依本頁 SOP「一般案件自訂約日起 30 日內申報」：簽約後 30 天內倒數；SOP 已勾「土地增值稅申報」者不提醒。
+                       const declared = (f.sopChecks || {})[(c['_roadmapType'] || 'house') + '-tax:main:0'] === true;
+                       if (contract && !declared && days >= 0 && days <= 30) {
+                           const left = 30 - days;
+                           alerts.push({ key: 'tax30', level: left <= 7 ? 'danger' : 'warn', text: left === 0 ? '30 日申報期限：今天' : `30 日申報倒數 ${left} 天` });
+                       }
+                       const missing = [];
+                       if (!String(c['承辦'] || '').trim()) missing.push('承辦');
+                       if (!contract) missing.push('簽約日');
+                       if (!String(c['地建號'] || '').trim()) missing.push('地建號');
+                       if (!String(c['總價(萬)'] || '').trim()) missing.push('總價');
+                       if (missing.length) alerts.push({ key: 'missing', level: 'info', text: '缺' + missing.join('、') });
+                   }
+                   const searchText = [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['買方詳細資訊'], c['賣方詳細資訊'], c['銷售仲介'], c['開發仲介'], c['承辦'], c['備註'], c['履保編號'], scriveners.join(' ')]
+                       .map(v => String(v || '')).join(' ').toLowerCase();
+                   map.set(c.originalIndex, { contract, closed, plannedClose, scheduleKey, scheduleText, days, scriveners, alerts, searchText,
+                       type: c['_roadmapType'] || 'house', typeLabel: v47TypeLabels[c['_roadmapType'] || 'house'] || '房地', privateLien: !!c['_showPrivateLien'],
+                       updated: v47Date(c['_updatedAt'] || c['_createdAt']) });
+               });
+               return map;
+           });
+           const v47MetaOf = c => v47Meta.value.get(c.originalIndex) || { scheduleKey: 'none', scheduleText: '', alerts: [], scriveners: [], typeLabel: '' };
+           const v47PeriodRange = key => {
+               const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+               if (key === 'thisMonth') return [new Date(y, m, 1), new Date(y, m + 1, 0, 23, 59, 59)];
+               if (key === 'lastMonth') return [new Date(y, m - 1, 1), new Date(y, m, 0, 23, 59, 59)];
+               if (key === '90d') { const s = new Date(y, m, now.getDate() - 90); return [s, new Date(y, m, now.getDate(), 23, 59, 59)]; }
+               if (key === 'thisYear') return [new Date(y, 0, 1), new Date(y, 11, 31, 23, 59, 59)];
+               if (key === 'lastYear') return [new Date(y - 1, 0, 1), new Date(y - 1, 11, 31, 23, 59, 59)];
+               return null;
+           };
+           const listStaffOptions = computed(() => [...new Set(casesWithIndex.value.flatMap(c => String(c['承辦'] || '').split('、').map(s => s.trim()).filter(Boolean)))].sort((a, b) => a.localeCompare(b, 'zh-TW')));
+           const listScrivenerOptions = computed(() => [...new Set([...v47Meta.value.values()].flatMap(m => m.scriveners))].sort((a, b) => a.localeCompare(b, 'zh-TW')));
+           const v47Matches = (c, f, words, range, skipAttention) => {
+               const m = v47MetaOf(c);
+               if (words.length && !words.every(w => (m.searchText || '').includes(w))) return false;
+               if (f.staff && !String(c['承辦'] || '').split('、').map(s => s.trim()).includes(f.staff)) return false;
+               if (f.scrivener && !m.scriveners.includes(f.scrivener)) return false;
+               if (f.stage && managerTab.value === 'active' && m.scheduleKey !== f.stage) return false;
+               if (f.type) { if (f.type === 'privateLien') { if (!m.privateLien) return false; } else if (m.type !== f.type) return false; }
+               if (range) { const d = managerTab.value === 'closed' ? m.closed : m.contract; if (!d || d < range[0] || d > range[1]) return false; }
+               if (!skipAttention && f.attention) { if (f.attention === 'any' ? !m.alerts.length : !m.alerts.some(a => a.key === f.attention)) return false; }
+               return true;
+           };
+           const v47Words = () => String(listFilter.value.q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+           const listAttentionCounts = computed(() => {
+               const f = listFilter.value, words = v47Words(), range = v47PeriodRange(f.period);
+               const counts = { any: 0, overdue: 0, tax30: 0, missing: 0 };
+               managerCaseList.value.forEach(c => {
+                   if (!v47Matches(c, f, words, range, true)) return;
+                   const a = v47MetaOf(c).alerts;
+                   if (a.length) counts.any++;
+                   ['overdue', 'tax30', 'missing'].forEach(k => { if (a.some(x => x.key === k)) counts[k]++; });
+               });
+               return counts;
+           });
+           const filteredManagerList = computed(() => {
+               const f = listFilter.value, words = v47Words(), range = v47PeriodRange(f.period);
+               const rows = managerCaseList.value.filter(c => v47Matches(c, f, words, range, false));
+               if (f.sort === 'default') return rows;
+               const t = d => d ? d.getTime() : null;
+               const num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? null : n; };
+               const key = {
+                   contract_desc: c => t(v47MetaOf(c).contract), contract_asc: c => t(v47MetaOf(c).contract),
+                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
+               }[f.sort];
+               if (!key) return rows;
+               const asc = f.sort === 'contract_asc' || f.sort === 'close_asc';
+               return [...rows].sort((a, b) => {
+                   const x = key(a), y = key(b);
+                   if (x === null && y === null) return 0;
+                   if (x === null) return 1;
+                   if (y === null) return -1;
+                   return asc ? x - y : y - x;
+               });
            });
  
 
@@ -23339,6 +23551,7 @@ const v44ExportAnnual=()=>{
                v44CaseFilings,v44FilingLabel,v44Agency,v44Registrar,v44IsVerified,v44FilingWarning,v44Verify,v44AddFiling,v44AddThree,v44RemoveFiling,v44AddMandate,v44SeedV41Mandate,v44RemoveMandate,v44LinkedFilings,v44PrintMandate,v44OpenCaseFiling,v44ExportAnnual,
                caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerConfirmedClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, ledgerAgentFields, ledgerChoiceOptions, ledgerChoiceValue, setLedgerChoice, ledgerNarrativeOptions, appendLedgerText, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
                 cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
+                listFilter, resetListFilter, listFilterActive, listStaffOptions, listScrivenerOptions, listAttentionCounts, filteredManagerList, v47MetaOf,
                 caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
