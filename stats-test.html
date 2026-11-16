@@ -20880,7 +20880,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
          <span class="v48-kpi-label">待補資料</span><span class="v48-kpi-num">{{ statsSets.noDate }}</span><span class="v48-kpi-sub">未填簽約日，不計入進案與庫存</span>
       </div>
    </div>
-   <p class="v48-note">進案以「簽約日」計；結案以按下「結案」時記錄的結案時間計；期末庫存＝期末前已簽約、且期末前尚未按結案。已封存案件不計。庫存會包含「預定結案已過但還沒按結案」的案件，請到「進行中」用提醒按鈕清理。一案多位承辦或多家仲介時，分組會各算一次，加總可能大於案件數。</p>
+   <p class="v48-note">進案以「簽約日」計；結案以按下「結案」時記錄的結案時間計；期末庫存＝期末前已簽約、且期末前尚未按結案。已封存案件不計。<template v-if="statsSets.futureClosed">另有 <b>{{ statsSets.futureClosed }}</b> 件的結案時間晚於今天（多半是存檔時把預定結案日帶成了結案時間），統計上視為尚未結案；這些案件在「已結案」清單會標示，請確認。</template>庫存會包含「預定結案已過但還沒按結案」的案件，請到「進行中」用提醒按鈕清理。一案多位承辦或多家仲介時，分組會各算一次，加總可能大於案件數。</p>
 
    <div class="v48-card">
       <h4>近期趨勢（{{ statsGrain === 'month' ? '近 12 個月' : statsGrain === 'quarter' ? '近 8 季' : '近 5 年' }}）<span class="v48-legend"><i class="v48-dot in"></i>進案 <i class="v48-dot closed"></i>結案</span></h4>
@@ -21945,6 +21945,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                    const scriveners = [...new Set([f.ledgerSigningAgent, f.ledgerEscrowAgent, f.ledgerRegistrationAgent, f.ledgerAgent, ...v44CaseFilings(c).map(x => v44Registrar(x))]
                        .map(v => String(v || '').trim()).filter(v => v && !/其他|自行填寫|請選擇/.test(v)))];
                    const alerts = [];
+                   if (!c['_archived'] && isClosed && closed && closed > today) alerts.push({ key: 'futureClose', level: 'warn', text: '結案時間晚於今天，可能是預定日，請確認' });
                    if (!c['_archived'] && !isClosed) {
                        if (scheduleKey === 'overdue') alerts.push({ key: 'overdue', level: 'danger', text: `預定結案已過 ${-dayDiff(plannedClose)} 天，請確認是否結案` });
                        // 依本頁 SOP「一般案件自訂約日起 30 日內申報」：簽約後 30 天內倒數；SOP 已勾「土地增值稅申報」者不提醒。
@@ -22063,19 +22064,23 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                scrivener: { label: '地政士', keys: c => { const s = v47MetaOf(c).scriveners || []; return s.length ? s : ['未填地政士']; } },
                source: { label: '案源（仲介店）', keys: v48Sources }
            };
+           // 以「今天」為上限：結案時間晚於今天（多半是存檔時把預定結案日帶成結案時間）視為尚未結案。
+           const v48EffEnd = p => { const now = new Date(); return p.end < now ? p.end : now; };
+           const v48ClosedIn = (d, p) => !!d && d >= p.start && d <= v48EffEnd(p);
            const statsSets = computed(() => {
-               const p = statsPeriod.value, sets = { in: [], closed: [], stock: [] };
-               let noDate = 0;
+               const p = statsPeriod.value, effEnd = v48EffEnd(p), sets = { in: [], closed: [], stock: [] };
+               let noDate = 0, futureClosed = 0;
                v48Live.value.forEach(c => {
                    const m = v47MetaOf(c);
                    const closedAt = m.closed, closedFlag = !!c['結案時間'];
                    if (!m.contract) noDate++;
+                   if (closedAt && closedAt > new Date()) futureClosed++;
                    if (v48InPeriod(m.contract, p)) sets.in.push(c);
-                   if (v48InPeriod(closedAt, p)) sets.closed.push(c);
-                   const closedByEnd = closedFlag && (!closedAt || closedAt <= p.end);
-                   if (m.contract && m.contract <= p.end && !closedByEnd) sets.stock.push(c);
+                   if (v48ClosedIn(closedAt, p)) sets.closed.push(c);
+                   const closedByEnd = closedFlag && (!closedAt || closedAt <= effEnd);
+                   if (m.contract && m.contract <= effEnd && !closedByEnd) sets.stock.push(c);
                });
-               return { ...sets, noDate };
+               return { ...sets, noDate, futureClosed };
            });
            const statsTrend = computed(() => {
                const n = statsGrain.value === 'month' ? 12 : statsGrain.value === 'quarter' ? 8 : 5;
@@ -22083,7 +22088,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                for (let i = n - 1; i >= 0; i--) {
                    const p = v48PeriodOf(statsGrain.value, statsOffset.value - i);
                    let a = 0, b = 0;
-                   v48Live.value.forEach(c => { const m = v47MetaOf(c); if (v48InPeriod(m.contract, p)) a++; if (v48InPeriod(m.closed, p)) b++; });
+                   v48Live.value.forEach(c => { const m = v47MetaOf(c); if (v48InPeriod(m.contract, p)) a++; if (v48ClosedIn(m.closed, p)) b++; });
                    rows.push({ label: p.short, inCount: a, closedCount: b, current: i === 0 });
                }
                const max = Math.max(1, ...rows.map(r => Math.max(r.inCount, r.closedCount)));
