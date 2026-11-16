@@ -171,7 +171,7 @@ table.props input.wide{min-width:180px}
       </div>
       <div v-if="loadError" class="alert">{{ loadError }}</div>
       <ul class="list" data-testid="desk-list">
-        <li v-for="c in filtered" :key="c._caseId || c['編號']" :class="{on: sel && sel.caseId === c._caseId}" @click="openCase(c)">
+        <li v-for="c in filtered" :key="c._caseId || c['編號']" :class="{on: sel && sel.row === c}" @click="openCase(c)">
           <div class="t">{{ c['編號'] }}　{{ c['案名'] || '（未填案名）' }}</div>
           <div class="s">{{ c['地址'] || '' }}</div>
           <div class="s">簽約 {{ c['簽約日'] || '—' }}｜承辦 {{ c['承辦'] || '—' }}</div>
@@ -308,6 +308,10 @@ table.props input.wide{min-width:180px}
   const stable = v => JSON.stringify(v, (_, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, k) => (o[k] = x[k], o), {}) : x);
   const pad = n => String(n).padStart(2, '0');
   const nowText = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+  // 舊案沒有 _caseId：比照背表 caseSignature 以固定欄位辨識（需唯一），存檔時補上 _caseId（與背表存檔行為相同）
+  const caseSig = c => [c['_originId'] || '', c['_createdAt'] || '', c['案名'] || '', c['地址'] || '', c['簽約日'] || '', c['總價(萬)'] || '', c['客戶姓名(買/賣方)'] || ''].join('|').replace(/\s+/g, '');
+  const caseKey = c => c._caseId ? 'id:' + c._caseId : 'sig:' + caseSig(c);
+  const findByKey = (list, key) => key.startsWith('id:') ? list.filter(c => c && c._caseId === key.slice(3)) : list.filter(c => c && !c._caseId && caseSig(c) === key.slice(4));
   // 作業台會改到的欄位（用來判斷有無未存檔修改）
   const deskSubset = f => ({ v50Props: f.v50Props, v50Reg: f.v50Reg, ledgerAuthority: f.ledgerAuthority, ledgerRegistrationAgent: f.ledgerRegistrationAgent, landBuildNo: f.landBuildNo, sellers: f.sellers, buyers: f.buyers });
 
@@ -360,8 +364,8 @@ table.props input.wide{min-width:180px}
 
       const buildForm = row => {
         let f = null; try { f = row._form_json ? JSON.parse(row._form_json) : null; } catch (e) { f = null; }
-        const blocked = !row._caseId ? '此案件尚未有系統識別碼（舊資料），請先在背表開啟並存檔一次，再回作業台。'
-          : !f ? '此案件是舊格式（沒有完整表單快照），請先在背表開啟並存檔一次，再回作業台。' : '';
+        const blocked = !f ? '此案件是舊格式（沒有完整表單快照），請先在背表開啟並存檔一次，再回作業台。'
+          : (!row._caseId && findByKey(cases.value, caseKey(row)).length !== 1) ? '此舊案無法唯一辨識，請先在背表開啟並存檔一次，再回作業台。' : '';
         f = f || {};
         if (!Array.isArray(f.v50Props)) f.v50Props = [];
         f.v50Reg = { ...REG_DEFAULT, ...(f.v50Reg || {}) };
@@ -371,16 +375,16 @@ table.props input.wide{min-width:180px}
       };
       const openRow = row => {
         const { f, blocked } = buildForm(row);
-        sel.value = { caseId: row._caseId, row, base: stable(row), blocked };
+        sel.value = { key: caseKey(row), caseId: row._caseId || '', row, base: stable(row), blocked };
         w.value = f; snap.value = stable(deskSubset(f));
         saveMsg.value = { ok: true, msg: '' }; genMsg.value = '';
-        try { history.replaceState(null, '', '?case=' + encodeURIComponent(row._caseId || '')); } catch (e) {}
+        try { history.replaceState(null, '', row._caseId ? '?case=' + encodeURIComponent(row._caseId) : location.pathname); } catch (e) {}
       };
-      const openCase = c => { if (sel.value && sel.value.caseId === c._caseId) return; if (!confirmLeave()) return; openRow(c); };
+      const openCase = c => { if (sel.value && sel.value.key === caseKey(c)) return; if (!confirmLeave()) return; openRow(c); };
       const reloadCase = async () => {
         if (!sel.value || !confirmLeave()) return;
         await loadCases();
-        const row = cases.value.find(c => c._caseId === sel.value.caseId);
+        const found = findByKey(cases.value, sel.value.key), row = found.length === 1 ? found[0] : null;
         if (!row) { saveMsg.value = { ok: false, msg: '雲端找不到這件案件（可能已封存）。' }; return; }
         openRow(row); saveMsg.value = { ok: true, msg: '已重新載入' };
       };
@@ -391,11 +395,12 @@ table.props input.wide{min-width:180px}
         saving.value = true; saveMsg.value = { ok: true, msg: '存檔中…' };
         try {
           const payload = await fetchPayload();
-          const idx = payload.findIndex(c => c && c._caseId === sel.value.caseId);
-          if (idx < 0) throw new Error('雲端找不到這件案件（可能已封存或刪除），未存檔。');
-          const remote = payload[idx];
+          const matches = findByKey(payload, sel.value.key);
+          if (matches.length !== 1) throw new Error(matches.length ? '雲端有多件相同的舊案，無法確定是哪一件，未存檔；請先在背表開啟並存檔一次。' : '雲端找不到這件案件（可能已封存、刪除或在背表改過），未存檔；請按「重新載入此案」。');
+          const remote = matches[0], idx = payload.indexOf(remote);
           if (stable(remote) !== sel.value.base) throw new Error(`這件案件在您開啟後已被修改（${remote._updatedBy || '其他同仁'} ${remote._updatedAt || ''}）。為避免覆蓋，這次沒有存檔；請記下修改，按「重新載入此案」後再改。`);
           const before = payload.length, f = clone(w.value), next = clone(remote), a = window.hgCaseAccess || {};
+          if (!next._caseId) next._caseId = (crypto.randomUUID ? crypto.randomUUID() : 'case-' + Date.now() + '-' + Math.random().toString(36).slice(2));
           next._form_json = JSON.stringify(f);
           next._sellers_json = JSON.stringify(f.sellers); next._buyers_json = JSON.stringify(f.buyers);
           next['地建號'] = f.landBuildNo;
@@ -411,8 +416,9 @@ table.props input.wide{min-width:180px}
           if (out.length !== before) throw new Error('案件數異常，已停止。');
           const written = await api(`${ENDPOINT}&select=id`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ payload: out }) });
           if (!Array.isArray(written) || written.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有存檔權限），請聯絡楊翊晟。');
-          const li = cases.value.findIndex(c => c._caseId === next._caseId); if (li > -1) cases.value.splice(li, 1, next);
-          sel.value = { ...sel.value, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value));
+          const li = cases.value.indexOf(sel.value.row); if (li > -1) cases.value.splice(li, 1, next);
+          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value));
+          try { history.replaceState(null, '', '?case=' + encodeURIComponent(next._caseId)); } catch (e) {}
           saveMsg.value = { ok: true, msg: `已存檔 ${time.slice(11, 16)}（變更 ${changed.length} 欄）` };
         } catch (e) { saveMsg.value = { ok: false, msg: '存檔失敗：' + e.message }; }
         finally { saving.value = false; }
