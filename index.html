@@ -19682,6 +19682,46 @@ License: MIT
 .v47-alert{font-size:10.5px;border-radius:3px;padding:0 5px;line-height:1.7;white-space:nowrap}
 .v47-alert.danger{background:#fee2e2;color:#b91c1c}.v47-alert.warn{background:#fef3c7;color:#92400e}.v47-alert.info{background:#f1f5f9;color:#475569}
 .v47-rules{font-size:11.5px;color:#64748b;line-height:1.6}
+/* V48 案件統計（Claude 2026-11-16） */
+.v48-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.v48-seg{display:inline-flex;border:1px solid #b9c8d4;border-radius:8px;overflow:hidden}
+.v48-seg button{padding:6px 16px;background:#fff;border:0;font-size:13px;cursor:pointer;color:#334e66}
+.v48-seg button+button{border-left:1px solid #b9c8d4}
+.v48-seg button.on{background:#173b54;color:#fff;font-weight:700}
+.v48-nav{display:flex;align-items:center;gap:8px;font-size:15px;color:#173b54}
+.v48-nav button{border:1px solid #b9c8d4;background:#fff;border-radius:6px;width:30px;height:30px;font-size:18px;line-height:1;cursor:pointer}
+.v48-nav button:disabled{opacity:.35;cursor:default}
+.v48-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:8px}
+.v48-kpi{display:flex;flex-direction:column;gap:2px;text-align:left;background:#fff;border:1px solid #dce4ea;border-radius:10px;padding:12px 14px;cursor:pointer}
+.v48-kpi.on{border-color:#173b54;box-shadow:0 0 0 2px #173b5433}
+.v48-kpi-muted{cursor:default;background:#f8fafc}
+.v48-kpi-label{font-size:12px;color:#5b7083;font-weight:700}
+.v48-kpi-num{font-size:28px;font-weight:800;color:#173b54;font-variant-numeric:tabular-nums;line-height:1.15}
+.v48-kpi-sub{font-size:11.5px;color:#64748b}
+.v48-note{font-size:11.5px;color:#64748b;line-height:1.6;margin:0 0 10px}
+.v48-card{background:#fff;border:1px solid #dce4ea;border-radius:10px;padding:12px;margin-bottom:10px;min-width:0}
+.v48-card h4{margin:0 0 8px;font-size:13.5px;color:#173b54;font-weight:800;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.v48-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.v48-grid .v48-card{margin-bottom:0}
+.v48-grid{margin-bottom:10px}
+.v48-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.v48-table th{background:#eaf1f7;color:#23415a;text-align:left;padding:6px 8px;white-space:nowrap}
+.v48-table td{padding:6px 8px;border-bottom:1px solid #eef2f6;vertical-align:top}
+.v48-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.v48-table .mono{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;white-space:nowrap}
+.v48-grid .v48-table tbody tr{cursor:pointer}
+.v48-grid .v48-table tbody tr:hover{background:#f1f6fb}
+.v48-table tbody tr.on{background:#dbeafe}
+.v48-legend{margin-left:auto;font-weight:400;font-size:11.5px;color:#5b7083;display:inline-flex;align-items:center;gap:4px}
+.v48-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:6px}
+.v48-dot.in,.v48-bar.in{background:#2563eb}.v48-dot.closed,.v48-bar.closed{background:#94a3b8}
+.v48-trend{display:flex;flex-direction:column;gap:4px}
+.v48-trend-row{display:grid;grid-template-columns:62px 1fr 1fr;gap:8px;align-items:center;font-size:12px}
+.v48-trend-row.current .v48-trend-label{font-weight:800;color:#173b54}
+.v48-trend-label{color:#5b7083;font-variant-numeric:tabular-nums}
+.v48-bars{display:flex;align-items:center;gap:6px;min-width:0}
+.v48-bar{height:12px;border-radius:3px;min-width:2px;max-width:calc(100% - 28px)}
+.v48-bar-num{font-variant-numeric:tabular-nums;color:#334e66;min-width:20px}
 @media(max-width:900px){.v44-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.v44-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.v44-fields,.v44-filter{grid-template-columns:1fr}.v44-table{font-size:11px}}
 @media print{.v44-card,.v44-tab,.v44-manager-cell{display:none!important}}
@@ -20623,6 +20663,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
  
            <div class="flex gap-1 px-4 pt-3 bg-gray-200 border-b overflow-x-auto whitespace-nowrap">
                 <button @click="managerTab = 'active'" :class="managerTab === 'active' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">進行中 ({{activeCasesList.length}})</button>
+                 <button @click="managerTab = 'v48Stats'" :class="managerTab === 'v48Stats' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors" data-testid="v48-tab"><i class="fas fa-chart-bar mr-1"></i> 案件統計</button>
                  <button @click="managerTab = 'v44Filings'" :class="managerTab === 'v44Filings' ? 'bg-navy text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="v44-tab v45-tab px-5 py-2 rounded-t font-bold transition-colors"><i class="fas fa-chart-pie mr-1"></i> 地政士送件統計／Excel</button>
                  <button @click="managerTab = 'closed'" :class="managerTab === 'closed' ? 'bg-green-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">已結案 ({{closedCasesList.length}})</button>
                 <button @click="managerTab = 'archived'" :class="managerTab === 'archived' ? 'bg-red-700 text-white shadow-md' : 'bg-gray-300 text-gray-700'" class="px-5 py-2 rounded-t font-bold transition-colors">封存 ({{archivedCasesList.length}})</button>
@@ -20780,7 +20821,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                     <span v-for="a in v47MetaOf(c).alerts" :key="a.key" class="v47-alert" :class="a.level">{{ a.text }}</span>
                                 </div>
                             </td>
-                            <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] }}</td>
+                            <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] || c['售價(萬)'] }}</td>
                             <td class="p-2 border-b text-xs hidden md:table-cell">{{ c['承辦'] }}</td>
                             <td class="p-2 border-b text-[11px] hidden md:table-cell">
                                 <div class="font-bold text-gray-700">{{ c['_updatedBy'] || c['_createdBy'] || '-' }}</div>
@@ -20809,6 +20850,88 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 </table>
            </div>
  
+
+<!-- V48 案件統計（Claude 2026-11-16）：只讀統計，可點開查看構成案件 -->
+<div v-if="managerTab === 'v48Stats'" class="p-4 bg-gray-50 flex-1 overflow-y-auto" data-testid="v48-stats">
+   <div class="v48-head">
+      <div class="v48-seg" role="group" aria-label="統計單位">
+         <button type="button" :class="{on: statsGrain === 'month'}" @click="setStatsGrain('month')">月</button>
+         <button type="button" :class="{on: statsGrain === 'quarter'}" @click="setStatsGrain('quarter')">季</button>
+         <button type="button" :class="{on: statsGrain === 'year'}" @click="setStatsGrain('year')">年</button>
+      </div>
+      <div class="v48-nav">
+         <button type="button" @click="moveStatsPeriod(-1)" aria-label="上一期">‹</button>
+         <b>{{ statsPeriod.label }}</b>
+         <button type="button" @click="moveStatsPeriod(1)" :disabled="statsOffset >= 0" aria-label="下一期">›</button>
+         <button v-if="statsOffset < 0" type="button" class="v47-clear" @click="moveStatsPeriod(-statsOffset)">回到本期</button>
+      </div>
+   </div>
+   <div class="v48-kpis">
+      <button type="button" class="v48-kpi" :class="{on: statsBasis === 'in'}" @click="setStatsBasis('in')">
+         <span class="v48-kpi-label">本期進案</span><span class="v48-kpi-num">{{ statsSets.in.length }}</span><span class="v48-kpi-sub">成交總價 {{ v48Fmt(v48Sum(statsSets.in)) }} 萬</span>
+      </button>
+      <button type="button" class="v48-kpi" :class="{on: statsBasis === 'closed'}" @click="setStatsBasis('closed')">
+         <span class="v48-kpi-label">本期結案</span><span class="v48-kpi-num">{{ statsSets.closed.length }}</span><span class="v48-kpi-sub">成交總價 {{ v48Fmt(v48Sum(statsSets.closed)) }} 萬</span>
+      </button>
+      <button type="button" class="v48-kpi" :class="{on: statsBasis === 'stock'}" @click="setStatsBasis('stock')">
+         <span class="v48-kpi-label">期末庫存（{{ statsPeriodEndText }}）</span><span class="v48-kpi-num">{{ statsSets.stock.length }}</span><span class="v48-kpi-sub">尚未按結案的已簽約案件</span>
+      </button>
+      <div class="v48-kpi v48-kpi-muted">
+         <span class="v48-kpi-label">待補資料</span><span class="v48-kpi-num">{{ statsSets.noDate }}</span><span class="v48-kpi-sub">未填簽約日，不計入進案與庫存</span>
+      </div>
+   </div>
+   <p class="v48-note">進案以「簽約日」計；結案以按下「結案」時記錄的結案時間計；期末庫存＝期末前已簽約、且期末前尚未按結案。已封存案件不計。<template v-if="statsSets.futureClosed">另有 <b>{{ statsSets.futureClosed }}</b> 件的結案時間晚於今天（多半是存檔時把預定結案日帶成了結案時間），統計上視為尚未結案；這些案件在「已結案」清單會標示，請確認。</template>庫存會包含「預定結案已過但還沒按結案」的案件，請到「進行中」用提醒按鈕清理。一案多位承辦或多家仲介時，分組會各算一次，加總可能大於案件數。</p>
+
+   <div class="v48-card">
+      <h4>近期趨勢（{{ statsGrain === 'month' ? '近 12 個月' : statsGrain === 'quarter' ? '近 8 季' : '近 5 年' }}）<span class="v48-legend"><i class="v48-dot in"></i>進案 <i class="v48-dot closed"></i>結案</span></h4>
+      <div class="v48-trend">
+         <div v-for="r in statsTrend.rows" :key="r.label" class="v48-trend-row" :class="{current: r.current}">
+            <span class="v48-trend-label">{{ r.label }}</span>
+            <div class="v48-bars">
+               <div class="v48-bar in" :style="{width: (r.inCount / statsTrend.max * 100) + '%'}"></div><span class="v48-bar-num">{{ r.inCount }}</span>
+            </div>
+            <div class="v48-bars">
+               <div class="v48-bar closed" :style="{width: (r.closedCount / statsTrend.max * 100) + '%'}"></div><span class="v48-bar-num">{{ r.closedCount }}</span>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="v48-grid">
+      <div v-for="g in statsBreakdown" :key="g.dim" class="v48-card">
+         <h4>{{ statsBasisLabel }}｜依{{ g.label }}</h4>
+         <div v-if="!g.rows.length" class="v44-empty">本期沒有案件。</div>
+         <table v-else class="v48-table">
+            <thead><tr><th>{{ g.label }}</th><th class="num">件數</th><th class="num">總價（萬）</th></tr></thead>
+            <tbody>
+               <tr v-for="r in g.rows" :key="r.key" :class="{on: statsDrill && statsDrill.dim === g.dim && statsDrill.key === r.key}" @click="pickStatsDrill(g.dim, r.key)" title="點一下查看是哪些案件">
+                  <td>{{ r.key }}</td><td class="num">{{ r.count }}</td><td class="num">{{ v48Fmt(r.price) }}</td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+   </div>
+
+   <div class="v48-card">
+      <h4>{{ statsBasisLabel }}明細<template v-if="statsDrill">｜{{ statsDrill.label }}</template>（{{ statsDrillList.length }} 件）
+         <button v-if="statsDrill" type="button" class="v47-clear" style="margin-left:8px" @click="statsDrill = null">顯示全部</button>
+      </h4>
+      <div class="v44-scroll">
+         <table class="v48-table">
+            <thead><tr><th>編號</th><th>簽約日</th><th>案名</th><th>承辦</th><th class="num">總價（萬）</th><th>結案時間</th><th></th></tr></thead>
+            <tbody>
+               <tr v-for="c in statsDrillList" :key="'d' + c.originalIndex">
+                  <td class="mono">{{ c['編號'] }}</td><td class="mono">{{ c['簽約日'] }}</td>
+                  <td>{{ c['案名'] || String(c['客戶姓名(買/賣方)'] || '').split('、')[0] || '（未填案名）' }}</td>
+                  <td>{{ c['承辦'] }}</td><td class="num">{{ c['總價(萬)'] || c['售價(萬)'] }}</td><td class="mono">{{ c['結案時間'] || '—' }}</td>
+                  <td><button type="button" @click.stop="editCase(c.originalIndex)" class="text-blue-600 bg-blue-100 px-2 py-1 rounded font-bold text-xs">檢視</button></td>
+               </tr>
+               <tr v-if="!statsDrillList.length"><td colspan="7" class="v44-empty">沒有案件。</td></tr>
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
 
 <!-- V44 BEGIN manager: annual records, no new database tables -->
 <div v-if="managerTab==='v44Filings'" class="p-4 bg-gray-50 flex-1 overflow-y-auto" data-testid="v44-manager">
@@ -21822,6 +21945,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                    const scriveners = [...new Set([f.ledgerSigningAgent, f.ledgerEscrowAgent, f.ledgerRegistrationAgent, f.ledgerAgent, ...v44CaseFilings(c).map(x => v44Registrar(x))]
                        .map(v => String(v || '').trim()).filter(v => v && !/其他|自行填寫|請選擇/.test(v)))];
                    const alerts = [];
+                   if (!c['_archived'] && isClosed && closed && closed > today) alerts.push({ key: 'futureClose', level: 'warn', text: '結案時間晚於今天，可能是預定日，請確認' });
                    if (!c['_archived'] && !isClosed) {
                        if (scheduleKey === 'overdue') alerts.push({ key: 'overdue', level: 'danger', text: `預定結案已過 ${-dayDiff(plannedClose)} 天，請確認是否結案` });
                        // 依本頁 SOP「一般案件自訂約日起 30 日內申報」：簽約後 30 天內倒數；SOP 已勾「土地增值稅申報」者不提醒。
@@ -21834,7 +21958,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                        if (!String(c['承辦'] || '').trim()) missing.push('承辦');
                        if (!contract) missing.push('簽約日');
                        if (!String(c['地建號'] || '').trim()) missing.push('地建號');
-                       if (!String(c['總價(萬)'] || '').trim()) missing.push('總價');
+                       if (!String(c['總價(萬)'] || c['售價(萬)'] || '').trim()) missing.push('總價');
                        if (missing.length) alerts.push({ key: 'missing', level: 'info', text: '缺' + missing.join('、') });
                    }
                    const searchText = [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['買方詳細資訊'], c['賣方詳細資訊'], c['銷售仲介'], c['開發仲介'], c['承辦'], c['備註'], c['履保編號'], scriveners.join(' ')]
@@ -21888,7 +22012,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                const num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? null : n; };
                const key = {
                    contract_desc: c => t(v47MetaOf(c).contract), contract_asc: c => t(v47MetaOf(c).contract),
-                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
+                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)'] || c['售價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
                }[f.sort];
                if (!key) return rows;
                const asc = f.sort === 'contract_asc' || f.sort === 'close_asc';
@@ -21901,6 +22025,96 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                });
            });
  
+
+           // V48 案件統計（Claude 2026-11-16）：本期進案／結案／期末庫存、趨勢與分組，可點開看是哪些案件。只讀，不寫雲端。
+           // 口徑：進案＝簽約日；結案＝按下「結案」記錄的結案時間；庫存＝期末前已簽約且期末前未結案。已封存不計；未填簽約日另列「待補資料」。
+           const statsGrain = ref('month');
+           const statsOffset = ref(0);
+           const statsBasis = ref('in');
+           const statsDrill = ref(null);
+           const v48Num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+           const v48Fmt = n => Math.round(n).toLocaleString('zh-TW');
+           // 舊案的價格存在「售價(萬)」，新案在「總價(萬)」。
+           const v48Price = c => v48Num(c['總價(萬)']) || v48Num(c['售價(萬)']);
+           const v48Sum = list => list.reduce((s, c) => s + v48Price(c), 0);
+           const v48PeriodOf = (grain, offset) => {
+               const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+               if (grain === 'month') {
+                   const d = new Date(y, m + offset, 1);
+                   return { start: d, end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59), label: `${d.getFullYear() - 1911} 年 ${d.getMonth() + 1} 月`, short: `${d.getFullYear() - 1911}/${d.getMonth() + 1}` };
+               }
+               if (grain === 'quarter') {
+                   const q0 = Math.floor(m / 3) + offset, yy = y + Math.floor(q0 / 4), q = ((q0 % 4) + 4) % 4;
+                   return { start: new Date(yy, q * 3, 1), end: new Date(yy, q * 3 + 3, 0, 23, 59, 59), label: `${yy - 1911} 年第 ${q + 1} 季`, short: `${yy - 1911}Q${q + 1}` };
+               }
+               const yy = y + offset;
+               return { start: new Date(yy, 0, 1), end: new Date(yy, 11, 31, 23, 59, 59), label: `${yy - 1911} 年`, short: `${yy - 1911}年` };
+           };
+           const statsPeriod = computed(() => v48PeriodOf(statsGrain.value, statsOffset.value));
+           const statsPeriodEndText = computed(() => v47ROC(statsPeriod.value.end > new Date() ? new Date() : statsPeriod.value.end));
+           const v48InPeriod = (d, p) => !!d && d >= p.start && d <= p.end;
+           const v48Live = computed(() => casesWithIndex.value.filter(c => !c['_archived']));
+           const v48Sources = c => {
+               const stores = new Set();
+               ['_salesAgents_json', '_devAgents_json'].forEach(k => { try { (JSON.parse(c[k] || '[]') || []).forEach(a => { const s = String(a && a.store || '').trim(); if (s) stores.add(s); }); } catch (e) {} });
+               if (!stores.size) String((c['銷售仲介'] || '') + '、' + (c['開發仲介'] || '')).split('、').forEach(x => { const mm = x.match(/\(([^)]+)\)/); if (mm && mm[1].trim()) stores.add(mm[1].trim()); });
+               return stores.size ? [...stores] : ['未填仲介店'];
+           };
+           const v48Dims = {
+               type: { label: '案件類型', keys: c => [(v47MetaOf(c).typeLabel || '房地') + (v47MetaOf(c).privateLien ? '＋私人設定' : '')] },
+               staff: { label: '承辦', keys: c => { const s = String(c['承辦'] || '').split('、').map(x => x.trim()).filter(Boolean); return s.length ? s : ['未填承辦']; } },
+               scrivener: { label: '地政士', keys: c => { const s = v47MetaOf(c).scriveners || []; return s.length ? s : ['未填地政士']; } },
+               source: { label: '案源（仲介店）', keys: v48Sources }
+           };
+           // 以「今天」為上限：結案時間晚於今天（多半是存檔時把預定結案日帶成結案時間）視為尚未結案。
+           const v48EffEnd = p => { const now = new Date(); return p.end < now ? p.end : now; };
+           const v48ClosedIn = (d, p) => !!d && d >= p.start && d <= v48EffEnd(p);
+           const statsSets = computed(() => {
+               const p = statsPeriod.value, effEnd = v48EffEnd(p), sets = { in: [], closed: [], stock: [] };
+               let noDate = 0, futureClosed = 0;
+               v48Live.value.forEach(c => {
+                   const m = v47MetaOf(c);
+                   const closedAt = m.closed, closedFlag = !!c['結案時間'];
+                   if (!m.contract) noDate++;
+                   if (closedAt && closedAt > new Date()) futureClosed++;
+                   if (v48InPeriod(m.contract, p)) sets.in.push(c);
+                   if (v48ClosedIn(closedAt, p)) sets.closed.push(c);
+                   const closedByEnd = closedFlag && (!closedAt || closedAt <= effEnd);
+                   if (m.contract && m.contract <= effEnd && !closedByEnd) sets.stock.push(c);
+               });
+               return { ...sets, noDate, futureClosed };
+           });
+           const statsTrend = computed(() => {
+               const n = statsGrain.value === 'month' ? 12 : statsGrain.value === 'quarter' ? 8 : 5;
+               const rows = [];
+               for (let i = n - 1; i >= 0; i--) {
+                   const p = v48PeriodOf(statsGrain.value, statsOffset.value - i);
+                   let a = 0, b = 0;
+                   v48Live.value.forEach(c => { const m = v47MetaOf(c); if (v48InPeriod(m.contract, p)) a++; if (v48ClosedIn(m.closed, p)) b++; });
+                   rows.push({ label: p.short, inCount: a, closedCount: b, current: i === 0 });
+               }
+               const max = Math.max(1, ...rows.map(r => Math.max(r.inCount, r.closedCount)));
+               return { rows, max };
+           });
+           const statsBreakdown = computed(() => {
+               const set = statsSets.value[statsBasis.value] || [];
+               return Object.entries(v48Dims).map(([dim, d]) => {
+                   const map = new Map();
+                   set.forEach(c => d.keys(c).forEach(k => { const r = map.get(k) || { key: k, count: 0, price: 0 }; r.count++; r.price += v48Price(c); map.set(k, r); }));
+                   return { dim, label: d.label, rows: [...map.values()].sort((a, b) => b.count - a.count || a.key.localeCompare(b.key, 'zh-TW')) };
+               });
+           });
+           const statsBasisLabel = computed(() => ({ in: '本期進案', closed: '本期結案', stock: '期末庫存' })[statsBasis.value]);
+           const statsDrillList = computed(() => {
+               let rows = statsSets.value[statsBasis.value] || [];
+               const dr = statsDrill.value;
+               if (dr && v48Dims[dr.dim]) rows = rows.filter(c => v48Dims[dr.dim].keys(c).includes(dr.key));
+               return [...rows].sort((a, b) => ((v47MetaOf(b).contract || 0) - (v47MetaOf(a).contract || 0)));
+           });
+           const setStatsBasis = b => { statsBasis.value = b; statsDrill.value = null; };
+           const setStatsGrain = g => { statsGrain.value = g; statsOffset.value = 0; statsDrill.value = null; };
+           const moveStatsPeriod = d => { statsOffset.value = Math.min(0, statsOffset.value + d); statsDrill.value = null; };
+           const pickStatsDrill = (dim, key) => { statsDrill.value = statsDrill.value && statsDrill.value.dim === dim && statsDrill.value.key === key ? null : { dim, key, label: v48Dims[dim].label + '：' + key }; };
 
            // V44: additive, case-scoped filing and mandate records; read from existing form snapshot only.
            // The original V41 ledger, case identity, CRM, Google Calendar, escrow, print and CSV paths stay intact.
@@ -23552,6 +23766,7 @@ const v44ExportAnnual=()=>{
                caseHandlerNames, escrowTemplates, escrowTemplate, escrowStatus, escrowBusy, escrowFieldValue, setEscrowField, escrowAutoField, escrowTemplateWarnings, exportEscrowDocx, exportEscrowData, importEscrowData, escrowParties, saveForEscrow, ledgerOnly, ledgerAllPeople, ledgerClients, ledgerConfirmedClients, ledgerSigners, ledgerApplication, ledgerNumberText, ledgerMissing, ledgerAgentFields, ledgerChoiceOptions, ledgerChoiceValue, setLedgerChoice, ledgerNarrativeOptions, appendLedgerText, printLedger, GAS_URL, syncStatus, currentUserRole, handleRoleChange, currentOperator, portalBound, currentRoleLabel, currentPermissionHint, canArchiveCases, canRestoreCases,
                 cases, activeCasesList, closedCasesList, archivedCasesList, managerCaseList, managerTab, showManager, currentCaseIndex,
                 listFilter, resetListFilter, listFilterActive, listStaffOptions, listScrivenerOptions, listAttentionCounts, filteredManagerList, v47MetaOf,
+                statsGrain, statsOffset, statsBasis, statsDrill, statsPeriod, statsPeriodEndText, statsSets, statsTrend, statsBreakdown, statsBasisLabel, statsDrillList, setStatsBasis, setStatsGrain, moveStatsPeriod, pickStatsDrill, v48Sum, v48Fmt, v48Num,
                 caseLoadSource,cloudCaseCount,cloudCheckBusy,IS_LOCAL_FILE_PREVIEW,loadFromCloud,v45CheckCloudCount,v45OpenStats,v45ExportXlsx,v45ExportBusy,v45MonthlyByAgent,v45SelectAgent,v45LifetimeSummary,v46History,v46HistoryFor,v46HistoryVisible,v46HistoryPerPerson,v46HistoryTotals,v46HistoryMonthly,v46HistoryKindRows,v46HistoryAgentRows,
                form, addParkingRow, ensureParkingRow, removeParkingRow, parkingRowText, parkingText, parkingWarning, constructionTimingWarning, caseTypeLabel, paymentRows, docText, reportStaffText, printIssue, fitPrintPages, resetForm, addNewCase, saveAsNew, saveLocal, editCase, deleteCase, restoreCase, toggleCaseStatus,
                taxBracketInfo, isTaxAlertTriggered, isAMLTriggered, currentRoadmapSteps, ceoDashboardStats, crmAlertList, sendCRMLine,
