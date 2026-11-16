@@ -20821,7 +20821,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                     <span v-for="a in v47MetaOf(c).alerts" :key="a.key" class="v47-alert" :class="a.level">{{ a.text }}</span>
                                 </div>
                             </td>
-                            <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] }}</td>
+                            <td class="p-2 border-b text-xs font-mono font-bold">{{ c['總價(萬)'] || c['售價(萬)'] }}</td>
                             <td class="p-2 border-b text-xs hidden md:table-cell">{{ c['承辦'] }}</td>
                             <td class="p-2 border-b text-[11px] hidden md:table-cell">
                                 <div class="font-bold text-gray-700">{{ c['_updatedBy'] || c['_createdBy'] || '-' }}</div>
@@ -20923,7 +20923,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                <tr v-for="c in statsDrillList" :key="'d' + c.originalIndex">
                   <td class="mono">{{ c['編號'] }}</td><td class="mono">{{ c['簽約日'] }}</td>
                   <td>{{ c['案名'] || String(c['客戶姓名(買/賣方)'] || '').split('、')[0] || '（未填案名）' }}</td>
-                  <td>{{ c['承辦'] }}</td><td class="num">{{ c['總價(萬)'] }}</td><td class="mono">{{ c['結案時間'] || '—' }}</td>
+                  <td>{{ c['承辦'] }}</td><td class="num">{{ c['總價(萬)'] || c['售價(萬)'] }}</td><td class="mono">{{ c['結案時間'] || '—' }}</td>
                   <td><button type="button" @click.stop="editCase(c.originalIndex)" class="text-blue-600 bg-blue-100 px-2 py-1 rounded font-bold text-xs">檢視</button></td>
                </tr>
                <tr v-if="!statsDrillList.length"><td colspan="7" class="v44-empty">沒有案件。</td></tr>
@@ -21958,7 +21958,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                        if (!String(c['承辦'] || '').trim()) missing.push('承辦');
                        if (!contract) missing.push('簽約日');
                        if (!String(c['地建號'] || '').trim()) missing.push('地建號');
-                       if (!String(c['總價(萬)'] || '').trim()) missing.push('總價');
+                       if (!String(c['總價(萬)'] || c['售價(萬)'] || '').trim()) missing.push('總價');
                        if (missing.length) alerts.push({ key: 'missing', level: 'info', text: '缺' + missing.join('、') });
                    }
                    const searchText = [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['買方詳細資訊'], c['賣方詳細資訊'], c['銷售仲介'], c['開發仲介'], c['承辦'], c['備註'], c['履保編號'], scriveners.join(' ')]
@@ -22012,7 +22012,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                const num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? null : n; };
                const key = {
                    contract_desc: c => t(v47MetaOf(c).contract), contract_asc: c => t(v47MetaOf(c).contract),
-                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
+                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)'] || c['售價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
                }[f.sort];
                if (!key) return rows;
                const asc = f.sort === 'contract_asc' || f.sort === 'close_asc';
@@ -22034,7 +22034,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const statsDrill = ref(null);
            const v48Num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
            const v48Fmt = n => Math.round(n).toLocaleString('zh-TW');
-           const v48Sum = list => list.reduce((s, c) => s + v48Num(c['總價(萬)']), 0);
+           // 舊案的價格存在「售價(萬)」，新案在「總價(萬)」。
+           const v48Price = c => v48Num(c['總價(萬)']) || v48Num(c['售價(萬)']);
+           const v48Sum = list => list.reduce((s, c) => s + v48Price(c), 0);
            const v48PeriodOf = (grain, offset) => {
                const now = new Date(), y = now.getFullYear(), m = now.getMonth();
                if (grain === 'month') {
@@ -22098,7 +22100,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                const set = statsSets.value[statsBasis.value] || [];
                return Object.entries(v48Dims).map(([dim, d]) => {
                    const map = new Map();
-                   set.forEach(c => d.keys(c).forEach(k => { const r = map.get(k) || { key: k, count: 0, price: 0 }; r.count++; r.price += v48Num(c['總價(萬)']); map.set(k, r); }));
+                   set.forEach(c => d.keys(c).forEach(k => { const r = map.get(k) || { key: k, count: 0, price: 0 }; r.count++; r.price += v48Price(c); map.set(k, r); }));
                    return { dim, label: d.label, rows: [...map.values()].sort((a, b) => b.count - a.count || a.key.localeCompare(b.key, 'zh-TW')) };
                });
            });
