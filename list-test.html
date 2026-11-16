@@ -19677,7 +19677,7 @@ License: MIT
 .v47-name{font-weight:700;color:#1e293b;font-size:13px}
 .v47-sub{font-size:11px;color:#64748b;margin-top:2px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .v47-stage{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap}
-.v47-stage.none{background:#eef2f6;color:#475569}.v47-stage.contract{background:#e0ecff;color:#1d4ed8}.v47-stage.seal{background:#ede9fe;color:#6d28d9}.v47-stage.tax{background:#dcfce7;color:#15803d}.v47-stage.closed{background:#e2e8f0;color:#334155}
+.v47-stage.none{background:#eef2f6;color:#64748b}.v47-stage.planned{background:#e0ecff;color:#1d4ed8}.v47-stage.soon{background:#fef3c7;color:#92400e}.v47-stage.overdue{background:#fee2e2;color:#b91c1c}.v47-stage.closed{background:#e2e8f0;color:#334155}
 .v47-alerts{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 .v47-alert{font-size:10.5px;border-radius:3px;padding:0 5px;line-height:1.7;white-space:nowrap}
 .v47-alert.danger{background:#fee2e2;color:#b91c1c}.v47-alert.warn{background:#fef3c7;color:#92400e}.v47-alert.info{background:#f1f5f9;color:#475569}
@@ -20698,7 +20698,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             <option value="contract_asc">簽約日 舊→新</option>
                             <option value="updated_desc">最後異動 新→舊</option>
                             <option value="price_desc">總價 高→低</option>
-                            <option value="days_desc">進行天數 長→短</option>
+                            <option value="close_asc">預定結案日 近→遠</option>
                         </select>
                     </div>
                     <div class="v47-row">
@@ -20710,12 +20710,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             <option value="">全部地政士</option>
                             <option v-for="s in listScrivenerOptions" :key="'sc'+s" :value="s">地政士：{{ s }}</option>
                         </select>
-                        <select v-if="managerTab === 'active'" v-model="listFilter.stage" class="v47-sel" aria-label="辦理進度">
-                            <option value="">全部進度</option>
-                            <option value="none">未簽約</option>
-                            <option value="contract">已簽約（未用印）</option>
-                            <option value="seal">已用印（未完稅）</option>
-                            <option value="tax">已完稅（未結案）</option>
+                        <select v-if="managerTab === 'active'" v-model="listFilter.stage" class="v47-sel" aria-label="時程">
+                            <option value="">全部時程</option>
+                            <option value="soon">7 天內有時程</option>
+                            <option value="planned">已排時程（7 天後）</option>
+                            <option value="overdue">預定結案已過</option>
+                            <option value="none">未排時程</option>
                         </select>
                         <select v-model="listFilter.type" class="v47-sel" aria-label="案件類型">
                             <option value="">全部類型</option>
@@ -20736,15 +20736,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                     <div v-if="managerTab === 'active'" class="v47-row">
                         <span class="text-xs text-gray-500 font-bold mr-1">需注意：</span>
                         <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'any'}" @click="listFilter.attention = listFilter.attention === 'any' ? '' : 'any'">全部提醒 <b>{{ listAttentionCounts.any }}</b></button>
-                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'tax30'}" @click="listFilter.attention = listFilter.attention === 'tax30' ? '' : 'tax30'">30 日申報 <b>{{ listAttentionCounts.tax30 }}</b></button>
-                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'long'}" @click="listFilter.attention = listFilter.attention === 'long' ? '' : 'long'">超過 120 天 <b>{{ listAttentionCounts.long }}</b></button>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'overdue'}" @click="listFilter.attention = listFilter.attention === 'overdue' ? '' : 'overdue'">預定結案已過 <b>{{ listAttentionCounts.overdue }}</b></button>
+                        <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'tax30'}" @click="listFilter.attention = listFilter.attention === 'tax30' ? '' : 'tax30'">30 日申報倒數 <b>{{ listAttentionCounts.tax30 }}</b></button>
                         <button type="button" class="v47-chip" :class="{on: listFilter.attention === 'missing'}" @click="listFilter.attention = listFilter.attention === 'missing' ? '' : 'missing'">資料缺漏 <b>{{ listAttentionCounts.missing }}</b></button>
                     </div>
                     <div class="v47-meta">
                         <span>顯示 <b>{{ filteredManagerList.length }}</b> / {{ managerCaseList.length }} 件</span>
                         <button v-if="listFilterActive" type="button" class="v47-clear" @click="resetListFilter">清除搜尋與篩選</button>
                         <details class="v47-rules"><summary style="cursor:pointer">提醒怎麼算？</summary>
-                            「30 日申報」：有簽約日、尚無用印與完稅日期，簽約第 25 天起黃色、第 30 天起紅色（依本頁 SOP「一般案件自訂約日起 30 日內申報」）；沒有表單快照的舊案不判斷。「超過 120 天」：簽約超過 120 天仍未結案。「資料缺漏」：缺承辦、簽約日、地建號或總價。提醒只是內部參考，實際期限以契約與法規為準；篩選條件只記在這台裝置。
+                            「時程」取自表單上約定的用印、完稅、交屋、結案日期，顯示下一個節點；這些是約定日，不代表已完成。「預定結案已過」：約定結案日已過，但還沒按「結案」，請確認是否已辦結。「30 日申報倒數」：依本頁 SOP「一般案件自訂約日起 30 日內申報」，簽約後 30 天內倒數，剩 7 天內轉紅；SOP 已勾「土地增值稅申報」就不再提醒。「資料缺漏」：缺承辦、簽約日、地建號或總價。提醒只是內部參考，實際期限以契約與法規為準；篩選條件只記在這台裝置。
                         </details>
                     </div>
                 </div>
@@ -20754,7 +20754,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                             <th class="p-2 border-b">編號</th>
                             <th class="p-2 border-b">立約/結案日</th>
                             <th class="p-2 border-b">案件／客戶</th>
-                            <th class="p-2 border-b">進度／提醒</th>
+                            <th class="p-2 border-b">時程／提醒</th>
                             <th class="p-2 border-b">總價(萬)</th>
                             <th class="p-2 border-b hidden md:table-cell">承辦</th>
                             <th class="p-2 border-b hidden md:table-cell">最後異動</th>
@@ -20774,7 +20774,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                                 <div v-if="c['地址']" class="v47-sub" :title="c['地址']">{{ c['地址'] }}</div>
                             </td>
                             <td class="p-2 border-b text-xs" style="min-width:150px">
-                                <span class="v47-stage" :class="v47MetaOf(c).stageKey">{{ v47MetaOf(c).stage }}<template v-if="v47MetaOf(c).stageText"> {{ v47MetaOf(c).stageText }}</template></span>
+                                <span class="v47-stage" :class="v47MetaOf(c).scheduleKey">{{ v47MetaOf(c).scheduleText }}</span>
                                 <span v-if="v47MetaOf(c).typeLabel && v47MetaOf(c).type !== 'house'" class="v47-alert info" style="margin-left:4px">{{ v47MetaOf(c).typeLabel }}</span>
                                 <div v-if="v47MetaOf(c).alerts.length" class="v47-alerts">
                                     <span v-for="a in v47MetaOf(c).alerts" :key="a.key" class="v47-alert" :class="a.level">{{ a.text }}</span>
@@ -21804,25 +21804,32 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                const today = new Date(); today.setHours(0, 0, 0, 0);
                const map = new Map();
                casesWithIndex.value.forEach(c => {
-                   const hasForm = !!c._form_json;
                    const f = v44CaseForm(c);
                    const contract = v47Date(f.contractDate) || v47Date(c['簽約日']);
-                   const seal = v47Date(f.sealDate), tax = v47Date(f.taxDate);
-                   const closed = v47Date(f.closingDate) || v47Date(c['結案時間']);
-                   let stage = '未簽約', stageKey = 'none', stageDate = null;
-                   if (c['結案時間'] || closed) { stage = '已結案'; stageKey = 'closed'; stageDate = closed; }
-                   else if (tax) { stage = '已完稅'; stageKey = 'tax'; stageDate = tax; }
-                   else if (seal) { stage = '已用印'; stageKey = 'seal'; stageDate = seal; }
-                   else if (contract) { stage = '已簽約'; stageKey = 'contract'; stageDate = contract; }
+                   // 表單上的用印／完稅／交屋／結案日期是「約定時程」，不是實際完成日；是否結案只看「結案時間」。
+                   const isClosed = !!c['結案時間'];
+                   const closed = v47Date(c['結案時間']);
+                   const plannedClose = v47Date(f.closingDate);
+                   const milestones = [['用印', v47Date(f.sealDate)], ['完稅', v47Date(f.taxDate)], ['交屋', v47Date(f.handoverDate)], ['結案', plannedClose]]
+                       .filter(x => x[1]).sort((a, b) => a[1] - b[1]);
+                   const dayDiff = d => Math.round((d - today) / 86400000);
+                   const next = milestones.find(x => x[1] >= today) || null;
                    const days = contract ? Math.floor((today - contract) / 86400000) : null;
+                   let scheduleKey = 'none', scheduleText = '未排時程';
+                   if (isClosed) { scheduleKey = 'closed'; scheduleText = '已結案' + (closed ? ' ' + v47ROC(closed) : ''); }
+                   else if (plannedClose && plannedClose < today) { scheduleKey = 'overdue'; scheduleText = `預定結案 ${v47ROC(plannedClose)} 已過`; }
+                   else if (next) { const n = dayDiff(next[1]); scheduleKey = n <= 7 ? 'soon' : 'planned'; scheduleText = `下一步 ${next[0]} ${v47ROC(next[1])}（${n === 0 ? '今天' : n + ' 天後'}）`; }
                    const scriveners = [...new Set([f.ledgerSigningAgent, f.ledgerEscrowAgent, f.ledgerRegistrationAgent, f.ledgerAgent, ...v44CaseFilings(c).map(x => v44Registrar(x))]
                        .map(v => String(v || '').trim()).filter(v => v && !/其他|自行填寫|請選擇/.test(v)))];
                    const alerts = [];
-                   if (!c['_archived'] && stageKey !== 'closed') {
-                       // 依本頁 SOP「一般案件自訂約日起 30 日內申報」：有簽約日、尚無用印與完稅日期時提醒。舊案沒有表單快照時不判斷，避免誤報。
-                       if (hasForm && contract && !seal && !tax && days >= 30) alerts.push({ key: 'tax30', level: 'danger', text: `簽約 ${days} 天未用印／完稅` });
-                       else if (hasForm && contract && !seal && !tax && days >= 25) alerts.push({ key: 'tax30', level: 'warn', text: `簽約第 ${days} 天，留意 30 日申報` });
-                       if (contract && days >= 120) alerts.push({ key: 'long', level: 'warn', text: `進行 ${days} 天未結案` });
+                   if (!c['_archived'] && !isClosed) {
+                       if (scheduleKey === 'overdue') alerts.push({ key: 'overdue', level: 'danger', text: `預定結案已過 ${-dayDiff(plannedClose)} 天，請確認是否結案` });
+                       // 依本頁 SOP「一般案件自訂約日起 30 日內申報」：簽約後 30 天內倒數；SOP 已勾「土地增值稅申報」者不提醒。
+                       const declared = (f.sopChecks || {})[(c['_roadmapType'] || 'house') + '-tax:main:0'] === true;
+                       if (contract && !declared && days >= 0 && days <= 30) {
+                           const left = 30 - days;
+                           alerts.push({ key: 'tax30', level: left <= 7 ? 'danger' : 'warn', text: left === 0 ? '30 日申報期限：今天' : `30 日申報倒數 ${left} 天` });
+                       }
                        const missing = [];
                        if (!String(c['承辦'] || '').trim()) missing.push('承辦');
                        if (!contract) missing.push('簽約日');
@@ -21832,13 +21839,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                    }
                    const searchText = [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['買方詳細資訊'], c['賣方詳細資訊'], c['銷售仲介'], c['開發仲介'], c['承辦'], c['備註'], c['履保編號'], scriveners.join(' ')]
                        .map(v => String(v || '')).join(' ').toLowerCase();
-                   map.set(c.originalIndex, { contract, closed, stage, stageKey, stageDate, stageText: stageDate ? v47ROC(stageDate) : '', days, scriveners, alerts, searchText,
+                   map.set(c.originalIndex, { contract, closed, plannedClose, scheduleKey, scheduleText, days, scriveners, alerts, searchText,
                        type: c['_roadmapType'] || 'house', typeLabel: v47TypeLabels[c['_roadmapType'] || 'house'] || '房地', privateLien: !!c['_showPrivateLien'],
                        updated: v47Date(c['_updatedAt'] || c['_createdAt']) });
                });
                return map;
            });
-           const v47MetaOf = c => v47Meta.value.get(c.originalIndex) || { stage: '', stageKey: 'none', alerts: [], scriveners: [], typeLabel: '' };
+           const v47MetaOf = c => v47Meta.value.get(c.originalIndex) || { scheduleKey: 'none', scheduleText: '', alerts: [], scriveners: [], typeLabel: '' };
            const v47PeriodRange = key => {
                const now = new Date(), y = now.getFullYear(), m = now.getMonth();
                if (key === 'thisMonth') return [new Date(y, m, 1), new Date(y, m + 1, 0, 23, 59, 59)];
@@ -21855,7 +21862,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                if (words.length && !words.every(w => (m.searchText || '').includes(w))) return false;
                if (f.staff && !String(c['承辦'] || '').split('、').map(s => s.trim()).includes(f.staff)) return false;
                if (f.scrivener && !m.scriveners.includes(f.scrivener)) return false;
-               if (f.stage && managerTab.value === 'active' && m.stageKey !== f.stage) return false;
+               if (f.stage && managerTab.value === 'active' && m.scheduleKey !== f.stage) return false;
                if (f.type) { if (f.type === 'privateLien') { if (!m.privateLien) return false; } else if (m.type !== f.type) return false; }
                if (range) { const d = managerTab.value === 'closed' ? m.closed : m.contract; if (!d || d < range[0] || d > range[1]) return false; }
                if (!skipAttention && f.attention) { if (f.attention === 'any' ? !m.alerts.length : !m.alerts.some(a => a.key === f.attention)) return false; }
@@ -21864,12 +21871,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            const v47Words = () => String(listFilter.value.q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
            const listAttentionCounts = computed(() => {
                const f = listFilter.value, words = v47Words(), range = v47PeriodRange(f.period);
-               const counts = { any: 0, tax30: 0, long: 0, missing: 0 };
+               const counts = { any: 0, overdue: 0, tax30: 0, missing: 0 };
                managerCaseList.value.forEach(c => {
                    if (!v47Matches(c, f, words, range, true)) return;
                    const a = v47MetaOf(c).alerts;
                    if (a.length) counts.any++;
-                   ['tax30', 'long', 'missing'].forEach(k => { if (a.some(x => x.key === k)) counts[k]++; });
+                   ['overdue', 'tax30', 'missing'].forEach(k => { if (a.some(x => x.key === k)) counts[k]++; });
                });
                return counts;
            });
@@ -21881,10 +21888,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                const num = v => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? null : n; };
                const key = {
                    contract_desc: c => t(v47MetaOf(c).contract), contract_asc: c => t(v47MetaOf(c).contract),
-                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)']), days_desc: c => v47MetaOf(c).days
+                   updated_desc: c => t(v47MetaOf(c).updated), price_desc: c => num(c['總價(萬)']), close_asc: c => t(v47MetaOf(c).plannedClose)
                }[f.sort];
                if (!key) return rows;
-               const asc = f.sort === 'contract_asc';
+               const asc = f.sort === 'contract_asc' || f.sort === 'close_asc';
                return [...rows].sort((a, b) => {
                    const x = key(a), y = key(b);
                    if (x === null && y === null) return 0;
