@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -19,7 +19,7 @@ button{font:inherit;cursor:pointer}
 .top .links{margin-left:auto;display:flex;gap:12px;font-size:13px}
 .top a{color:#dbeafe}
 .wrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:12px;padding:12px 16px;max-width:1500px;margin:0 auto}
-@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
 .card h2{margin:0 0 8px;font-size:15px;color:var(--navy);font-weight:800}
 .card h3{margin:16px 0 8px;font-size:14.5px;color:var(--navy);font-weight:800}
@@ -105,6 +105,13 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 .tag.no{background:#fee2e2;color:#991b1b}
 .linkbtn{border:0;background:none;color:#1d4ed8;padding:0;cursor:pointer;text-align:left;font-size:12.5px;text-decoration:underline}
 .top .links a.on{color:#fde68a;font-weight:800}
+.files .up{border:1px dashed var(--line-2);border-radius:10px;padding:10px 12px;margin-top:10px;background:#f8fafc}
+.files .up .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.files .up select,.files .up input[type=text]{padding:6px 8px;border:1px solid var(--line-2);border-radius:8px;font-size:14px}
+.files .viewer{margin-top:12px;border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+.files .viewer .bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#f1f5f9;flex-wrap:wrap}
+.files .viewer iframe{width:100%;height:75vh;border:0;display:block;background:#fff}
+.files .viewer img{max-width:100%;display:block;margin:0 auto}
 </style>
 <script>
 // 登入閘門（與背表相同：總管理帳號、access/<uid>.active；資料庫端另以 case_staff 名單把關）
@@ -270,6 +277,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 
         <div class="tabs">
           <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記表單</button>
+          <button type="button" :class="{on: tab === 'files'}" @click="openFilesTab" data-testid="desk-tab-files">文件</button>
           <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收據</button>
           <button type="button" :class="{on: tab === 'reply'}" @click="tab = 'reply'" data-testid="desk-tab-reply">客戶回覆</button>
           <button type="button" disabled title="下一步串接">報價（規劃中）</button>
@@ -429,6 +437,81 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           <p v-if="rp.stage === 'share' && replyTarget.consent !== '同意'" class="alert warn" style="margin-top:8px" data-testid="desk-reply-consent">這位客戶{{ replyTarget.consent === '不同意' ? '已表示不同意' : '尚未同意' }}收到事務所資訊。依個人資料保護法，行銷或資訊分享只寄給同意的客戶。</p>
           <p v-if="replyTodo" class="note" style="color:var(--warn)">還有 {{ replyTodo }} 處【請填】，送出前請補上。</p>
           <p class="note">這裡只產生建議文字，不會自動寄出；LINE 請複製後貼到與客戶的對話。對象的電話、Email 取自「登記表單」的權利人／義務人與背表仲介欄。範本之後可依事務所習慣調整。</p>
+        </div>
+
+        <div class="card files" v-show="tab === 'files'" data-testid="desk-files">
+          <div class="head">
+            <h3 style="margin:0">文件（原始檔留存）</h3>
+            <div class="actions">
+              <button type="button" class="btn" @click="loadFiles" :disabled="fl.loading || !sel.caseId">{{ fl.loading ? '讀取中…' : '重新整理' }}</button>
+            </div>
+          </div>
+          <div v-if="!sel.caseId" class="alert warn" style="margin-top:10px" data-testid="desk-files-noid">
+            這件案件還沒有系統編號，文件無法掛在案件下。
+            <template v-if="sel.blocked">{{ sel.blocked }}</template>
+            <template v-else>按「存檔並產生案件編號」即可（只替雲端這件案件補上編號{{ dirty ? '，並一起存入畫面上尚未存檔的修改' : '' }}）。
+              <button type="button" class="btn sm" @click="saveCase" :disabled="saving">{{ saving ? '存檔中…' : '存檔並產生案件編號' }}</button></template>
+          </div>
+          <div v-if="fl.error" class="alert" style="margin-top:10px">{{ fl.error }}</div>
+          <template v-if="sel.caseId">
+            <div class="up" data-testid="desk-files-upload">
+              <div class="row">
+                <b style="color:var(--navy)">上傳</b>
+                <label>分類 <select v-model="fl.kind" :disabled="fl.busy" data-testid="desk-files-kind"><option v-for="k in FILE_KINDS" :key="k.id" :value="k.id">{{ k.name }}</option></select></label>
+                <input v-model="fl.note" type="text" maxlength="200" :disabled="fl.busy" placeholder="備註（選填，例如：簽約版、賣方身分證正反面）" style="flex:1;min-width:200px" data-testid="desk-files-note">
+                <span class="btn filebtn primary">{{ fl.busy ? '處理中…' : '選擇檔案（PDF、照片）' }}<input type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple @change="onCaseFiles" :disabled="fl.busy" data-testid="desk-files-input"></span>
+              </div>
+              <div class="row muted" style="margin-top:6px;font-size:13px">
+                <label><input type="checkbox" v-model="fl.compress" :disabled="fl.busy"> 掃描檔超過 3 MB 時自動壓縮（建議，省雲端空間）</label>
+                <span v-if="fl.kind === 'id'" style="color:var(--warn)" data-testid="desk-files-wm">身分證件會先加上浮水印「{{ wmPreview }}」再存檔。</span>
+              </div>
+              <div v-if="fl.msg" class="note" style="white-space:pre-line;margin:8px 0 0" data-testid="desk-files-msg">{{ fl.msg }}</div>
+            </div>
+            <div class="kv" data-testid="desk-files-sum">
+              <div><b>文件</b>{{ filesSum.count }} 份</div>
+              <div><b>佔用空間</b>{{ fsz(filesSum.bytes) }}</div>
+              <div><b>已作廢</b>{{ filesSum.voidCount }} 份 <label v-if="filesSum.voidCount" class="muted" style="font-weight:400"><input type="checkbox" v-model="fl.showVoid"> 顯示</label></div>
+            </div>
+            <div class="tw" style="margin-top:10px">
+              <table class="props" style="min-width:820px" data-testid="desk-files-table">
+                <thead><tr><th>分類</th><th>檔名</th><th>大小</th><th>上傳</th><th>備註</th><th></th></tr></thead>
+                <tbody>
+                  <tr v-for="r in filesShown" :key="r.file_id" :style="r.void ? 'color:#94a3b8' : ''">
+                    <td>
+                      <select v-if="!r.void" :value="r.kind" @change="setFileKind(r, $event.target.value)" style="padding:3px 4px">
+                        <option v-for="k in FILE_KINDS" :key="k.id" :value="k.id">{{ k.name }}</option>
+                      </select>
+                      <template v-else>{{ KIND_NAME[r.kind] || r.kind }}</template>
+                    </td>
+                    <td style="word-break:break-all">{{ r.name }}<span v-if="r.watermark" class="tag" style="margin-left:6px">已加浮水印</span><span v-if="r.void" class="tag no" style="margin-left:6px">已作廢：{{ r.void_reason }}</span></td>
+                    <td>{{ fsz(r.size) }}</td>
+                    <td>{{ r.created_by || '' }} {{ shortTime(r.created_at) }}</td>
+                    <td>{{ r.note }}</td>
+                    <td style="white-space:nowrap">
+                      <button type="button" class="btn sm" @click="viewFile(r)" data-testid="desk-files-view">開啟</button>
+                      <button v-if="!r.void" type="button" class="btn sm" @click="voidFile(r)" data-testid="desk-files-void">作廢</button>
+                    </td>
+                  </tr>
+                  <tr v-if="!filesShown.length"><td colspan="6" class="muted" style="text-align:center;padding:14px">{{ fl.loading ? '讀取中…' : '此案還沒有文件。' }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="fl.view" class="viewer" data-testid="desk-files-viewer">
+              <div class="bar">
+                <b style="word-break:break-all">{{ fl.view.name }}</b>
+                <span class="muted" v-if="fl.view.loading">讀取中…</span>
+                <span style="color:var(--err)" v-if="fl.view.error">{{ fl.view.error }}</span>
+                <a v-if="fl.view.url" class="btn sm" :href="fl.view.url" :download="fl.view.name">下載</a>
+                <a v-if="fl.view.url" class="btn sm" :href="fl.view.url" target="_blank" rel="noopener">新分頁開啟</a>
+                <button type="button" class="btn sm" @click="closeView">關閉</button>
+              </div>
+              <template v-if="fl.view.url">
+                <iframe v-if="fl.view.mime === 'application/pdf'" :src="fl.view.url" title="文件預覽"></iframe>
+                <img v-else :src="fl.view.url" :alt="fl.view.name">
+              </template>
+            </div>
+          </template>
+          <p class="note">檔案存在事務所的雲端私人檔案區，只有背表名單內、已登入的同仁看得到，網路上沒有公開連結。檔案會先在這台電腦處理（照片縮成適合閱讀的大小、身分證件加浮水印、大的掃描檔壓縮）再上傳。放錯檔案請按「作廢」：不會刪除、作廢後不能恢復。</p>
         </div>
 
         <div class="card" v-show="tab === 'receipts'" data-testid="desk-receipts">
@@ -898,6 +981,189 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         catch (e) { ros.value.note = '無法自動複製：' + list.join(', '); }
       };
 
+      // D5 文件分頁（Claude 2026-11-17）：原始檔存 Supabase 私人檔案區 case-files，紀錄在 case_files；不能刪，只能作廢
+      const FILE_KINDS = [{ id: 'transcript', name: '謄本' }, { id: 'contract', name: '合約書' }, { id: 'id', name: '身分證件' }, { id: 'deed', name: '權狀' }, { id: 'tax', name: '稅單' }, { id: 'other', name: '其他' }];
+      const KIND_NAME = Object.fromEntries(FILE_KINDS.map(k => [k.id, k.name]));
+      const FILE_MAX = 25 * 1024 * 1024, SCAN_COMPRESS_FROM = 3 * 1024 * 1024;
+      const FILE_EXT = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+      const fsz = n => { n = Number(n) || 0; return n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(n ? 1 : 0, Math.round(n / 1024)) + ' KB'; };
+      const FL0 = keep => ({ rows: [], loading: false, error: '', caseId: '', kind: (keep && keep.kind) || 'contract', note: '', compress: keep ? keep.compress : true, busy: false, msg: '', showVoid: false, view: null });
+      const fl = ref(FL0());
+      const filesShown = computed(() => fl.value.rows.filter(r => fl.value.showVoid || !r.void));
+      const filesSum = computed(() => { const live = fl.value.rows.filter(r => !r.void); return { count: live.length, bytes: live.reduce((s, r) => s + (Number(r.size) || 0), 0), voidCount: fl.value.rows.length - live.length }; });
+      const wmText = () => '僅供 ' + (trim(sel.value && sel.value.row['編號']) || '本') + ' 案件辦理不動產登記使用　' + todayText();
+      const wmPreview = computed(() => sel.value ? wmText() : '');
+      const staffName = () => { const a = window.hgCaseAccess || {}; return a.employee || a.account || '作業台同仁'; };
+      const closeView = () => { const v = fl.value.view; if (v && v.url) URL.revokeObjectURL(v.url); fl.value.view = null; };
+      const loadFiles = async () => {
+        const id = sel.value && sel.value.caseId;
+        if (!id) { closeView(); fl.value = FL0(fl.value); return; }
+        if (fl.value.caseId !== id) { closeView(); fl.value = { ...FL0(fl.value), caseId: id }; }
+        fl.value.loading = true; fl.value.error = '';
+        try {
+          const rows = await api(`${SUPABASE}/rest/v1/case_files?case_id=eq.${encodeURIComponent(id)}&select=file_id,kind,name,mime,size,watermark,note,void,void_reason,created_by,created_at,path&order=created_at.desc`);
+          if (fl.value.caseId === id) fl.value.rows = Array.isArray(rows) ? rows : [];
+        } catch (e) { if (fl.value.caseId === id) fl.value.error = '文件清單讀取失敗：' + e.message; }
+        finally { if (fl.value.caseId === id) fl.value.loading = false; }
+      };
+      const openFilesTab = () => { tab.value = 'files'; loadFiles(); };
+      watch(() => sel.value && sel.value.caseId, id => { if (fl.value.caseId && fl.value.caseId !== id) { closeView(); fl.value = FL0(fl.value); } if (tab.value === 'files') loadFiles(); });
+
+      const sha256hex = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+      const caseDir = async id => /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : 'h' + (await sha256hex(id)).slice(0, 40);
+      const stampText = () => nowText().replace(/[-: ]/g, '').replace(/^(\d{8})/, '$1-');
+      const rand6 = () => Math.random().toString(36).slice(2, 8).padEnd(6, '0');
+      const canvasBlob = (cv, q) => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('圖片處理失敗')), 'image/jpeg', q));
+      const loadImage = file => new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file), img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('照片無法讀取（iPhone 的 HEIC 檔請先改存成 JPG）')); };
+        img.src = url;
+      });
+      const drawWatermark = (ctx, w, h, text) => {
+        const size = Math.max(16, Math.round(Math.min(w, h) / 18));
+        ctx.save();
+        ctx.font = `bold ${size}px "Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif`;
+        ctx.fillStyle = 'rgba(29,78,216,0.30)'; ctx.textBaseline = 'middle';
+        const tw = ctx.measureText(text).width + size * 2, diag = Math.hypot(w, h);
+        ctx.translate(w / 2, h / 2); ctx.rotate(-Math.PI / 7);
+        let row = 0;
+        for (let y = -diag / 2; y <= diag / 2; y += size * 3.4, row++) for (let x = -diag / 2 - (row % 2) * tw / 2; x <= diag / 2; x += tw) ctx.fillText(text, x, y);
+        ctx.restore();
+      };
+      const processImage = async (file, wm) => {
+        const img = await loadImage(file), k = Math.min(1, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+        const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+        const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        if (wm) drawWatermark(ctx, cv.width, cv.height, wm);
+        const blob = await canvasBlob(cv, 0.85); cv.width = cv.height = 0;
+        return (!wm && k === 1 && blob.size >= file.size && FILE_EXT[file.type]) ? file : blob;
+      };
+      const pdfInfo = async (pdfjs, bytes) => {
+        const doc = await pdfjs.getDocument({ data: bytes.slice(), isEvalSupported: false, enableXfa: false, cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }).promise;
+        let chars = 0;
+        for (let i = 1; i <= Math.min(doc.numPages, 2); i++) { const tc = await (await doc.getPage(i)).getTextContent(); chars += tc.items.reduce((s, it) => s + String(it.str || '').replace(/\s/g, '').length, 0); }
+        return { doc, hasText: chars >= 20 };
+      };
+      // 掃描檔（沒有文字層）重新存成約 150dpi 的 JPEG 頁面；版面方向以畫面所見為準
+      const compressScan = async (doc, onPage) => {
+        const out = await window.PDFLib.PDFDocument.create();
+        for (let i = 1; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i), vp1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: Math.min(2.2, 2400 / Math.max(vp1.width, vp1.height)) });
+          const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+          const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+          await page.render({ canvasContext: ctx, viewport: vp, intent: 'print' }).promise;
+          const im = await out.embedJpg(await (await canvasBlob(cv, 0.7)).arrayBuffer()); cv.width = cv.height = 0;
+          out.addPage([vp1.width, vp1.height]).drawImage(im, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+          if (onPage) onPage(i, doc.numPages);
+        }
+        return new Uint8Array(await out.save());
+      };
+      // PDF 浮水印：把浮水印畫成透明 PNG 疊在每頁上（不嵌中文字型，檔案只多幾十 KB）；依頁面旋轉角度擺正，畫面上看到的是正的
+      const watermarkPdf = async (bytes, text) => {
+        const { PDFDocument, degrees } = window.PDFLib;
+        let pdf; try { pdf = await PDFDocument.load(bytes); } catch (e) { throw new Error('這份 PDF 有加密或格式特殊，無法加浮水印；請改用掃描檔或照片'); }
+        const tiles = {};
+        for (const page of pdf.getPages()) {
+          const box = page.getMediaBox(), W = box.width, H = box.height, rot = ((page.getRotation().angle % 360) + 360) % 360;
+          const side = rot === 90 || rot === 270, vw = side ? H : W, vh = side ? W : H, key = Math.round(vw) + 'x' + Math.round(vh);
+          if (!tiles[key]) {
+            const k = Math.min(1.5, 1400 / Math.max(vw, vh)), cv = document.createElement('canvas');
+            cv.width = Math.round(vw * k); cv.height = Math.round(vh * k);
+            drawWatermark(cv.getContext('2d'), cv.width, cv.height, text);
+            const png = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('浮水印產生失敗')), 'image/png'));
+            tiles[key] = await pdf.embedPng(await png.arrayBuffer()); cv.width = cv.height = 0;
+          }
+          const at = { 0: [box.x, box.y], 90: [box.x + W, box.y], 180: [box.x + W, box.y + H], 270: [box.x, box.y + H] }[rot] || [box.x, box.y];
+          page.drawImage(tiles[key], { x: at[0], y: at[1], width: vw, height: vh, rotate: degrees(rot) });
+        }
+        return new Uint8Array(await pdf.save());
+      };
+      const putObject = async (objPath, blob, mime) => {
+        const res = await fetch(`${SUPABASE}/storage/v1/object/case-files/${objPath}`, { method: 'POST', headers: { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}`, 'Content-Type': mime, 'x-upsert': 'false' }, body: blob, cache: 'no-store' });
+        const text = await res.text(); let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) {}
+        if (!res.ok) throw new Error((data && (data.message || data.error)) || text || ('HTTP ' + res.status));
+      };
+      const onCaseFiles = async ev => {
+        const files = [...(ev.target.files || [])]; ev.target.value = '';
+        if (!files.length || fl.value.busy || !sel.value || !sel.value.caseId) return;
+        const id = sel.value.caseId, row = sel.value.row, kind = fl.value.kind, note = trim(fl.value.note).slice(0, 200), who = staffName(), wm = kind === 'id' ? wmText() : '';
+        const done = [], failed = [], setMsg = t => { if (fl.value.caseId === id) fl.value.msg = t; };
+        fl.value.busy = true; fl.value.msg = '';
+        try {
+          const dir = await caseDir(id);
+          for (const [n, file] of files.entries()) {
+            const tag = `（${n + 1}/${files.length}）${file.name}`;
+            try {
+              const isPdf = file.type === 'application/pdf' || (!file.type && /\.pdf$/i.test(file.name));
+              if (!isPdf && !FILE_EXT[file.type]) throw new Error('只收 PDF 或 JPG／PNG 照片');
+              let blob = file, mime = isPdf ? 'application/pdf' : file.type;
+              if (isPdf) {
+                let bytes = new Uint8Array(await file.arrayBuffer());
+                if (fl.value.compress && bytes.length > SCAN_COMPRESS_FROM) {
+                  setMsg('檢查掃描檔' + tag);
+                  if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
+                  const { doc, hasText } = await pdfInfo(await loadPdfjs(), bytes);
+                  try {
+                    if (!hasText) { const small = await compressScan(doc, (i, t) => setMsg(`壓縮掃描檔 第 ${i}/${t} 頁` + tag)); if (small.length < bytes.length * 0.85) bytes = small; }
+                  } finally { doc.destroy(); }
+                }
+                if (wm) {
+                  setMsg('加浮水印' + tag);
+                  if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
+                  bytes = await watermarkPdf(bytes, wm);
+                }
+                blob = new Blob([bytes], { type: mime });
+              } else {
+                setMsg('處理照片' + tag);
+                blob = await processImage(file, wm); mime = blob.type || file.type;
+              }
+              if (blob.size > FILE_MAX) throw new Error(`處理後仍有 ${fsz(blob.size)}，超過 25 MB 上限`);
+              const objPath = `case/${dir}/${stampText()}-${rand6()}.${FILE_EXT[mime] || 'bin'}`;
+              setMsg('上傳中' + tag);
+              await putObject(objPath, blob, mime);
+              await api(`${SUPABASE}/rest/v1/case_files`, { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({
+                case_id: id, case_no: trim(row['編號']), case_name: trim(row['案名'] || row['地址']).slice(0, 200), kind, path: objPath,
+                name: file.name.slice(0, 200), mime, size: blob.size, watermark: wm, note, created_by: who, updated_by: who }) });
+              done.push(file.name + (blob.size < file.size * 0.9 ? `（${fsz(file.size)}→${fsz(blob.size)}）` : ''));
+            } catch (e) { failed.push(`${file.name}：${e && e.message ? e.message : e}`); }
+          }
+        } catch (e) { failed.push(e && e.message ? e.message : String(e)); }
+        finally {
+          fl.value.busy = false;
+          setMsg([done.length ? `已上傳 ${done.length} 份：${done.join('、')}` : '', failed.length ? `未上傳 ${failed.length} 份：${failed.join('；')}` : ''].filter(Boolean).join('\n'));
+          if (fl.value.caseId === id) { if (!failed.length) fl.value.note = ''; loadFiles(); }
+        }
+      };
+      const viewFile = async r => {
+        closeView();
+        fl.value.view = { fileId: r.file_id, name: r.name, mime: r.mime, url: '', loading: true, error: '' };
+        const mine = () => fl.value.view && fl.value.view.fileId === r.file_id;
+        try {
+          const res = await fetch(`${SUPABASE}/storage/v1/object/authenticated/case-files/${r.path}`, { headers: { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}` }, cache: 'no-store' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const url = URL.createObjectURL(new Blob([await res.blob()], { type: r.mime || 'application/octet-stream' }));
+          if (mine()) { fl.value.view.url = url; fl.value.view.loading = false; } else URL.revokeObjectURL(url);
+        } catch (e) { if (mine()) { fl.value.view.loading = false; fl.value.view.error = '檔案讀取失敗：' + e.message; } }
+      };
+      const patchFile = async (r, body) => {
+        const rows = await api(`${SUPABASE}/rest/v1/case_files?file_id=eq.${encodeURIComponent(r.file_id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...body, updated_by: staffName() }) });
+        if (!Array.isArray(rows) || rows.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有權限）');
+      };
+      const setFileKind = async (r, kind) => {
+        if (kind === r.kind) return;
+        try { await patchFile(r, { kind }); fl.value.msg = `已把「${r.name}」改為「${KIND_NAME[kind]}」。`; }
+        catch (e) { fl.value.msg = '分類修改失敗：' + e.message; }
+        loadFiles();
+      };
+      const voidFile = async r => {
+        const reason = prompt(`要作廢「${r.name}」嗎？\n作廢後不能恢復（檔案仍保留供查核）。請輸入原因：`, '放錯案件或放錯檔案');
+        if (reason === null) return;
+        try { await patchFile(r, { void: true, void_reason: trim(reason).slice(0, 200) || '未填原因' }); if (fl.value.view && fl.value.view.fileId === r.file_id) closeView(); fl.value.msg = `已作廢「${r.name}」。`; }
+        catch (e) { fl.value.msg = '作廢失敗：' + e.message; }
+        loadFiles();
+      };
+
       const signOut = () => { if (confirmLeave()) window.hgCaseSignOut(); };
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
@@ -906,6 +1172,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         if (id) { const row = cases.value.find(c => c._caseId === id); if (row) openRow(row); else if (!loadError.value) loadError.value = '網址指定的案件找不到（可能已封存）。'; }
         if (wantTab === 'receipts' && sel.value) openReceiptsTab();
         if (wantTab === 'reply' && sel.value) tab.value = 'reply';
+        if (wantTab === 'files' && sel.value) openFilesTab();
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
@@ -914,6 +1181,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab,
         imp, clearImport, onTranscriptFiles, applyTranscript, propExists, ownerOk,
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
+        FILE_KINDS, KIND_NAME, fl, filesShown, filesSum, wmPreview, fsz, loadFiles, openFilesTab, onCaseFiles, viewFile, closeView, setFileKind, voidFile,
         FIRMS, NEED_LABEL, REPLY_STAGES, rp, replyTargets, replyTarget, replyNeeds, replyTodo, mailtoHref, smsHref, copyReply, regenReply };
     }
   }).mount('#desk');
