@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -151,7 +151,7 @@ table.props input.wide{min-width:180px}
 <div id="desk" v-cloak>
   <div class="top">
     <h1>地政士作業台</h1>
-    <span class="muted" style="color:#cbd5e1">選一件案件，補登記資料、產生地政士表單；資料與背表共用</span>
+    <span class="muted" style="color:#cbd5e1">選一件案件，補登記資料、產生地政士表單、開收據；資料與背表共用</span>
     <div class="links">
       <span v-if="operator">已登入：{{ operator }}　<a href="#" @click.prevent="signOut">登出</a></span>
       <a href="./" target="_blank" rel="noopener">開啟背表</a>
@@ -208,12 +208,12 @@ table.props input.wide{min-width:180px}
         </div>
 
         <div class="tabs">
-          <button type="button" class="on">登記表單</button>
-          <button type="button" disabled title="下一步串接">收據（規劃中）</button>
+          <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記表單</button>
+          <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收據</button>
           <button type="button" disabled title="下一步串接">報價（規劃中）</button>
         </div>
 
-        <div class="card" data-testid="desk-forms">
+        <div class="card" v-show="tab === 'forms'" data-testid="desk-forms">
           <h3 style="margin-top:0">1. 登記資料</h3>
           <div class="grid">
             <label>登記原因
@@ -286,6 +286,48 @@ table.props input.wide{min-width:180px}
           </div>
           <div class="status" role="status" data-testid="desk-gen-status">{{ genMsg }}</div>
           <p class="note">產生表單用的是畫面上目前的資料；請記得按上方「存檔」，背表、履保表、紀錄簿才會看到。作業台存檔後，已開著的背表請重新整理再存檔。首次產生需載入約 8MB 字型與內政部原表（之後快取），原表會核對檔案指紋；PDF 手改不會回寫，最後一頁覆核單送件前請移除。</p>
+        </div>
+
+        <div class="card" v-show="tab === 'receipts'" data-testid="desk-receipts">
+          <div class="head">
+            <h3 style="margin:0">收據（宏國／易丞收據系統）</h3>
+            <div class="actions">
+              <button type="button" class="btn" @click="loadReceipts" :disabled="rcpt.loading || !sel.caseId">{{ rcpt.loading ? '讀取中…' : '重新整理' }}</button>
+              <button type="button" class="btn primary" @click="newReceipt('buyer')" :disabled="!sel.caseId" data-testid="desk-rcpt-buyer">開新收據：買方</button>
+              <button type="button" class="btn primary" @click="newReceipt('seller')" :disabled="!sel.caseId" data-testid="desk-rcpt-seller">開新收據：賣方</button>
+            </div>
+          </div>
+          <div v-if="!sel.caseId" class="alert warn" style="margin-top:10px" data-testid="desk-rcpt-noid">
+            這件案件還沒有系統編號，收據無法掛在案件下。
+            <template v-if="sel.blocked">{{ sel.blocked }}</template>
+            <template v-else>按「存檔並產生案件編號」即可（只替雲端這件案件補上編號{{ dirty ? '，並一起存入畫面上尚未存檔的修改' : '' }}）。
+              <button type="button" class="btn sm" @click="saveCase" :disabled="saving" data-testid="desk-make-id">{{ saving ? '存檔中…' : '存檔並產生案件編號' }}</button></template>
+          </div>
+          <div v-if="rcpt.error" class="alert" style="margin-top:10px">{{ rcpt.error }}</div>
+          <template v-if="sel.caseId">
+            <div class="kv" data-testid="desk-rcpt-sum">
+              <div><b>已定稿收據</b>{{ rcptSum.finalCount }} 張</div>
+              <div><b>代辦費收款（已定稿，不含規費）</b>{{ money(rcptSum.received) }} 元</div>
+              <div><b>收據結算合計（已定稿）</b>{{ money(rcptSum.total) }} 元</div>
+              <div><b>草稿／作廢</b>{{ rcptSum.draftCount }} 張／{{ rcptSum.voidCount }} 張</div>
+            </div>
+            <div class="tw" style="margin-top:10px">
+              <table class="props" style="min-width:820px" data-testid="desk-rcpt-table">
+                <thead><tr><th>收據日期</th><th>身分</th><th>抬頭</th><th>事務所</th><th>代辦費收款</th><th>結算合計</th><th>狀態</th><th>最後修改</th><th></th></tr></thead>
+                <tbody>
+                  <tr v-for="r in rcpt.rows" :key="r.receipt_id" :style="r.status === 'void' || r.test ? 'color:#94a3b8' : ''">
+                    <td>{{ r.receipt_date || '—' }}</td><td>{{ RSIDE[r.side] || r.side }}</td><td>{{ r.client || '—' }}</td><td>{{ RFIRM[r.firm] || r.firm }}</td>
+                    <td>{{ money(r.received) }}</td><td>{{ money(r.total) }}</td>
+                    <td>{{ RSTATUS[r.status] || r.status }}{{ r.latest_version ? ' 第' + r.latest_version + '版' : '' }}{{ r.test ? '（測試）' : '' }}</td>
+                    <td>{{ r.updated_by || '' }} {{ shortTime(r.updated_at) }}</td>
+                    <td><button type="button" class="btn sm" @click="openReceipt(r.receipt_id)">開啟</button></td>
+                  </tr>
+                  <tr v-if="!rcpt.rows.length"><td colspan="9" class="muted" style="text-align:center;padding:14px">{{ rcpt.loading ? '讀取中…' : '此案在雲端還沒有收據。' }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+          <p class="note">收據會在「收據系統」新分頁開啟，並自動帶入此案的抬頭、案件標的與買賣方代辦費套組；請核對金額後在收據系統按「儲存檔案」或列印定稿，回到這裡按「重新整理」即可看到。代辦費收款不含代繳規費；草稿、作廢與測試收據不列入合計。收據的 PDF、本機紀錄與印花稅核對仍在收據系統。</p>
         </div>
       </template>
     </div>
@@ -483,17 +525,46 @@ table.props input.wide{min-width:180px}
         finally { genBusy.value = ''; }
       };
 
+      // D2 收據分頁（Claude 2026-11-17）：只讀雲端 case_receipts；開收據到收據系統新分頁
+      const tab = ref('forms');
+      const rcpt = ref({ rows: [], loading: false, error: '', caseId: '' });
+      const RSIDE = { buyer: '買方', seller: '賣方', other: '其他' }, RSTATUS = { draft: '草稿', final: '已定稿', void: '已作廢' }, RFIRM = { hongguo: '宏國', yicheng: '易丞' };
+      const money = n => (n === null || n === undefined || n === '') ? '—' : Number(n).toLocaleString('en-US');
+      const shortTime = t => { if (!t) return ''; const d = new Date(t); return isNaN(d) ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+      const rcptSum = computed(() => {
+        const rows = rcpt.value.rows, live = rows.filter(r => !r.test && r.status === 'final');
+        return { finalCount: live.length, received: live.reduce((s, r) => s + (Number(r.received) || 0), 0), total: live.reduce((s, r) => s + (Number(r.total) || 0), 0),
+          draftCount: rows.filter(r => !r.test && r.status === 'draft').length, voidCount: rows.filter(r => r.status === 'void').length };
+      });
+      const loadReceipts = async () => {
+        const id = sel.value && sel.value.caseId;
+        if (!id) { rcpt.value = { rows: [], loading: false, error: '', caseId: '' }; return; }
+        rcpt.value = { rows: rcpt.value.caseId === id ? rcpt.value.rows : [], loading: true, error: '', caseId: id };
+        try {
+          const rows = await api(`${SUPABASE}/rest/v1/case_receipts?case_id=eq.${encodeURIComponent(id)}&select=receipt_id,status,test,side,firm,receipt_date,client,received,total,latest_version,updated_by,updated_at&order=receipt_date.desc.nullslast,created_at.desc`);
+          if (sel.value && sel.value.caseId === id) rcpt.value = { rows: Array.isArray(rows) ? rows : [], loading: false, error: '', caseId: id };
+        } catch (e) { if (sel.value && sel.value.caseId === id) rcpt.value = { ...rcpt.value, loading: false, error: '收據讀取失敗：' + e.message }; }
+      };
+      const openWin = url => { const win = window.open(url, '_blank'); if (win) { try { win.opener = null; } catch (e) {} } else alert('瀏覽器擋住了新分頁，請允許此網站開啟新分頁後再按一次。'); };
+      const newReceipt = side => { if (sel.value && sel.value.caseId) openWin('/receipts/?case=' + encodeURIComponent(sel.value.caseId) + '&side=' + side); };
+      const openReceipt = id => openWin('/receipts/?receipt=' + encodeURIComponent(id));
+      const openReceiptsTab = () => { tab.value = 'receipts'; loadReceipts(); };
+      watch(() => sel.value && sel.value.caseId, () => { if (tab.value === 'receipts') loadReceipts(); else rcpt.value = { rows: [], loading: false, error: '', caseId: '' }; });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && tab.value === 'receipts' && sel.value && sel.value.caseId && !rcpt.value.loading) loadReceipts(); });
+
       const signOut = () => { if (confirmLeave()) window.hgCaseSignOut(); };
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
         await loadCases();
-        const id = new URLSearchParams(location.search).get('case');
+        const qs = new URLSearchParams(location.search), id = qs.get('case'), wantTab = qs.get('tab');
         if (id) { const row = cases.value.find(c => c._caseId === id); if (row) openRow(row); else if (!loadError.value) loadError.value = '網址指定的案件找不到（可能已封存）。'; }
+        if (wantTab === 'receipts' && sel.value) openReceiptsTab();
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
-        loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut };
+        loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
+        tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab };
     }
   }).mount('#desk');
 })();
