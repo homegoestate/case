@@ -556,9 +556,9 @@ table.props input.wide{min-width:180px}
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
         await loadCases();
-        const id = new URLSearchParams(location.search).get('case');
+        const qs = new URLSearchParams(location.search), id = qs.get('case'), wantTab = qs.get('tab');
         if (id) { const row = cases.value.find(c => c._caseId === id); if (row) openRow(row); else if (!loadError.value) loadError.value = '網址指定的案件找不到（可能已封存）。'; }
-        if (new URLSearchParams(location.search).get('tab') === 'receipts' && sel.value) openReceiptsTab();
+        if (wantTab === 'receipts' && sel.value) openReceiptsTab();
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
