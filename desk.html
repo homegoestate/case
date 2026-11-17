@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -112,6 +112,28 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 .files .viewer .bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#f1f5f9;flex-wrap:wrap}
 .files .viewer iframe{width:100%;height:75vh;border:0;display:block;background:#fff}
 .files .viewer img{max-width:100%;display:block;margin:0 auto}
+.ck{margin-top:12px;border:1px solid #93c5fd;border-radius:10px;padding:10px 12px;background:#f8fbff}
+.ck .ck-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ck .ck-prog{height:6px;background:#e2e8f0;border-radius:3px;margin:8px 0;overflow:hidden}
+.ck .ck-prog div{height:100%;background:var(--navy);transition:width .3s}
+.ck table.props{min-width:820px}
+.ck table.props td{vertical-align:top}
+.ck .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;background:#cbd5e1}
+.ck .dot.c0{background:#ef4444}.ck .dot.c1{background:#f59e0b}.ck .dot.c2{background:#16a34a}
+.ck tr.lv0 td{background:#fff7f7}.ck tr.lv1 td{background:#fffbeb}
+.ck .ck-crop{max-height:56px;max-width:280px;border:1px solid var(--line-2);border-radius:4px;cursor:zoom-in;background:#fff;display:block}
+.ck .ck-note{font-size:11.5px;color:var(--warn);margin-top:2px}
+.ck .ck-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.ck .ck-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.ck-pick{margin-top:10px;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;background:#fff}
+.ck-pick .bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#f1f5f9;flex-wrap:wrap;font-size:13px}
+.ck-stage{touch-action:none;user-select:none;cursor:crosshair;max-height:75vh;overflow:auto}
+.ck-inner{position:relative}
+.ck-inner img{width:100%;display:block;pointer-events:none}
+.ck-inner .hl{position:absolute;border:2px solid #f59e0b;background:rgba(245,158,11,.12);pointer-events:none}
+.ck-inner .sel{position:absolute;border:2px dashed #1d4ed8;background:rgba(29,78,216,.10);pointer-events:none}
+.ck-rec{margin-top:10px;font-size:13px;padding:8px 12px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0}
+.ck-rec.todo{background:#fffbeb;border-color:#fde68a}
 </style>
 <script>
 // 登入閘門（與背表相同：總管理帳號、access/<uid>.active；資料庫端另以 case_staff 名單把關）
@@ -489,12 +511,76 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
                     <td>{{ r.note }}</td>
                     <td style="white-space:nowrap">
                       <button type="button" class="btn sm" @click="viewFile(r)" data-testid="desk-files-view">開啟</button>
+                      <button v-if="canOcr(r)" type="button" class="btn sm" @click="openContractOcr(r)" :disabled="ck.busy" data-testid="desk-files-ocr">辨識合約</button>
                       <button v-if="!r.void" type="button" class="btn sm" @click="voidFile(r)" data-testid="desk-files-void">作廢</button>
                     </td>
                   </tr>
                   <tr v-if="!filesShown.length"><td colspan="6" class="muted" style="text-align:center;padding:14px">{{ fl.loading ? '讀取中…' : '此案還沒有文件。' }}</td></tr>
                 </tbody>
               </table>
+            </div>
+            <div v-if="cc" class="ck-rec" :class="{todo: !cc.reviewedBy}" data-testid="desk-ck-record">
+              <b>合約辨識帶入</b>：{{ cc.appliedBy }} {{ cc.appliedAt }}（{{ cc.fileName }}，{{ Object.keys(cc.fields || {}).length }} 欄）；
+              <b>覆核</b>：<template v-if="cc.reviewedBy">{{ cc.reviewedBy }} {{ cc.reviewedAt }}</template>
+              <template v-else>尚未覆核
+                <button v-if="canReview" type="button" class="btn sm" @click="reviewContract" data-testid="desk-ck-review">我已對照合約核對無誤</button>
+                <span v-else class="muted">（需由另一位同仁覆核）</span></template>
+              <span v-if="ccDirty()" style="color:var(--warn)">　尚未存檔</span>
+            </div>
+            <div v-if="ck.open" class="ck" data-testid="desk-ck">
+              <div class="ck-head">
+                <b style="color:var(--navy)">合約辨識：{{ ck.fileName }}</b>
+                <span class="muted" data-testid="desk-ck-status">{{ ck.status }}</span>
+                <span style="flex:1"></span>
+                <button v-if="ck.remaining.length && !ck.busy" type="button" class="btn sm" @click="ckReadRest" data-testid="desk-ck-rest">繼續辨識其餘 {{ ck.remaining.length }} 頁</button>
+                <button type="button" class="btn sm" @click="closeContractOcr" data-testid="desk-ck-close">關閉</button>
+              </div>
+              <div v-if="ck.busy" class="ck-prog"><div :style="{ width: ck.pct + '%' }"></div></div>
+              <div v-if="ck.error" class="alert" style="margin-top:8px" data-testid="desk-ck-error">{{ ck.error }}</div>
+              <p class="note">辨識在這台電腦上進行，檔案不會送到外部，也不用付費。結果只是草稿：請逐欄看截圖核對（看不清楚就點截圖看整頁、重新框選），對的打勾，再按「帶入背表欄位」，最後按上方「存檔」。</p>
+              <div class="tw">
+                <table class="props" data-testid="desk-ck-table">
+                  <thead><tr><th>欄位</th><th>合約上的字（截圖）</th><th>辨識結果（可修改）</th><th>背表目前</th><th>核對</th></tr></thead>
+                  <tbody>
+                    <tr v-for="f in ck.rows" :key="f.key" :class="f.conf >= 0 ? 'lv' + f.conf : ''" :data-testid="'desk-ck-' + f.key">
+                      <td style="white-space:nowrap"><span class="dot" :class="f.conf >= 0 ? 'c' + f.conf : ''"></span>{{ f.name }}<div v-if="f.note" class="ck-note">{{ f.note }}</div></td>
+                      <td>
+                        <img v-if="f.crop" :src="f.crop" class="ck-crop" @click="pickRegion(f.key)" title="點一下看整頁、重新框選" alt="合約截圖">
+                        <button v-else type="button" class="btn sm" @click="pickRegion(f.key)" :disabled="!ck.pagesN">框選</button>
+                      </td>
+                      <td style="min-width:200px">
+                        <input v-if="f.kind === 'date'" type="date" v-model="f.edit" @input="ckTouch(f)">
+                        <input v-else v-model="f.edit" @input="ckTouch(f)" :inputmode="f.kind === 'money' || f.kind === 'digits' ? 'numeric' : 'text'">
+                        <div v-if="f.kind === 'money' && moneyHint(f.edit)" class="ck-sub">{{ moneyHint(f.edit) }}</div>
+                      </td>
+                      <td>{{ ckCur(f) || '—' }}<span v-if="ckSame(f)" class="tag" style="margin-left:4px">相同</span></td>
+                      <td style="white-space:nowrap"><label><input type="checkbox" v-model="f.ok" :disabled="!String(f.edit || '').trim()" style="width:auto;min-width:0" :data-testid="'desk-ck-ok-' + f.key"> 對</label></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="ckSum" class="note" :style="{ color: ckSum.ok ? 'var(--ok)' : 'var(--warn)' }" data-testid="desk-ck-sum">{{ ckSum.text }}</div>
+              <div class="ck-actions">
+                <button type="button" class="btn sm" @click="okAllGreen" :disabled="!ckGreenCount" data-testid="desk-ck-okgreen">綠燈全部打勾（{{ ckGreenCount }}）</button>
+                <button type="button" class="btn primary" @click="applyContract" :disabled="!ckOkCount" data-testid="desk-ck-apply">帶入背表欄位（{{ ckOkCount }} 欄）</button>
+              </div>
+              <div v-if="ck.msg" class="note" style="white-space:pre-line;color:var(--navy)" data-testid="desk-ck-msg">{{ ck.msg }}</div>
+              <div v-if="ck.pick" class="ck-pick" data-testid="desk-ck-pick">
+                <div class="bar">
+                  <span>框選「{{ ck.pick.name }}」：在頁面上拖拉，框住手寫的字，放開就會重新辨識。</span>
+                  <label>第 <select v-model.number="ck.pick.page" @change="showPickPage" style="padding:2px 4px"><option v-for="n in ck.pagesN" :key="n" :value="n">{{ n }}</option></select> 頁</label>
+                  <span v-if="ck.pick.busy" class="muted">辨識中…</span>
+                  <button type="button" class="btn sm" @click="ck.pick = null">完成</button>
+                </div>
+                <div class="ck-stage" @pointerdown="pickStart" @pointermove="pickMove" @pointerup="pickEnd" @pointercancel="pickEnd" data-testid="desk-ck-stage">
+                  <div class="ck-inner">
+                    <img v-if="ck.pick.src" :src="ck.pick.src" alt="合約頁面" draggable="false">
+                    <div v-else class="muted" style="padding:20px">頁面載入中…</div>
+                    <div v-if="ck.pick.hl" class="hl" :style="hlStyle(ck.pick.hl)"></div>
+                    <div v-if="ck.pick.drag" class="sel" :style="hlStyle(ck.pick.drag)"></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div v-if="fl.view" class="viewer" data-testid="desk-files-viewer">
               <div class="bar">
@@ -511,6 +597,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
               </template>
             </div>
           </template>
+          <p class="note">合約書可按「辨識合約」：在這台電腦上讀出總價款、各期款、簽約日、履保帳號，核對後帶入背表欄位（不送外部、不用付費）。</p>
           <p class="note">檔案存在事務所的雲端私人檔案區，只有背表名單內、已登入的同仁看得到，網路上沒有公開連結。檔案會先在這台電腦處理（照片縮成適合閱讀的大小、身分證件加浮水印、大的掃描檔壓縮）再上傳。放錯檔案請按「作廢」：不會刪除、作廢後不能恢復。</p>
         </div>
 
@@ -581,7 +668,8 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
   const caseKey = c => c._caseId ? 'id:' + c._caseId : 'sig:' + caseSig(c);
   const findByKey = (list, key) => key.startsWith('id:') ? list.filter(c => c && c._caseId === key.slice(3)) : list.filter(c => c && !c._caseId && caseSig(c) === key.slice(4));
   // 作業台會改到的欄位（用來判斷有無未存檔修改）
-  const deskSubset = f => ({ v50Props: f.v50Props, v50Reg: f.v50Reg, ledgerAuthority: f.ledgerAuthority, ledgerRegistrationAgent: f.ledgerRegistrationAgent, landBuildNo: f.landBuildNo, sellers: f.sellers, buyers: f.buyers });
+  const deskSubset = f => ({ v50Props: f.v50Props, v50Reg: f.v50Reg, ledgerAuthority: f.ledgerAuthority, ledgerRegistrationAgent: f.ledgerRegistrationAgent, landBuildNo: f.landBuildNo, sellers: f.sellers, buyers: f.buyers,
+    totalPrice: f.totalPrice, paymentContract: f.paymentContract, paymentSeal: f.paymentSeal, paymentTax: f.paymentTax, paymentBalance: f.paymentBalance, contractDate: f.contractDate, escrowBank: f.escrowBank, escrowName: f.escrowName, escrowIdPrefix: f.escrowIdPrefix, escrowIdSuffix: f.escrowIdSuffix });
 
   async function api(url, opt = {}) {
     const headers = { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}`, Accept: 'application/json', ...(opt.body ? { 'Content-Type': 'application/json' } : {}), ...(opt.headers || {}) };
@@ -627,7 +715,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         finally { loading.value = false; }
       };
 
-      const dirty = computed(() => !!w.value && stable(deskSubset(w.value)) !== snap.value);
+      const dirty = computed(() => !!w.value && (stable(deskSubset(w.value)) !== snap.value || ccDirty()));
       const confirmLeave = () => !dirty.value || confirm('這件案件有尚未存檔的修改，確定要放棄嗎？');
 
       const buildForm = row => {
@@ -645,6 +733,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         const { f, blocked } = buildForm(row);
         sel.value = { key: caseKey(row), caseId: row._caseId || '', row, base: stable(row), blocked };
         w.value = f; snap.value = stable(deskSubset(f));
+        ckLoadRecord(row);
         saveMsg.value = { ok: true, msg: '' }; genMsg.value = '';
         try { history.replaceState(null, '', row._caseId ? '?case=' + encodeURIComponent(row._caseId) : location.pathname); } catch (e) {}
       };
@@ -675,6 +764,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           next['客戶姓名(買/賣方)'] = `${f.sellers.map(s => s.name).join('、')}、${f.buyers.map(b => b.name).join('、')}`;
           next['買方詳細資訊'] = f.buyers.map(b => `${b.name}(${b.phone})`).join('、');
           next['賣方詳細資訊'] = f.sellers.map(s => `${s.name}(${s.phone})`).join('、');
+          ckMirror(next, f);
           const changed = [...new Set([...Object.keys(remote), ...Object.keys(next)])].filter(k => !['_auditTrail', '_updatedBy', '_updatedAt', '_updatedRole', '_lastAction', '_updateCount'].includes(k) && String(remote[k] ?? '') !== String(next[k] ?? '')).slice(0, 30);
           let trail = []; try { trail = Array.isArray(remote._auditTrail) ? remote._auditTrail : JSON.parse(remote._auditTrail || '[]'); } catch (e) { trail = []; }
           const who = a.employee || a.account || '作業台同仁', time = nowText();
@@ -685,7 +775,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           const written = await api(`${ENDPOINT}&select=id`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ payload: out }) });
           if (!Array.isArray(written) || written.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有存檔權限），請聯絡楊翊晟。');
           const li = cases.value.indexOf(sel.value.row); if (li > -1) cases.value.splice(li, 1, next);
-          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value));
+          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value)); ckAfterSave();
           try { history.replaceState(null, '', '?case=' + encodeURIComponent(next._caseId)); } catch (e) {}
           saveMsg.value = { ok: true, msg: `已存檔 ${time.slice(11, 16)}（變更 ${changed.length} 欄）` };
         } catch (e) { saveMsg.value = { ok: false, msg: '存檔失敗：' + e.message }; }
@@ -1164,6 +1254,207 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         loadFiles();
       };
 
+      // D6 合約辨識（Claude 2026-11-17）：電腦內辨識，只產生草稿；同仁核對打勾後才帶入背表欄位，存檔時一併記錄帶入／覆核
+      const CK_FIELDS = [
+        { key: 'totalPrice', name: '買賣總價款', kind: 'money', col: '總價(萬)' },
+        { key: 'paymentContract', name: '第一期款（簽約款）', kind: 'money', col: '簽約款(萬)' },
+        { key: 'paymentSeal', name: '第二期款（用印款）', kind: 'money', col: '用印款(萬)' },
+        { key: 'paymentTax', name: '第三期款（完稅款）', kind: 'money', col: '完稅款(萬)' },
+        { key: 'paymentBalance', name: '第四期款（尾款）', kind: 'money', col: '尾款(萬)' },
+        { key: 'contractDate', name: '簽約日（立約日期）', kind: 'date', col: '簽約日' },
+        { key: 'escrowBank', name: '履保銀行', kind: 'text', col: '履保銀行' },
+        { key: 'escrowName', name: '履保戶名', kind: 'text', col: '履保戶名' },
+        { key: 'escrowIdPrefix', name: '履保編號（前）', kind: 'text', col: '履保編號' },
+        { key: 'escrowIdSuffix', name: '履保編號（後）', kind: 'digits', col: '履保編號' }
+      ];
+      const CK_PAGE_SIDE = 3000, CK_KEEP = 2;
+      const CK0 = () => ({ open: false, fileId: '', fileName: '', caseKey: '', status: '', busy: false, pct: 0, error: '', msg: '', rows: [], pagesN: 0, remaining: [], pick: null, run: 0 });
+      const ck = ref(CK0());
+      let ckSrc = null, ckFound = {};
+      const ckCv = new Map(), ckThumbs = {};
+      const cc = ref(null), ccSnap = ref('null'), ckApplied = new Set();
+      const ccDirty = () => stable(cc.value) !== ccSnap.value;
+      const HGC = () => window.HGContract;
+      const ckMoney = v => { const C = HGC(); return C ? C.parseMoney(v) : null; };
+      const canOcr = r => !r.void && r.kind === 'contract' && (r.mime === 'application/pdf' || /^image\//.test(r.mime || ''));
+      const moneyHint = v => { const C = HGC(), n = ckMoney(v); return n && C ? `＝ ${C.wan(n)} 萬｜${C.toUpper(n)}` : ''; };
+      const ckDisplay = (f, v) => v == null ? '' : f.kind === 'money' ? HGC().money(v) : String(v);
+      const ckToForm = f => { const s = trim(f.edit); if (f.kind === 'money') { const n = ckMoney(s); return n ? HGC().wan(n) : null; } if (f.kind === 'date') return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null; return s || null; };
+      const ckCur = f => { const v = w.value ? w.value[f.key] : ''; if (v == null || v === '') return ''; return f.kind === 'money' ? v + ' 萬' : String(v); };
+      const ckSame = f => { const v = w.value ? w.value[f.key] : ''; if (v == null || v === '' || !trim(f.edit)) return false; const x = ckToForm(f); return x != null && (f.kind === 'money' ? Number(x) === Number(v) : x === String(v)); };
+      const ckTouch = f => { f.touched = true; f.ok = false; };
+      const ckGreenCount = computed(() => ck.value.rows.filter(f => f.conf === 2 && !f.ok && trim(f.edit)).length);
+      const ckOkCount = computed(() => ck.value.rows.filter(f => f.ok && trim(f.edit)).length);
+      const ckSum = computed(() => {
+        const r = k => ck.value.rows.find(f => f.key === k), t = r('totalPrice') && ckMoney(r('totalPrice').edit);
+        const parts = ['paymentContract', 'paymentSeal', 'paymentTax', 'paymentBalance'].map(k => r(k) && ckMoney(r(k).edit)).filter(Boolean);
+        if (!t || parts.length < 2 || !HGC()) return null;
+        const s = parts.reduce((a, b) => a + b, 0), C = HGC();
+        return s === t ? { ok: true, text: `各期款加總 ${C.money(s)} 元，與總價款相符。` } : { ok: false, text: `各期款加總 ${C.money(s)} 元，與總價款 ${C.money(t)} 元不符（差 ${C.money(Math.abs(t - s))} 元），請核對。` };
+      });
+      const hlStyle = r => ({ left: r.x * 100 + '%', top: r.y * 100 + '%', width: r.w * 100 + '%', height: r.h * 100 + '%' });
+      const ckCrop = (cv, r) => {
+        const x = Math.max(0, Math.floor(r.x)), y = Math.max(0, Math.floor(r.y)), w0 = Math.min(cv.width - x, Math.ceil(r.w)), h0 = Math.min(cv.height - y, Math.ceil(r.h));
+        if (w0 < 2 || h0 < 2) return '';
+        const k = Math.min(1, 70 / h0, 420 / w0), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w0 * k)); c.height = Math.max(1, Math.round(h0 * k));
+        c.getContext('2d').drawImage(cv, x, y, w0, h0, 0, 0, c.width, c.height);
+        const u = c.toDataURL('image/jpeg', 0.85); c.width = c.height = 0; return u;
+      };
+      const ckRender = async no => {
+        if (ckCv.has(no)) return ckCv.get(no);
+        if (!ckSrc) throw new Error('檔案已關閉');
+        const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently: true });
+        if (ckSrc.doc) {
+          const page = await ckSrc.doc.getPage(no), v1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: CK_PAGE_SIDE / Math.max(v1.width, v1.height) });
+          cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+          await page.render({ canvasContext: ctx, viewport: vp, intent: 'print' }).promise;
+        } else {
+          const img = ckSrc.img, k = Math.min(1, CK_PAGE_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+          cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        }
+        if (!ckThumbs[no]) { const k = Math.min(1, 1600 / Math.max(cv.width, cv.height)), t = document.createElement('canvas'); t.width = Math.round(cv.width * k); t.height = Math.round(cv.height * k); t.getContext('2d').drawImage(cv, 0, 0, t.width, t.height); ckThumbs[no] = t.toDataURL('image/jpeg', 0.8); t.width = t.height = 0; }
+        ckCv.set(no, cv);
+        for (const [k0, c0] of [...ckCv.entries()]) { if (ckCv.size <= CK_KEEP) break; if (k0 !== no) { c0.width = c0.height = 0; ckCv.delete(k0); } }
+        return cv;
+      };
+      const ckRelease = () => { for (const c of ckCv.values()) c.width = c.height = 0; ckCv.clear(); for (const k of Object.keys(ckThumbs)) delete ckThumbs[k]; if (ckSrc && ckSrc.doc) { try { ckSrc.doc.destroy(); } catch (e) {} } ckSrc = null; ckFound = {}; };
+      const closeContractOcr = () => { ckRelease(); ck.value = CK0(); };
+      const ckApplyFound = () => {
+        const C = HGC(); if (!C) return;
+        C.crossCheck(ckFound);
+        for (const f of ck.value.rows) {
+          const v = ckFound[f.key]; if (!v || f.touched || f.ok) continue;
+          f.edit = ckDisplay(f, v.value); f.conf = v.value != null ? v.conf || 0 : 0; f.note = v.note || (v.value == null ? '請框選或直接輸入' : '');
+          f.page = v.page; f.rectPx = v.rect ? { x: v.rect.x, y: v.rect.y, w: v.rect.w, h: v.rect.h } : null;
+          if (v._crop) f.crop = v._crop;
+        }
+      };
+      const ckReadPages = async list => {
+        const run = ck.value.run, mine = () => ck.value.open && ck.value.run === run, C = HGC();
+        ck.value.busy = true; ck.value.error = '';
+        try {
+          while (list.length) {
+            if (!mine()) return;
+            const no = list.shift(); ck.value.remaining = list.slice();
+            ck.value.status = `辨識第 ${no} 頁（共 ${ck.value.pagesN} 頁）…`; ck.value.pct = 2;
+            const cv = await ckRender(no);
+            const pg = await C.readPage(cv, { onProgress: (d, t) => { if (mine()) ck.value.pct = Math.round(d / t * 90); } });
+            if (!mine()) return;
+            const got = await C.extract([{ no, canvas: cv, items: pg.items, lineH: pg.lineH }]);
+            for (const v of Object.values(got)) { if (v && v.rect) { v._crop = ckCrop(cv, v.rect); v.rectN = { x: v.rect.x / cv.width, y: v.rect.y / cv.height, w: v.rect.w / cv.width, h: v.rect.h / cv.height }; } }
+            C.merge(ckFound, got); ckApplyFound();
+            const core = ['totalPrice', 'paymentContract', 'paymentSeal', 'paymentTax', 'paymentBalance', 'contractDate'];
+            if (core.every(k => ckFound[k] && ckFound[k].value != null && ckFound[k].conf >= 1) && list.length) { ck.value.remaining = list.slice(); break; }
+          }
+          if (mine()) {
+            const n = ck.value.rows.filter(f => trim(f.edit)).length, g = ck.value.rows.filter(f => f.conf === 2).length;
+            ck.value.status = `完成：找到 ${n} 欄（綠燈 ${g} 欄）` + (ck.value.remaining.length ? `；重點欄位都找到了，其餘 ${ck.value.remaining.length} 頁未辨識` : '') + '。';
+          }
+        } catch (e) { if (mine()) ck.value.error = '辨識失敗：' + (e && e.message ? e.message : e); }
+        finally { if (mine()) { ck.value.busy = false; ck.value.pct = 100; } }
+      };
+      const ckReadRest = () => { if (!ck.value.busy && ck.value.remaining.length) ckReadPages(ck.value.remaining.slice()); };
+      const openContractOcr = async r => {
+        if (ck.value.busy) return;
+        closeContractOcr(); closeView();
+        const run = Date.now();
+        ck.value = { ...CK0(), open: true, run, fileId: r.file_id, fileName: r.name, caseKey: sel.value ? sel.value.key : '', busy: true, status: '讀取檔案…',
+          rows: CK_FIELDS.map(f => ({ ...f, edit: '', conf: -1, note: '', crop: '', page: 0, rectPx: null, ok: false, touched: false })) };
+        const mine = () => ck.value.open && ck.value.run === run;
+        try {
+          const res = await fetch(`${SUPABASE}/storage/v1/object/authenticated/case-files/${r.path}`, { headers: { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}` }, cache: 'no-store' });
+          if (!res.ok) throw new Error('檔案讀取失敗（HTTP ' + res.status + '）');
+          const blob = await res.blob();
+          if (!mine()) return;
+          ck.value.status = '載入辨識程式…（第一次使用約 21 MB，之後會記住）';
+          await loadScript('forms/hg-ocr.js'); await loadScript('forms/hg-contract.js');
+          const got = {};
+          await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => { got[l] = [g, t]; const v = Object.values(got); if (mine()) ck.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100); } });
+          if (!mine()) return;
+          if (r.mime === 'application/pdf') {
+            const lib = await loadPdfjs();
+            const doc = await lib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()), isEvalSupported: false, enableXfa: false, cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }).promise;
+            if (!mine()) { doc.destroy(); return; }
+            ckSrc = { doc }; ck.value.pagesN = doc.numPages;
+          } else { ckSrc = { img: await loadImage(blob) }; ck.value.pagesN = 1; }
+          const n = ck.value.pagesN, order = [1].concat(n > 1 ? [n] : [], Array.from({ length: Math.max(0, n - 2) }, (_, i) => i + 2));
+          ck.value.busy = false;
+          await ckReadPages(order);
+        } catch (e) { if (mine()) { ck.value.busy = false; ck.value.error = (e && e.message ? e.message : String(e)) + '。請確認網路後再按一次「辨識合約」。'; ck.value.status = ''; } }
+      };
+      // 框選：在整頁上拖拉，框住的範圍依欄位種類重新辨識
+      let pickFrom = null;
+      const pickPt = e => { const img = e.currentTarget.querySelector('img'); if (!img) return null; const b = img.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)), y: Math.min(1, Math.max(0, (e.clientY - b.top) / b.height)) }; };
+      const showPickPage = async () => {
+        const p = ck.value.pick; if (!p) return;
+        const no = p.page, row = ck.value.rows.find(f => f.key === p.key);
+        p.src = ckThumbs[no] || ''; p.drag = null;
+        p.hl = row && row.page === no && row.rectPx && ckCv.has(no) ? { x: row.rectPx.x / ckCv.get(no).width, y: row.rectPx.y / ckCv.get(no).height, w: row.rectPx.w / ckCv.get(no).width, h: row.rectPx.h / ckCv.get(no).height } : (row && row.page === no && ckFound[row.key] && ckFound[row.key].rectN) || null;
+        if (!p.src) { try { await ckRender(no); if (ck.value.pick === p) p.src = ckThumbs[no] || ''; } catch (e) { ck.value.error = '頁面載入失敗：' + e.message; } }
+      };
+      const pickRegion = async key => {
+        const row = ck.value.rows.find(f => f.key === key); if (!row || !ck.value.pagesN) return;
+        ck.value.pick = { key, name: row.name, page: row.page || 1, src: '', hl: null, drag: null, busy: false };
+        await showPickPage();
+      };
+      const pickStart = e => { const p = ck.value.pick; if (!p || p.busy || !p.src) return; const pt = pickPt(e); if (!pt) return; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} pickFrom = pt; p.drag = { x: pt.x, y: pt.y, w: 0, h: 0 }; };
+      const pickMove = e => { const p = ck.value.pick; if (!pickFrom || !p) return; const pt = pickPt(e); if (!pt) return; p.drag = { x: Math.min(pt.x, pickFrom.x), y: Math.min(pt.y, pickFrom.y), w: Math.abs(pt.x - pickFrom.x), h: Math.abs(pt.y - pickFrom.y) }; };
+      const pickEnd = async () => {
+        const p = ck.value.pick; if (!pickFrom || !p) return; pickFrom = null;
+        const d = p.drag; if (!d || d.w < 0.01 || d.h < 0.004) { p.drag = null; return; }
+        const row = ck.value.rows.find(f => f.key === p.key); if (!row) return;
+        p.busy = true;
+        try {
+          const cv = await ckRender(p.page), rect = { x: d.x * cv.width, y: d.y * cv.height, w: d.w * cv.width, h: d.h * cv.height };
+          const v = await HGC().readValue(cv, rect, row.kind === 'digits' ? 'digits' : row.kind);
+          row.edit = v && v.value != null ? ckDisplay(row, v.value) : row.edit;
+          row.conf = v && v.value != null ? (v.score >= 0.9 ? 2 : v.score >= 0.7 ? 1 : 0) : 0;
+          row.note = v && v.value != null ? '已依框選範圍重新辨識，請核對' : '框選範圍讀不出內容，請直接輸入';
+          row.crop = ckCrop(cv, rect); row.page = p.page; row.rectPx = rect; row.touched = true; row.ok = false;
+          if (ck.value.pick === p) { p.hl = { ...d }; p.drag = null; }
+        } catch (e) { ck.value.error = '重新辨識失敗：' + (e && e.message ? e.message : e); }
+        finally { p.busy = false; }
+      };
+      const okAllGreen = () => { ck.value.rows.forEach(f => { if (f.conf === 2 && trim(f.edit)) f.ok = true; }); };
+      const applyContract = () => {
+        if (!w.value || !sel.value) return;
+        const rows = ck.value.rows.filter(f => f.ok && trim(f.edit)), bad = [], changes = [];
+        for (const f of rows) {
+          const v = ckToForm(f); if (v == null) { bad.push(f.name); continue; }
+          const cur = w.value[f.key] == null ? '' : String(w.value[f.key]);
+          if (f.kind === 'money' ? Number(cur) !== Number(v) || cur === '' : cur !== v) changes.push({ f, v, cur });
+        }
+        if (bad.length) { ck.value.msg = '以下欄位格式不對，未帶入：' + bad.join('、') + '（金額請填數字，例如 12,800,000；日期請用日期欄選）。'; return; }
+        const over = changes.filter(c => c.cur !== '');
+        if (over.length && !confirm('以下欄位背表已有資料，確定改成合約上的內容？\n' + over.map(c => `${c.f.name}：${c.cur}${c.f.kind === 'money' ? ' 萬' : ''} → ${c.v}${c.f.kind === 'money' ? ' 萬' : ''}`).join('\n'))) return;
+        changes.forEach(c => { w.value[c.f.key] = c.v; ckApplied.add(c.f.key); });
+        cc.value = { fileId: ck.value.fileId, fileName: ck.value.fileName, appliedBy: staffName(), appliedAt: nowText(), fields: Object.fromEntries(rows.map(f => [f.key, trim(f.edit)])), reviewedBy: '', reviewedAt: '' };
+        ck.value.msg = (changes.length ? `已帶入 ${changes.length} 欄` : '背表欄位已和合約一致') + '（尚未存檔）。請按上方「存檔」；存檔後請另一位同仁按「我已對照合約核對無誤」完成覆核。';
+      };
+      const canReview = computed(() => !!cc.value && !cc.value.reviewedBy && cc.value.appliedBy !== staffName());
+      const reviewContract = () => {
+        if (!canReview.value) return;
+        if (!confirm(`確認您已對照合約「${cc.value.fileName}」，核對過帶入的 ${Object.keys(cc.value.fields || {}).length} 個欄位都正確？`)) return;
+        cc.value = { ...cc.value, reviewedBy: staffName(), reviewedAt: nowText() };
+      };
+      const rocDot = iso => { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${Number(m[1]) - 1911}.${m[2]}.${m[3]}` : ''; };
+      const ckMirror = (next, f) => {
+        for (const k of ckApplied) {
+          const d = CK_FIELDS.find(x => x.key === k); if (!d) continue;
+          if (d.kind === 'money') next[d.col] = f[k];
+          else if (k === 'contractDate') next['簽約日'] = rocDot(f.contractDate);
+          else if (k === 'escrowIdPrefix' || k === 'escrowIdSuffix') next['履保編號'] = (f.escrowIdPrefix || '') + (f.escrowIdSuffix || '');
+          else next[d.col] = f[k];
+        }
+        if (ccDirty()) next._contractCheck = cc.value ? JSON.stringify(cc.value) : '';
+      };
+      const ckAfterSave = () => { ckApplied.clear(); ccSnap.value = stable(cc.value); };
+      const ckLoadRecord = row => {
+        let v = null; try { v = row && row._contractCheck ? JSON.parse(row._contractCheck) : null; } catch (e) { v = null; }
+        cc.value = v && typeof v === 'object' ? v : null; ccSnap.value = stable(cc.value); ckApplied.clear();
+        if (ck.value.open && ck.value.caseKey !== caseKey(row)) closeContractOcr();
+      };
+
       const signOut = () => { if (confirmLeave()) window.hgCaseSignOut(); };
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
@@ -1182,6 +1473,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         imp, clearImport, onTranscriptFiles, applyTranscript, propExists, ownerOk,
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
         FILE_KINDS, KIND_NAME, fl, filesShown, filesSum, wmPreview, fsz, loadFiles, openFilesTab, onCaseFiles, viewFile, closeView, setFileKind, voidFile,
+        ck, cc, ccDirty, canOcr, canReview, ckSum, ckGreenCount, ckOkCount, moneyHint, ckCur, ckSame, ckTouch, hlStyle, openContractOcr, closeContractOcr, ckReadRest, pickRegion, showPickPage, pickStart, pickMove, pickEnd, okAllGreen, applyContract, reviewContract,
         FIRMS, NEED_LABEL, REPLY_STAGES, rp, replyTargets, replyTarget, replyNeeds, replyTodo, mailtoHref, smsHref, copyReply, regenReply };
     }
   }).mount('#desk');
