@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -98,6 +98,13 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 .reply textarea{width:100%;border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.7;font-family:inherit}
 .reply .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 @media(max-width:520px){.tabs button{padding:6px 9px;font-size:13px}}
+.roster .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 6px;font-size:13px}
+.roster .filters input[type=search]{flex:1;min-width:200px;padding:7px 10px;border:1px solid var(--line-2);border-radius:8px;font-size:14px}
+.tag{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;background:#eef2f6;color:#475569;white-space:nowrap}
+.tag.ok{background:#dcfce7;color:#166534}
+.tag.no{background:#fee2e2;color:#991b1b}
+.linkbtn{border:0;background:none;color:#1d4ed8;padding:0;cursor:pointer;text-align:left;font-size:12.5px;text-decoration:underline}
+.top .links a.on{color:#fde68a;font-weight:800}
 </style>
 <script>
 // 登入閘門（與背表相同：總管理帳號、access/<uid>.active；資料庫端另以 case_staff 名單把關）
@@ -167,6 +174,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
     <span class="muted" style="color:#cbd5e1">選一件案件，補登記資料、產生地政士表單、開收據；資料與背表共用</span>
     <div class="links">
       <span v-if="operator">已登入：{{ operator }}　<a href="#" @click.prevent="signOut">登出</a></span>
+      <a href="#" :class="{on: view === 'roster'}" @click.prevent="toggleRoster" data-testid="desk-roster-link">{{ view === 'roster' ? '回到案件' : '客戶名冊' }}</a>
       <a href="./" target="_blank" rel="noopener">開啟背表</a>
       <a href="../mainmanagement/" target="_blank" rel="noopener">總管理</a>
     </div>
@@ -184,7 +192,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
       </div>
       <div v-if="loadError" class="alert">{{ loadError }}</div>
       <ul class="list" data-testid="desk-list">
-        <li v-for="c in filtered" :key="c._caseId || c['編號']" :class="{on: sel && sel.row === c}" @click="openCase(c)">
+        <li v-for="c in filtered" :key="c._caseId || c['編號']" :class="{on: sel && sel.row === c}" @click="view = 'case'; openCase(c)">
           <div class="t">{{ c['編號'] }}　{{ c['案名'] || '（未填案名）' }}</div>
           <div class="s">{{ c['地址'] || '' }}</div>
           <div class="s">簽約 {{ c['簽約日'] || '—' }}｜承辦 {{ c['承辦'] || '—' }}</div>
@@ -196,7 +204,47 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 
     <!-- 案件作業 -->
     <div>
-      <div v-if="!sel" class="card empty" data-testid="desk-empty">請從左側選擇一件案件。<br>作業台只會修改您選定的這一件，存檔時會先確認沒有人同時改過。</div>
+      <div v-if="view === 'roster'" class="card roster" data-testid="desk-roster">
+        <div class="head">
+          <h2 style="margin:0">客戶名冊</h2>
+          <div class="actions">
+            <button type="button" class="btn" @click="exportContacts" data-testid="desk-roster-export">匯出 Google 聯絡人檔</button>
+            <button type="button" class="btn" @click="copyConsentEmails" data-testid="desk-roster-copy">複製同意收資訊者的 Email</button>
+            <a v-if="consentEmails.length && consentEmails.length <= 50" class="btn" :href="bccHref">用 Email 寄給同意者（密件副本）</a>
+            <button type="button" class="btn" @click="view = 'case'">回到案件</button>
+          </div>
+        </div>
+        <div class="filters">
+          <input v-model="ros.q" type="search" placeholder="搜尋姓名、電話、Email、案件" aria-label="搜尋客戶">
+          <label><input type="checkbox" v-model="ros.consent"> 只看同意收資訊</label>
+          <label><input type="checkbox" v-model="ros.hasEmail"> 只看有 Email</label>
+          <label><input type="checkbox" v-model="ros.needAlert"> 只看即時通未確認</label>
+          <label><input type="checkbox" v-model="ros.closed"> 含已結案</label>
+          <label><input type="checkbox" v-model="ros.agents"> 含仲介</label>
+        </div>
+        <div class="muted" data-testid="desk-roster-count">共 {{ rosterView.length }} 位（同一支電話視為同一人）。<span style="color:var(--ok)">{{ ros.note }}</span></div>
+        <div class="tw" style="margin-top:8px">
+          <table class="props" style="min-width:960px" data-testid="desk-roster-table">
+            <thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>身分</th><th>案件</th><th>地籍異動即時通</th><th>稅籍異動即時通</th><th>收資訊</th></tr></thead>
+            <tbody>
+              <tr v-for="r in rosterView.slice(0, 500)" :key="r.key">
+                <td><b>{{ r.names[0] }}</b><div v-if="r.names.length > 1" class="muted">{{ r.names.slice(1).join('、') }}</div></td>
+                <td>{{ r.phones.join('、') || '—' }}</td>
+                <td>{{ r.emails.join('、') || '—' }}</td>
+                <td>{{ r.sides.join('、') }}</td>
+                <td><div v-for="(x, j) in r.cases" :key="j"><button type="button" class="linkbtn" @click="openFromRoster(x.c)">{{ x.label }}</button><span v-if="x.closed" class="muted">（已結案）</span></div></td>
+                <td><span class="tag" :class="alertCls(r.land)">{{ r.land || '未確認' }}</span></td>
+                <td><span class="tag" :class="alertCls(r.tax)">{{ r.tax || '未確認' }}</span></td>
+                <td><span class="tag" :class="r.consent === '同意' ? 'ok' : r.consent === '不同意' ? 'no' : ''">{{ r.consent || '未詢問' }}</span><div v-if="r.consentAt" class="muted">{{ r.consentAt }}</div></td>
+              </tr>
+              <tr v-if="!rosterView.length"><td colspan="8" class="muted" style="text-align:center;padding:14px">{{ loading ? '載入中…' : '沒有符合條件的客戶' }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-if="rosterView.length > 500" class="note">畫面只列前 500 位，請用搜尋縮小範圍；匯出會包含全部 {{ rosterView.length }} 位。</p>
+        <p class="note">資料來自各案件的權利人／義務人與仲介欄（與背表共用），這裡只能看；要改電話、Email、即時通或同意狀態，請點案件，在「登記表單」修改後存檔。行銷或資訊分享只寄給「同意」的客戶；客戶表示不想再收到時，請改成「不同意」（個人資料保護法第 20 條）。匯出的檔案含客戶個資，用完請刪除。Google 聯絡人自動同步是下一步。</p>
+      </div>
+      <div v-else-if="!sel" class="card empty" data-testid="desk-empty">請從左側選擇一件案件。<br>作業台只會修改您選定的這一件，存檔時會先確認沒有人同時改過。</div>
       <template v-else>
         <div class="card">
           <div class="head">
@@ -336,6 +384,9 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
               <label>住所（戶籍地址）<input v-model="row.person.ledgerHome"></label>
               <label>電話<input v-model="row.person.phone"></label>
               <label>Email<input v-model="row.person.email" type="email" inputmode="email" placeholder="可留空" :data-testid="'desk-email-' + i"></label>
+              <label>地籍異動即時通<select :value="row.person.landAlert || ''" @change="row.person.landAlert = $event.target.value" :data-testid="'desk-land-' + i"><option value="">未確認</option><option v-for="o in ALERTS" :key="o">{{ o }}</option></select></label>
+              <label>稅籍異動即時通<select :value="row.person.taxAlert || ''" @change="row.person.taxAlert = $event.target.value" :data-testid="'desk-tax-' + i"><option value="">未確認</option><option v-for="o in ALERTS" :key="o">{{ o }}</option></select></label>
+              <label>同意收到事務所資訊<select :value="row.person.infoConsent || ''" @change="setConsent(row.person, $event.target.value)" :data-testid="'desk-consent-' + i"><option value="">未詢問</option><option>同意</option><option>不同意</option></select><span v-if="row.person.infoConsentAt" class="muted">{{ row.person.infoConsent }}登記日 {{ row.person.infoConsentAt }}</span></label>
               <label>持分（權利範圍）<input v-model="row.person.v50Share" placeholder="全部、1/2…"></label>
             </div>
             <p v-if="row.person.role === '代理人'" class="note">身分為「代理人」，不會列入權利人／義務人欄，請人工核對代理授權。</p>
@@ -364,7 +415,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
             <label>事務所<select v-model="rp.firm"><option v-for="f in FIRMS" :key="f" :value="f">{{ f }}</option></select></label>
           </div>
           <div class="grid" v-if="replyNeeds.length" style="margin-top:8px">
-            <label v-for="k in replyNeeds" :key="k">{{ NEED_LABEL[k] }}<textarea v-if="k === 'items'" v-model="rp.extra.items" rows="3"></textarea><input v-else v-model="rp.extra[k]"></label>
+            <label v-for="k in replyNeeds" :key="k">{{ NEED_LABEL[k] }}<textarea v-if="k === 'items' || k === 'content'" v-model="rp.extra[k]" rows="3"></textarea><input v-else v-model="rp.extra[k]"></label>
           </div>
           <label v-if="rp.channel === 'email'" class="grid" style="margin-top:8px"><span style="font-size:12px;color:#5b7083;font-weight:700">主旨</span><input v-model="rp.subject" style="border:1px solid var(--line-2);border-radius:6px;padding:6px 8px"></label>
           <div style="margin-top:8px;font-size:12px;color:#5b7083;font-weight:700">建議內容（可直接修改；改上面的選項會重新產生）</div>
@@ -375,6 +426,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
             <a v-if="rp.channel === 'sms' && replyTarget.phone" class="btn" :href="smsHref">用簡訊開啟</a>
             <span class="muted">{{ rp.note }}</span>
           </div>
+          <p v-if="rp.stage === 'share' && replyTarget.consent !== '同意'" class="alert warn" style="margin-top:8px" data-testid="desk-reply-consent">這位客戶{{ replyTarget.consent === '不同意' ? '已表示不同意' : '尚未同意' }}收到事務所資訊。依個人資料保護法，行銷或資訊分享只寄給同意的客戶。</p>
           <p v-if="replyTodo" class="note" style="color:var(--warn)">還有 {{ replyTodo }} 處【請填】，送出前請補上。</p>
           <p class="note">這裡只產生建議文字，不會自動寄出；LINE 請複製後貼到與客戶的對話。對象的電話、Email 取自「登記表單」的權利人／義務人與背表仲介欄。範本之後可依事務所習慣調整。</p>
         </div>
@@ -705,7 +757,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 
       // D3 客戶回覆建議（Claude 2026-11-17）：只產生文字，不自動寄出。範本集中在 REPLY_STAGES，之後依楊總調整。
       const FIRMS = ['宏國地政士事務所', '易丞地政士事務所'];
-      const NEED_LABEL = { when: '日期時間／期限', place: '地點', items: '項目（每行一項）', amount: '金額' };
+      const NEED_LABEL = { when: '日期時間／期限', place: '地點', items: '項目（每行一項）', amount: '金額', content: '要分享的內容' };
       const REPLY_STAGES = [
         { id: 'intake', name: '收件確認', needs: [],
           text: x => x.side === '仲介' ? `${x.c}已由我們收件承辦，後續進度會同步通知您。` : `${x.c}的產權移轉手續由我們承辦，相關資料已收到。之後每個進度我都會主動通知您，有任何問題都可以直接回覆。` },
@@ -727,15 +779,21 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           items: { 賣方: ['房屋鑰匙、磁扣、遙控器', '身分證正本', '印章'], 買方: ['身分證正本', '印章'] },
           text: x => `${x.c}預定於 ${x.v('when')} 在 ${x.v('place')} 交屋，請攜帶：${x.items}當天會一併交付相關文件。` },
         { id: 'receipt', name: '費用與收據', needs: ['amount', 'items'],
-          text: x => `${x.c}的代辦費用合計 ${x.v('amount')}，明細如下：${x.items}收據已開立，如需紙本或寄送請告訴我。謝謝您的委託！` }
+          text: x => `${x.c}的代辦費用合計 ${x.v('amount')}，明細如下：${x.items}收據已開立，如需紙本或寄送請告訴我。謝謝您的委託！` },
+        { id: 'alert', name: '異動即時通邀請', needs: [],
+          text: x => `為了保障您的不動產，建議申請兩項免費的防詐通知：\n・地籍異動即時通（地政機關）：有人對您的不動產申請登記時，會用簡訊或 Email 通知您。\n・稅籍異動即時通（地方稅務局）：有人申報您不動產的土地增值稅或契稅時，會通知您。\n可以用自然人憑證線上申請，或本人帶身分證到地政事務所、稅務局臨櫃辦理。需要我們協助的話，請告訴我方便的時間。` },
+        { id: 'joinline', name: '邀請加入官方 LINE', needs: [],
+          text: x => `歡迎加入我們的官方 LINE：${OFFICIAL_LINE}\n加入後可以直接詢問案件進度，我們也會不定期分享房地產稅務與防詐資訊。` },
+        { id: 'share', name: '資訊分享（限同意者）', needs: ['content'],
+          text: x => `跟您分享：${x.v('content')}\n\n如果不想再收到這類資訊，直接回覆「不用」就好。` }
       ];
       const loadFirm = () => { try { const f = localStorage.getItem('hgDeskFirm'); return FIRMS.includes(f) ? f : FIRMS[0]; } catch (e) { return FIRMS[0]; } };
-      const RP0 = () => ({ stage: 'intake', to: 0, channel: 'line', firm: loadFirm(), extra: { when: '', place: '', items: '', amount: '' }, text: '', subject: '', note: '', autoItems: '' });
+      const RP0 = () => ({ stage: 'intake', to: 0, channel: 'line', firm: loadFirm(), extra: { when: '', place: '', items: '', amount: '', content: '' }, text: '', subject: '', note: '', autoItems: '' });
       const rp = ref(RP0());
       const replyTargets = computed(() => {
         if (!w.value) return [{ label: '（未選案件）', name: '', side: '', phone: '', email: '' }];
-        const list = partyRows.value.map(r => ({ label: r.side + '｜' + trim(r.person.name) + (r.person.role && r.person.role !== '本人' ? '（' + r.person.role + '）' : ''), name: trim(r.person.name), side: r.side, phone: trim(r.person.phone), email: trim(r.person.email) }));
-        [...(w.value.salesAgents || []), ...(w.value.devAgents || [])].forEach(a => { if (a && trim(a.name)) list.push({ label: '仲介｜' + trim(a.name) + (trim(a.store) ? '（' + trim(a.store) + '）' : ''), name: trim(a.name), side: '仲介', phone: trim(a.phone), email: trim(a.email) }); });
+        const list = partyRows.value.map(r => ({ label: r.side + '｜' + trim(r.person.name) + (r.person.role && r.person.role !== '本人' ? '（' + r.person.role + '）' : ''), name: trim(r.person.name), side: r.side, phone: trim(r.person.phone), email: trim(r.person.email), consent: r.person.infoConsent || '' }));
+        [...(w.value.salesAgents || []), ...(w.value.devAgents || [])].forEach(a => { if (a && trim(a.name)) list.push({ label: '仲介｜' + trim(a.name) + (trim(a.store) ? '（' + trim(a.store) + '）' : ''), name: trim(a.name), side: '仲介', phone: trim(a.phone), email: trim(a.email), consent: a.infoConsent || '' }); });
         return list.length ? list : [{ label: '（此案尚未填當事人）', name: '', side: '', phone: '', email: '' }];
       });
       const replyTarget = computed(() => replyTargets.value[rp.value.to] || replyTargets.value[0]);
@@ -771,6 +829,75 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         catch (e) { const ta = document.querySelector('[data-testid="desk-reply-text"]'); if (ta) { ta.select(); try { document.execCommand('copy'); rp.value.note = '已複製。'; } catch (e2) { rp.value.note = '無法自動複製，請手動選取後複製。'; } } }
       };
 
+      // D4 客戶名冊（Claude 2026-11-17）：從所有已載入案件（不含封存）彙整買賣方／仲介的聯絡資料；只讀，要修改請開該案件。
+      const OFFICIAL_LINE = 'https://line.me/R/ti/p/%40604gpqef';
+      const ALERTS = ['已申請', '本所協助申請', '客戶不需要'];
+      const view = ref('case');
+      const toggleRoster = () => { view.value = view.value === 'roster' ? 'case' : 'roster'; };
+      const openFromRoster = c => { view.value = 'case'; openCase(c); };
+      const todayText = () => nowText().slice(0, 10);
+      const setConsent = (p, v) => { p.infoConsent = v; p.infoConsentAt = v ? todayText() : ''; };
+      const alertCls = v => v === '已申請' || v === '本所協助申請' ? 'ok' : '';
+      const formCache = new WeakMap();
+      const formOf = c => {
+        if (formCache.has(c)) return formCache.get(c);
+        let f = null; try { f = c._form_json ? JSON.parse(c._form_json) : null; } catch (e) { f = null; }
+        if (!f || typeof f !== 'object') { f = {}; try { f.sellers = c._sellers_json ? JSON.parse(c._sellers_json) : []; f.buyers = c._buyers_json ? JSON.parse(c._buyers_json) : []; } catch (e) { f.sellers = []; f.buyers = []; } }
+        formCache.set(c, f); return f;
+      };
+      const phoneKey = v => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('886')) d = '0' + d.slice(3); return d.length >= 8 ? d : ''; };
+      const ros = ref({ q: '', consent: false, hasEmail: false, needAlert: false, closed: true, agents: false, note: '' });
+      const roster = computed(() => {
+        const map = new Map(), rank = v => v === '已申請' || v === '本所協助申請' ? 2 : v === '客戶不需要' ? 1 : 0;
+        const add = (arr, v) => { v = trim(v); if (v && !arr.includes(v)) arr.push(v); };
+        cases.value.forEach(c => {
+          if (!ros.value.closed && trim(c['結案時間'])) return;
+          const f = formOf(c), people = [];
+          (Array.isArray(f.sellers) ? f.sellers : []).forEach(p => people.push({ p, side: '賣方' }));
+          (Array.isArray(f.buyers) ? f.buyers : []).forEach(p => people.push({ p, side: '買方' }));
+          if (ros.value.agents) [...(Array.isArray(f.salesAgents) ? f.salesAgents : []), ...(Array.isArray(f.devAgents) ? f.devAgents : [])].forEach(p => people.push({ p, side: '仲介' }));
+          people.forEach(({ p, side }) => {
+            if (!p || typeof p !== 'object' || !trim(p.name)) return;
+            const ph = phoneKey(p.phone), key = ph ? 'p:' + ph : 'n:' + trim(p.name) + '|' + caseKey(c);
+            let r = map.get(key);
+            if (!r) { r = { key, names: [], phones: [], emails: [], sides: [], cases: [], land: '', tax: '', consent: '', consentAt: '' }; map.set(key, r); }
+            add(r.names, p.name); add(r.emails, p.email);
+            if (trim(p.phone) && !r.phones.some(x => (phoneKey(x) || x) === (phoneKey(p.phone) || trim(p.phone)))) r.phones.push(trim(p.phone)); add(r.sides, side + (p.role && p.role !== '本人' ? '（' + p.role + '）' : ''));
+            if (!r.cases.some(x => x.c === c)) r.cases.push({ c, label: (trim(c['編號']) + ' ' + (trim(c['案名']) || trim(c['地址']))).trim() || '（未命名案件）', closed: !!trim(c['結案時間']) });
+            if (rank(p.landAlert) > rank(r.land)) r.land = p.landAlert;
+            if (rank(p.taxAlert) > rank(r.tax)) r.tax = p.taxAlert;
+            // 同意狀態以登記日期較新的為準；同一天或沒有日期時，「不同意」優先
+            const v = p.infoConsent === '同意' || p.infoConsent === '不同意' ? p.infoConsent : '', at = trim(p.infoConsentAt);
+            if (v && (!r.consent || at > r.consentAt || (at === r.consentAt && v === '不同意'))) { r.consent = v; r.consentAt = at; }
+          });
+        });
+        return [...map.values()].sort((a, b) => a.names[0].localeCompare(b.names[0], 'zh-Hant'));
+      });
+      const rosterView = computed(() => {
+        const kw = trim(ros.value.q).toLowerCase(), o = ros.value;
+        return roster.value.filter(r => (!o.consent || r.consent === '同意') && (!o.hasEmail || r.emails.length) && (!o.needAlert || !r.land || !r.tax) &&
+          (!kw || [...r.names, ...r.phones, ...r.emails, ...r.cases.map(x => x.label)].join(' ').toLowerCase().includes(kw)));
+      });
+      const consentEmails = computed(() => [...new Set(rosterView.value.filter(r => r.consent === '同意').flatMap(r => r.emails))]);
+      const bccHref = computed(() => 'mailto:?bcc=' + encodeURIComponent(consentEmails.value.join(',')));
+      const csvCell = v => /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      const exportContacts = () => {
+        const list = rosterView.value; if (!list.length) return alert('目前沒有符合條件的客戶。');
+        const head = ['First Name', 'Last Name', 'Labels', 'E-mail 1 - Label', 'E-mail 1 - Value', 'E-mail 2 - Label', 'E-mail 2 - Value', 'Phone 1 - Label', 'Phone 1 - Value', 'Phone 2 - Label', 'Phone 2 - Value', 'Notes'];
+        const rows = list.map(r => [r.names[0], '', '宏國易丞客戶 ::: * myContacts', r.emails[0] ? '* Other' : '', r.emails[0] || '', r.emails[1] ? 'Other' : '', r.emails[1] || '',
+          r.phones[0] ? 'Mobile' : '', r.phones[0] || '', r.phones[1] ? 'Mobile' : '', r.phones[1] || '',
+          [r.sides.join('、'), r.cases.map(x => x.label).join('；'), r.names.length > 1 ? '其他寫法：' + r.names.slice(1).join('、') : '', '收資訊：' + (r.consent || '未詢問') + (r.consentAt ? '（' + r.consentAt + '）' : '')].filter(Boolean).join('\n')]);
+        const text = [head, ...rows].map(a => a.map(v => csvCell(String(v || ''))).join(',')).join('\r\n');
+        const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' })), a = document.createElement('a');
+        a.href = url; a.download = '客戶名冊_Google聯絡人_' + todayText() + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+        ros.value.note = '已匯出 ' + rows.length + ' 位。到 Google 聯絡人按「匯入」選這個檔案；若和既有聯絡人重複，可用 Google 的「合併與修正」。';
+      };
+      const copyConsentEmails = async () => {
+        const list = consentEmails.value; if (!list.length) { ros.value.note = '目前條件下沒有「同意收資訊」且有 Email 的客戶。'; return; }
+        try { await navigator.clipboard.writeText(list.join(', ')); ros.value.note = '已複製 ' + list.length + ' 個 Email（只含同意收資訊者），寄信時請放在「密件副本」。'; }
+        catch (e) { ros.value.note = '無法自動複製：' + list.join(', '); }
+      };
+
       const signOut = () => { if (confirmLeave()) window.hgCaseSignOut(); };
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
@@ -786,6 +913,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
         tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab,
         imp, clearImport, onTranscriptFiles, applyTranscript, propExists, ownerOk,
+        view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
         FIRMS, NEED_LABEL, REPLY_STAGES, rp, replyTargets, replyTarget, replyNeeds, replyTodo, mailtoHref, smsHref, copyReply, regenReply };
     }
   }).mount('#desk');
