@@ -1,4 +1,4 @@
-/* 宏國地政士作業台：謄本電腦內辨識（D7，Claude 2026-11-18）
+/* 宏國地政士作業台：謄本電腦內辨識（D7，Claude 2026-11-18；D8 2026-11-19：照片標題、首行類別、「全部」權利範圍、附屬建物用途漏字容錯）
  * 1) 電子謄本 PDF：文字層照讀；所有權人姓名、統一編號、出生日期、住址這幾行在電子謄本是「圖片」，只把這幾行圖片拿去辨識，補成文字。
  * 2) 掃描 PDF（沒有文字層）、手機照片：整頁辨識（先自動轉正、校正歪斜），再排回一行一行。
  * 產出的文字交給 hg-transcript.js 的同一套謄本規則。辨識用 hg-ocr.js（PaddleOCR 開源模型），全部在這台電腦執行，不上傳、不付費。 */
@@ -15,22 +15,57 @@
     let t = [...String(s || '')].map(c => T2MAP.get(c) || c).join('');
     t = t.replace(/[腾騰膳謄]本/g, '謄本').replace(/住[\s，,、．.。]*址/g, '住址').replace(/統[\s]*一[\s]*編[\s]*號/g, '統一編號')
       .replace(/權利[范範]圍/g, '權利範圍').replace(/權利範(?=[＊*0-9全])/g, '權利範圍：')
-      .replace(/(\d)\s*(?:平方?公尺?|方公尺)/g, '$1平方公尺');
+      .replace(/權利範[^圍：:\s＊*0-9全]?[：:]?(?=\s*[＊*0-9全])/g, '權利範圍：')   // D8：「權利範█：全部」「權利範█全部」
+      .replace(/(\d)\s*(?:平方?公尺?|方公尺)/g, '$1平方公尺')
+      .replace(/附屬建物用?途/g, '附屬建物用途').replace(/附屬建物用(?!途)/g, '附屬建物用途');   // D8：「附屬建物途」
+    // D8：「權利範圍：全部」後面一定是 1分之1；照片常漏掉「1」「之」或整段（「全部***分之1」「全部***1分***」）
+    t = t.replace(/(權利範圍[：:]?\s*全部[＊*\s]*)[0-9１]*分?之?[0-9１]*(?=[＊*\s]|$)/g, (m, a) => a + '1分之1');
     // 行首標籤後面的冒號常被漏掉（「權利範圍全部…」），補回讓規則讀得到
     t = t.replace(/^(\s*)(所有權人|統一編號|出生日期|住址|權利範圍|登記日期|登記原因|原因發生日期|建物門牌|建物坐落地號|主要用途|主要建材|權狀字號|共有部分|權利種類|權利人|擔保債權總金額)(?![：:])/, '$1$2：')
       .replace(/(\s)(登記原因|出生日期|權利種類|字號|總面積|層次面積|面積)(?![：:])/g, '$1$2：')
       .replace(/面積(?=[＊*0-9])/g, '面積：');
     return t.replace(/[：:]\s*[：:]/g, '：');
   }
+  const SECTIONS = ['標示部', '所有權部', '他項權利部'];
+  // 最多差一個字（認錯、多一個或少一個字）
+  const near1 = (a, b) => {
+    const x = [...a], y = [...b];
+    if (Math.abs(x.length - y.length) > 1) return false;
+    let i = 0, j = 0, e = 0;
+    while (i < x.length && j < y.length) {
+      if (x[i] === y[j]) { i++; j++; continue; }
+      if (++e > 1) return false;
+      if (x.length > y.length) i++; else if (x.length < y.length) j++; else { i++; j++; }
+    }
+    return e + (x.length - i) + (y.length - j) <= 1;
+  };
   // 整頁校正：「************** 土地所有權部 ***」的「土／建」常被星號吃掉，依這一筆是土地或建物補回
   function fixLines(lines) {
     let kind = '';
+    // D8：首行「土地登記第一類謄本」常漏字（「地登記第類謄本」），規則要靠它判斷類別；第幾類看不出來時，有完整統一編號就是第一類
+    const fullId = lines.some(s => /[A-Z][0-9]{9}/.test(String(s || '')));
     return lines.map(s => {
-      const t = fixLine(s), bare = t.replace(/[\s＊*※米]/g, '');
+      let t = fixLine(s), bare = t.replace(/[\s＊*※米]/g, '');
+      const hd = bare.match(/^([㐀-鿿]{0,2}?)登記第(.?)類謄本/);
+      if (hd && !/^(土地|建物)登記第[一二]類謄本/.test(bare)) {
+        const k0 = /[物建]/.test(hd[1]) ? '建物' : /[地土]/.test(hd[1]) ? '土地' : '';
+        const cls = /[一二]/.test(hd[2]) ? hd[2] : fullId ? '一' : '二';
+        if (k0) { t = k0 + '登記第' + cls + '類謄本' + t.slice(t.indexOf('謄本') + 2); bare = t.replace(/[\s＊*※米]/g, ''); }
+      }
       const k = bare.match(/^(土地|建物)登記第/) || bare.match(/(地|建)號$/);
       if (k) kind = k[1] === '土地' || k[1] === '地' ? '土地' : '建物';
       // 「土」常被認成「上、士、工」，「建」偶爾漏掉；有「地／物」就以它為準，都沒有才看這一筆是土地或建物
-      const sec = bare.match(/^([㐀-鿿]{0,2}?)(標示部|所有權部|他項權利部)$/);
+      let sec = bare.match(/^([㐀-鿿]{0,2}?)(標示部|所有權部|他項權利部)$/);
+      // D8：照片常把標題裡的一個字認錯（「建物標=部」「土地所有權郎」）；前後有一串星號的短行，差一個字也當成標題
+      if (!sec && /[＊*※米]{3}/.test(t) && bare.length <= 8) {
+        for (const S of SECTIONS) {
+          for (let pre = 0; pre <= 2 && !sec; pre++) {
+            const head = bare.slice(0, pre), tail = bare.slice(pre);
+            if ((!head || /^[㐀-鿿]+$/.test(head)) && near1(tail, S)) sec = [bare, head, S];
+          }
+          if (sec) break;
+        }
+      }
       if (sec) { const k = /[物建]/.test(sec[1]) ? '建物' : /[地土]/.test(sec[1]) ? '土地' : kind; if (k) return k + sec[2]; }
       return t;
     });
@@ -250,5 +285,5 @@
     } finally { try { await doc.destroy(); } catch (e) {} }
   }
 
-  window.HGTranscriptOcr = { version: 'D7-2026-11-18', readFile, readCanvas, groupLines, skewAngle, rotate, imageRows, fixLine, fixLines };
+  window.HGTranscriptOcr = { version: 'D8-2026-11-19', readFile, readCanvas, groupLines, skewAngle, rotate, imageRows, fixLine, fixLines };
 })();

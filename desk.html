@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D7（Claude 2026-11-18：謄本帶入支援掃描檔與照片、電腦內辨識所有權人資料、共有部分、帶入賣方、新增買賣方）；D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D8（Claude 2026-11-19：意見回報與回報紀錄、帶入速度與修正自動記錄、依同仁修正自動校正辨識錯字）；D7（Claude 2026-11-18：謄本帶入支援掃描檔與照片、電腦內辨識所有權人資料、共有部分、帶入賣方、新增買賣方）；D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -153,6 +153,31 @@ table.props tr.common td.kind{color:#0369a1}
 .imp-view img{width:100%;display:block}
 .party .ptop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12.5px}
 .padd{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+.top .links{flex-wrap:wrap}
+.fbline{margin-top:4px}
+.fbauto{margin-top:6px;font-size:12.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:6px 8px}
+.fbhot{margin-top:6px;font-size:12.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 8px}
+table.props input.hot{background:#fffbeb;border-color:#f59e0b}
+.fbx{position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.fbx-in{background:#fff;border-radius:12px;padding:18px;width:100%;max-width:540px;max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.fbx-in h2{margin:0;font-size:17px;color:var(--navy)}
+.fbx-in label{display:flex;flex-direction:column;gap:4px}
+.fbx-in label.chk{flex-direction:row;gap:6px;align-items:flex-start}
+.fbx-in select,.fbx-in textarea{border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;width:100%;box-sizing:border-box}
+.fbx-in .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fbv .fbr{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;background:#fff}
+.fbv .fbr-m{white-space:pre-wrap;margin:4px 0;font-size:13.5px;overflow-wrap:anywhere}
+.fbv .fbr-reply{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:6px 8px;font-size:13px;margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.fbv .fbr-edit{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.fbv .fbr-edit input{flex:1;min-width:180px;padding:6px 8px;border:1px solid var(--line-2);border-radius:6px}
+.fbv .fbr-edit select{padding:5px 6px;border:1px solid var(--line-2);border-radius:6px}
+.fbv .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
+.fbv .stats>div{min-width:0;overflow-x:auto}
+.fbv table.mini{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.fbv table.mini th{background:#eaf1f7;text-align:left;padding:5px 6px;white-space:nowrap}
+.fbv table.mini td{padding:4px 6px;border-bottom:1px solid #eef2f6}
+.tag.new{background:#fee2e2;color:#991b1b}
+.tag.doing{background:#fef3c7;color:#92400e}
 </style>
 <script>
 // 登入閘門（與背表相同：總管理帳號、access/<uid>.active；資料庫端另以 case_staff 名單把關）
@@ -214,6 +239,7 @@ table.props tr.common td.kind{color:#0369a1}
 <script src="forms/vue.global.js"></script>
 <script src="forms/hg-forms.js"></script>
 <script src="forms/hg-transcript.js?v=d7"></script>
+<script src="forms/hg-feedback.js?v=d8"></script>
 </head>
 <body>
 <div id="desk" v-cloak>
@@ -222,6 +248,8 @@ table.props tr.common td.kind{color:#0369a1}
     <span class="muted" style="color:#cbd5e1">選一件案件，補登記資料、產生地政士表單、開收據；資料與背表共用</span>
     <div class="links">
       <span v-if="operator">已登入：{{ operator }}　<a href="#" @click.prevent="signOut">登出</a></span>
+      <a href="#" @click.prevent="openFeedback()" data-testid="desk-fb-link">意見回報{{ fbBadge ? '（' + fbBadge + ' 則新回覆）' : '' }}</a>
+      <a href="#" :class="{on: view === 'feedback'}" @click.prevent="openFbView" data-testid="desk-fb-view-link">回報紀錄{{ fbOpenCount ? '（待處理 ' + fbOpenCount + '）' : '' }}</a>
       <a href="#" :class="{on: view === 'roster'}" @click.prevent="toggleRoster" data-testid="desk-roster-link">{{ view === 'roster' ? '回到案件' : '客戶名冊' }}</a>
       <a href="./" target="_blank" rel="noopener">開啟背表</a>
       <a href="../mainmanagement/" target="_blank" rel="noopener">總管理</a>
@@ -252,7 +280,66 @@ table.props tr.common td.kind{color:#0369a1}
 
     <!-- 案件作業 -->
     <div>
-      <div v-if="view === 'roster'" class="card roster" data-testid="desk-roster">
+      <div v-if="view === 'feedback'" class="card fbv" data-testid="desk-fb-view">
+        <div class="head">
+          <h2 style="margin:0">意見回報與自動紀錄</h2>
+          <div class="actions">
+            <button type="button" class="btn primary" @click="openFeedback()">我要回報</button>
+            <button type="button" class="btn" @click="fbLoad()" :disabled="fbv.loading">{{ fbv.loading ? '讀取中…' : '重新整理' }}</button>
+            <button type="button" class="btn" @click="fbExport" title="給 Claude 分析改善用；同仁寫的回報文字會原樣匯出" data-testid="desk-fb-export">匯出紀錄</button>
+            <button type="button" class="btn" @click="view = 'case'">回到案件</button>
+          </div>
+        </div>
+        <div v-if="fbv.error" class="alert" style="margin-top:8px">{{ fbv.error }}</div>
+        <div v-if="fbState.cloud === 'missing'" class="alert warn" style="margin-top:8px" data-testid="desk-fb-missing">雲端回報區還沒開通：回報與自動紀錄先存在這台電腦（目前 {{ fbState.queued }} 筆），開通後打開作業台會自動送出。開通方式：楊總在 Supabase 執行一次「10_同仁回報_新增.sql」。</div>
+        <p v-else-if="fbState.queued" class="note">這台電腦還有 {{ fbState.queued }} 筆紀錄等待送出。<button type="button" class="linkbtn" @click="fbRetry">立即送出</button></p>
+        <p class="note">同仁按「意見回報」寫的問題與建議都在這裡；看過後請改「處理狀態」並回覆，回報的同仁打開作業台就會看到。系統也會自動記錄每次帶入的速度、同仁改了哪些欄位，並從修正學出常見的辨識錯字，之後帶入時自動校正。</p>
+
+        <h3>同仁回報 <span class="muted">（共 {{ fbReports.length }} 則，待處理 {{ fbOpenCount }} 則）</span></h3>
+        <label class="muted"><input type="checkbox" v-model="fbv.openOnly"> 只看待處理／處理中</label>
+        <div v-for="r in fbReportsView" :key="r.fb_id" class="fbr" data-testid="desk-fb-report">
+          <div><span class="tag" :class="fbStCls(r)">{{ r._local ? '尚未送出' : (FB_ST[r.status] || r.status) }}</span> <b>{{ r.topic }}</b>
+            <span class="muted">　{{ fbTime(r.created_at) }}｜{{ r.created_by || '—' }}{{ r.case_no ? '｜案件 ' + r.case_no : '' }}</span></div>
+          <div class="fbr-m">{{ r.message }}</div>
+          <div v-if="fbCtx(r)" class="muted">自動附上：{{ fbCtx(r) }}</div>
+          <div v-if="r.reply" class="fbr-reply"><b>回覆（{{ r.updated_by || '—' }} {{ fbTime(r.updated_at) }}）：</b>{{ r.reply }}</div>
+          <div v-if="fbv.edit && fbv.edit.id === r.fb_id" class="fbr-edit">
+            <select v-model="fbv.edit.status" aria-label="處理狀態"><option v-for="(v, k) in FB_ST" :key="k" :value="k">{{ v }}</option></select>
+            <input v-model="fbv.edit.reply" maxlength="1000" placeholder="回覆給回報的同仁（例如：已修正，請重新整理後再試）" aria-label="回覆">
+            <button type="button" class="btn sm primary" @click="fbSaveEdit" :disabled="fbv.edit.busy" data-testid="desk-fb-save">{{ fbv.edit.busy ? '儲存中…' : '儲存' }}</button>
+            <button type="button" class="btn sm" @click="fbv.edit = null">取消</button>
+            <span v-if="fbv.edit.err" class="badc">{{ fbv.edit.err }}</span>
+          </div>
+          <button v-else-if="!r._local" type="button" class="linkbtn" @click="fbEdit(r)" style="margin-top:4px" data-testid="desk-fb-edit">處理／回覆</button>
+        </div>
+        <p v-if="!fbReportsView.length" class="muted" style="text-align:center;padding:12px">{{ fbv.loading ? '讀取中…' : '目前沒有回報。' }}</p>
+
+        <h3>自動統計 <span class="muted">（{{ fbStats && fbStats.n ? '最近 ' + fbStats.n + ' 筆自動紀錄' : '還沒有紀錄，同仁開始帶入後會自動累積' }}）</span></h3>
+        <div v-if="fbStats" class="stats" data-testid="desk-fb-stats">
+          <div>
+            <b>帶入速度</b>
+            <table class="mini"><thead><tr><th>檔案種類</th><th>份數</th><th>頁數</th><th>每頁秒數</th><th>清晰度</th></tr></thead>
+              <tbody><tr v-for="x in fbStats.speed" :key="x.label"><td>{{ x.label }}</td><td>{{ x.files }}</td><td>{{ x.pages }}</td><td>{{ x.secPerPage }}</td><td>{{ x.avgScore ? x.avgScore + ' 分' : '—' }}</td></tr>
+                <tr v-if="!fbStats.speed.length"><td colspan="5" class="muted">尚無</td></tr></tbody></table>
+            <div v-if="fbStats.fails" class="muted">讀不到標的：{{ fbStats.fails }} 次（共 {{ fbStats.imports }} 次帶入）</div>
+          </div>
+          <div>
+            <b>欄位修改比例</b> <span class="muted">（比例高＝電腦常讀錯，帶入時會標黃提醒）</span>
+            <table class="mini"><thead><tr><th>欄位</th><th>帶入</th><th>被修改</th><th>比例</th></tr></thead>
+              <tbody><tr v-for="x in fbStats.rates" :key="x.f"><td>{{ x.f.replace('.', '・') }}</td><td>{{ x.checked }}</td><td>{{ x.changed }}</td><td :class="x.rate >= 0.2 ? 'badc' : ''">{{ Math.round(x.rate * 100) }}%</td></tr>
+                <tr v-if="!fbStats.rates.length"><td colspan="4" class="muted">{{ fbStats.checkedAll ? '帶入的欄位都沒有被修改' : '尚無' }}</td></tr></tbody></table>
+            <div v-if="fbStats.checkedAll" class="muted">共帶入 {{ fbStats.checkedAll }} 個欄位，只列出被修改過的。</div>
+          </div>
+          <div>
+            <b>學到的常見辨識錯字</b>
+            <table class="mini"><thead><tr><th>欄位</th><th>讀成 → 改成</th><th>次數</th><th>案件</th><th>狀態</th></tr></thead>
+              <tbody><tr v-for="x in fbStats.rules" :key="x.f + '|' + x.a + '|' + x.b"><td>{{ x.f.replace('.', '・') }}</td><td>{{ x.a }} → {{ x.b }}</td><td>{{ x.n }}</td><td>{{ x.cases }}</td><td><span class="tag" :class="x.active ? 'ok' : ''">{{ x.active ? '自動校正中' : '觀察中' }}</span></td></tr>
+                <tr v-if="!fbStats.rules.length"><td colspan="5" class="muted">尚無</td></tr></tbody></table>
+            <div class="muted">同一個錯字在 2 件以上案件被改 3 次以上，之後就自動校正（只用在電腦辨識的文字欄；數字欄不自動改；統一編號要檢查碼由錯變對才改）。同仁改回原字，系統會自動停用。</div>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="view === 'roster'" class="card roster" data-testid="desk-roster">
         <div class="head">
           <h2 style="margin:0">客戶名冊</h2>
           <div class="actions">
@@ -334,6 +421,9 @@ table.props tr.common td.kind{color:#0369a1}
             <div v-if="imp.busy" class="prog"><div :style="{ width: imp.pct + '%' }"></div></div>
             <div v-if="imp.msg" class="status" data-testid="desk-import-msg">{{ imp.msg }}</div>
             <ul v-if="imp.warnings.length" class="warnlist"><li v-for="x in imp.warnings" :key="x">{{ x }}</li></ul>
+            <div v-if="!imp.busy && (imp.msg || imp.docs.length)" class="fbline"><button type="button" class="linkbtn" @click="openFeedback('謄本帶入')" data-testid="desk-import-report">讀錯了、太慢或不好用？按這裡回報</button></div>
+            <div v-if="imp.autoFix.length" class="fbauto" data-testid="desk-import-autofix">已依同仁過去的修正自動校正 {{ imp.autoFix.length }} 處：{{ imp.autoFix.map(x => x.where + ' ' + x.pairs.map(p => p[0] + '→' + p[1]).join('、')).join('；') }}。請核對，不對就直接改回（改回後系統會記住）。</div>
+            <div v-if="imp.docs.length && impHot" class="fbhot" data-testid="desk-import-hot">依過去的修正紀錄，這些欄位最常需要修改，已標黃，請特別核對：{{ impHot }}</div>
             <template v-if="imp.docs.length">
               <div class="tw" style="margin-top:8px">
                 <table class="props" data-testid="desk-import-table">
@@ -343,12 +433,12 @@ table.props tr.common td.kind{color:#0369a1}
                       <tr :class="{common: d.common}" :data-testid="'desk-import-row-' + i">
                         <td><input type="checkbox" v-model="d.pick" :aria-label="'帶入第' + (i + 1) + '筆'"></td>
                         <td class="kind">{{ d.common ? '共有部分' : d.row.kind }}<span v-if="d.ocr" class="tag ocr">辨識</span></td>
-                        <td><input v-model="d.row.city"></td><td><input v-model="d.row.district"></td><td><input v-model="d.row.section"></td><td><input v-model="d.row.subSection"></td>
-                        <td><input v-model="d.row.number"></td>
-                        <td><input v-if="d.row.kind === '土地'" v-model="d.row.area" inputmode="decimal"><input v-else v-model="d.row.mainArea" inputmode="decimal"></td>
-                        <td><input v-if="d.row.kind === '建物' && !d.common" v-model="d.row.attachedArea" inputmode="decimal"></td>
-                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.address" class="wide" :placeholder="d.common ? '（共有部分可留空）' : ''"></td>
-                        <td><input v-model="d.row.transferShare"></td>
+                        <td><input v-model="d.row.city" :class="hc(d, 'city')"></td><td><input v-model="d.row.district" :class="hc(d, 'district')"></td><td><input v-model="d.row.section" :class="hc(d, 'section')"></td><td><input v-model="d.row.subSection" :class="hc(d, 'subSection')"></td>
+                        <td><input v-model="d.row.number" :class="hc(d, 'number')"></td>
+                        <td><input v-if="d.row.kind === '土地'" v-model="d.row.area" inputmode="decimal" :class="hc(d, 'area')"><input v-else v-model="d.row.mainArea" inputmode="decimal" :class="hc(d, 'mainArea')"></td>
+                        <td><input v-if="d.row.kind === '建物' && !d.common" v-model="d.row.attachedArea" inputmode="decimal" :class="hc(d, 'attachedArea')"></td>
+                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.address" class="wide" :class="hc(d, 'address')" :placeholder="d.common ? '（共有部分可留空）' : ''"></td>
+                        <td><input v-model="d.row.transferShare" :class="hc(d, 'transferShare')"></td>
                       </tr>
                       <tr class="sub">
                         <td></td>
@@ -382,10 +472,10 @@ table.props tr.common td.kind{color:#0369a1}
                     <tbody>
                       <tr v-for="(o, i) in imp.owners" :key="i" :data-testid="'desk-owner-' + i">
                         <td><input type="checkbox" v-model="o.pick" :disabled="!ownerCan(o)" :aria-label="'帶入賣方' + (i + 1)" :data-testid="'desk-owner-pick-' + i"></td>
-                        <td style="min-width:110px"><input v-model="o.name"><img v-if="o.ev.name" :src="o.ev.name" class="ev" alt="謄本姓名原字"></td>
-                        <td style="min-width:130px"><input v-model="o.id" @input="o.id = o.id.toUpperCase()"><div :class="idCls(o)">{{ idHint(o) }}</div><img v-if="o.ev.id" :src="o.ev.id" class="ev" alt="謄本統一編號原字"></td>
-                        <td><input type="date" v-model="o.birth"></td>
-                        <td style="min-width:260px"><input v-model="o.address" class="wide"><img v-if="o.ev.addr" :src="o.ev.addr" class="ev" alt="謄本住址原字"></td>
+                        <td style="min-width:110px"><input v-model="o.name" :class="hco('name')"><img v-if="o.ev.name" :src="o.ev.name" class="ev" alt="謄本姓名原字"></td>
+                        <td style="min-width:130px"><input v-model="o.id" @input="o.id = o.id.toUpperCase()" :class="hco('id')"><div :class="idCls(o)">{{ idHint(o) }}</div><img v-if="o.ev.id" :src="o.ev.id" class="ev" alt="謄本統一編號原字"></td>
+                        <td><input type="date" v-model="o.birth" :class="hco('birth')"></td>
+                        <td style="min-width:260px"><input v-model="o.address" class="wide" :class="hco('address')"><img v-if="o.ev.addr" :src="o.ev.addr" class="ev" alt="謄本住址原字"></td>
                         <td style="font-size:12px">{{ o.shares.map(s => s.label + '：' + (s.share || '未讀到')).join('；') }}</td>
                         <td style="font-size:12px;white-space:nowrap" :class="ownerSeller(o) ? 'okc' : ''">{{ ownerSeller(o) ? '✓ 已在名單（補空白欄）' : o.masked ? '姓名有遮罩，請手動填' : '新增一位' }}</td>
                       </tr>
@@ -619,6 +709,7 @@ table.props tr.common td.kind{color:#0369a1}
               <div class="ck-actions">
                 <button type="button" class="btn sm" @click="okAllGreen" :disabled="!ckGreenCount" data-testid="desk-ck-okgreen">綠燈全部打勾（{{ ckGreenCount }}）</button>
                 <button type="button" class="btn primary" @click="applyContract" :disabled="!ckOkCount" data-testid="desk-ck-apply">帶入背表欄位（{{ ckOkCount }} 欄）</button>
+                <button type="button" class="btn sm" @click="openFeedback('合約辨識')" data-testid="desk-ck-report">辨識有問題？回報</button>
               </div>
               <div v-if="ck.msg" class="note" style="white-space:pre-line;color:var(--navy)" data-testid="desk-ck-msg">{{ ck.msg }}</div>
               <div v-if="ck.pick" class="ck-pick" data-testid="desk-ck-pick">
@@ -699,6 +790,23 @@ table.props tr.common td.kind{color:#0369a1}
           <p class="note">收據會在「收據系統」新分頁開啟，並自動帶入此案的抬頭、案件標的與買賣方代辦費套組；請核對金額後在收據系統按「儲存檔案」或列印定稿，回到這裡按「重新整理」即可看到。代辦費收款不含代繳規費；草稿、作廢與測試收據不列入合計。收據的 PDF、本機紀錄與印花稅核對仍在收據系統。</p>
         </div>
       </template>
+    </div>
+  </div>
+  <div v-if="fbx.open" class="fbx" @click.self="fbx.open = false" data-testid="desk-fb-dialog">
+    <div class="fbx-in" role="dialog" aria-label="意見回報">
+      <h2>意見回報</h2>
+      <div class="muted">哪裡讀錯、哪裡太慢或不好用、希望多什麼功能，都可以寫。回報存在公司雲端，楊總和 Claude 會依回報改善；處理進度在「回報紀錄」。</div>
+      <label class="muted">類別<select v-model="fbx.topic" data-testid="desk-fb-topic"><option v-for="t in FB_TOPICS" :key="t" :value="t">{{ t }}</option></select></label>
+      <textarea v-model="fbx.msg" rows="5" maxlength="2000" placeholder="例如：照片帶入時，住址的「臺」常被讀成「台」；或：希望一次帶入多件案件" aria-label="回報內容" data-testid="desk-fb-msg"></textarea>
+      <label class="muted chk"><input type="checkbox" v-model="fbx.attach" data-testid="desk-fb-attach"> <span>附上這次操作的紀錄（檔案種類、頁數、秒數、哪些欄位被修改；不含原檔與客戶資料）</span></label>
+      <div v-if="fbx.attach && fbx.ctxText" class="note" style="margin:0" data-testid="desk-fb-ctx">會附上：{{ fbx.ctxText }}</div>
+      <div class="note" style="margin:0">請不要寫客戶的身分證字號、電話等個資。{{ sel ? '會自動附上案件編號 ' + (sel.row['編號'] || '（未編號）') + '。' : '' }}</div>
+      <div class="row">
+        <button type="button" class="btn primary" @click="submitFeedback" :disabled="fbx.busy || !fbx.msg.trim()" data-testid="desk-fb-send">{{ fbx.busy ? '送出中…' : '送出' }}</button>
+        <button type="button" class="btn" @click="fbx.open = false">{{ fbx.done ? '關閉' : '取消' }}</button>
+        <button type="button" class="linkbtn" @click="fbx.open = false; openFbView()">看回報紀錄與處理進度{{ fbBadge ? '（' + fbBadge + ' 則新回覆）' : '' }}</button>
+      </div>
+      <div v-if="fbx.done" class="okc" data-testid="desk-fb-done">{{ fbx.done }}</div>
     </div>
   </div>
 </div>
@@ -789,7 +897,7 @@ table.props tr.common td.kind{color:#0369a1}
         const { f, blocked } = buildForm(row);
         sel.value = { key: caseKey(row), caseId: row._caseId || '', row, base: stable(row), blocked };
         w.value = f; snap.value = stable(deskSubset(f));
-        ckLoadRecord(row);
+        ckLoadRecord(row); fbTrack = [];
         saveMsg.value = { ok: true, msg: '' }; genMsg.value = '';
         try { history.replaceState(null, '', row._caseId ? '?case=' + encodeURIComponent(row._caseId) : location.pathname); } catch (e) {}
       };
@@ -831,7 +939,7 @@ table.props tr.common td.kind{color:#0369a1}
           const written = await api(`${ENDPOINT}&select=id`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ payload: out }) });
           if (!Array.isArray(written) || written.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有存檔權限），請聯絡楊翊晟。');
           const li = cases.value.indexOf(sel.value.row); if (li > -1) cases.value.splice(li, 1, next);
-          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value)); ckAfterSave();
+          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value)); ckAfterSave(); try { fbAfterSave(); } catch (e) {}
           try { history.replaceState(null, '', '?case=' + encodeURIComponent(next._caseId)); } catch (e) {}
           saveMsg.value = { ok: true, msg: `已存檔 ${time.slice(11, 16)}（變更 ${changed.length} 欄）` };
         } catch (e) { saveMsg.value = { ok: false, msg: '存檔失敗：' + e.message }; }
@@ -948,7 +1056,7 @@ table.props tr.common td.kind{color:#0369a1}
       const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
       let pdfjsP = null;
       const loadPdfjs = () => pdfjsP || (pdfjsP = import(PDFJS + 'build/pdf.min.mjs').then(m => { m.GlobalWorkerOptions.workerSrc = PDFJS + 'build/pdf.worker.min.mjs'; return m; }).catch(() => { pdfjsP = null; throw new Error('PDF 讀取元件載入失敗，請確認網路後再試一次。'); }));
-      const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], thumbs: [], files: [], view: null, reviewed: false, useRights: false, saveOrig: true });
+      const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], thumbs: [], files: [], view: null, reviewed: false, useRights: false, saveOrig: true, autoFix: [], log: null });
       const imp = ref(IMP0());
       const clearImport = () => { imp.value = IMP0(); };
       const numKey = v => window.HGTranscript.number(trim(v).replace(/之/g, '-').replace(/[地建]?號$/, ''));
@@ -975,9 +1083,10 @@ table.props tr.common td.kind{color:#0369a1}
         if (!H || !H.ownersOf) return alert('謄本讀取程式是舊版，請按 Ctrl+F5 重新整理頁面後再試一次。');
         const token = sel.value.key, mine = () => !!sel.value && sel.value.key === token;
         imp.value = { ...IMP0(), busy: true, msg: '讀取中…（在這台電腦處理，不會上傳）' };
+        const t0 = Date.now(), logFiles = [];   // D8 自動紀錄：每份檔案的種類、頁數、秒數（不記檔名）
         try {
           const pdfjs = await loadPdfjs();
-          await loadScript('forms/hg-transcript-ocr.js?v=d7');
+          await loadScript('forms/hg-transcript-ocr.js?v=d8');
           const ensureOcr = async () => {
             if (window.HGOcr && window.HGOcr.ready) return;
             if (mine()) imp.value.msg = '載入辨識程式…（第一次使用約 21 MB，之後會記住）';
@@ -992,14 +1101,23 @@ table.props tr.common td.kind{color:#0369a1}
             if (f.size > 30 * 1024 * 1024) { warnings.push(`「${f.name}」超過 30MB，未讀取。`); continue; }
             const opt = { pdfjs, pdfOpts: { cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }, ensureOcr,
               onStatus: t => { if (mine()) imp.value.msg = t + tag; }, onProgress: (d, t) => { if (mine()) imp.value.pct = Math.round(d / Math.max(1, t) * 100); }, cancelled: () => !mine() };
-            let r, d;
+            let r, d; const tf = Date.now();
             try {
               r = await window.HGTranscriptOcr.readFile(f, opt); d = H.toDesk(r.text);
               // 有文字層但讀不到謄本（例如掃描器附的文字層品質差）：改用整頁辨識再試一次
               if (!d.docs.length && r.mode === 'text' && isPdfFile(f) && r.pages <= 12) { r = await window.HGTranscriptOcr.readFile(f, { ...opt, forceOcr: true }); d = H.toDesk(r.text); }
-            } catch (e) { warnings.push(`「${f.name}」無法讀取：${e && e.name === 'PasswordException' ? '檔案有密碼保護' : (e && e.message || e)}`); continue; }
+            } catch (e) { warnings.push(`「${f.name}」無法讀取：${e && e.name === 'PasswordException' ? '檔案有密碼保護' : (e && e.message || e)}`); logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', fail: 1, ms: Date.now() - tf, err: (HF() ? HF().scrub(e && e.name === 'PasswordException' ? '密碼保護' : (e && e.message || e)) : '').slice(0, 120) }); continue; }
             if (!mine()) return;
             const ocr = r.mode !== 'text';
+            logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', m: r.mode, p: r.pages || 1, o: r.ocrPages || 0, ms: Date.now() - tf, sc: r.score ? Math.round(r.score * 100) / 100 : 0, docs: d.docs.length, ev: (r.evidence || []).length });
+            // D8：照片常漏掉門牌裡的「一」「八」，規則讀不出門牌時，改帶辨識原文並提醒核對
+            if (ocr) {
+              const nb = d.docs.filter(x => x.row.kind === '建物' && !x.common && !trim(x.row.address)), doors = r.text.match(/建物門牌[：:]\s*[^\n]{3,60}/g) || [];
+              if (nb.length === 1 && doors.length === 1 && d.docs.filter(x => x.row.kind === '建物' && !x.common).length === 1) {
+                nb[0].row.address = doors[0].replace(/^建物門牌[：:]\s*/, '').trim();
+                nb[0].issues.push('建物門牌是照片辨識的原文，可能漏字（常漏「一」「八」），請對照原件修正。');
+              }
+            }
             d.warnings.forEach(x => warnings.push(`「${f.name}」：${x}`));
             d.docs.forEach(x => { x.file = f.name; x.pick = !!x.row.number; x.ocr = ocr; docs.push(x); });
             Object.keys(r.thumbs || {}).forEach(p => thumbs.push({ file: f.name, page: Number(p), src: r.thumbs[p] }));
@@ -1008,13 +1126,24 @@ table.props tr.common td.kind{color:#0369a1}
             if (r.mode === 'ocr' && r.score && r.score < 0.85) warnings.push(`「${f.name}」照片／掃描不夠清楚（清晰度 ${Math.round(r.score * 100)} 分），請特別仔細核對，或重拍一張更清楚的。`);
           }
           const owners = H.ownersOf(docs).map(o => ({ ...o, pick: false, ev: ownerEvidence(o, evidence) }));
+          const autoFix = fbAutoFix(docs, owners);   // D8：依同仁過去的修正自動校正（只改電腦辨識的文字欄），並記下讀到的原值
           const named = w.value.sellers.filter(p => trim(p.name)).length;
           owners.forEach(o => { o.pick = ownerCan(o) && (!!ownerSeller(o) || !named); });
           const nOcr = docs.filter(x => x.ocr).length, nCommon = docs.filter(x => x.common).length;
           imp.value = { ...IMP0(), docs, warnings, owners, thumbs, files: src && src.local ? used : [], saveOrig: !!(src && src.local),
             useRights: docs.some(x => x.rightsState !== 'unknown' && x.rightsState !== 'n/a') && !trim(w.value.v50Reg.otherRights),
             msg: docs.length ? `讀到 ${docs.length - nCommon} 筆標的${nCommon ? `、${nCommon} 筆共有部分` : ''}${owners.length ? `、${owners.length} 位所有權人` : ''}。${nOcr ? '標「辨識」的是電腦辨識結果，' : ''}請對照謄本原件逐欄核對（可直接修改），勾選要帶入的項目。` : '沒有讀到可帶入的標的。' };
-        } catch (e) { if (mine()) imp.value = { ...IMP0(), msg: '讀取失敗：' + (e && e.message || e) + '。請確認網路後再試一次。' }; }
+          imp.value.autoFix = autoFix;
+          imp.value.log = { files: logFiles, ms: Date.now() - t0, docs: docs.length - nCommon, commons: nCommon, owners: owners.length, warnings: warnings.slice(0, 10).map(x => HF() ? HF().scrub(x) : ''), src: src && src.local ? 'local' : 'case', autoFix: autoFix.length, fail: docs.length ? 0 : 1 };
+          fbLastImport = { caseKey: token, log: imp.value.log }; fbLastFixed = [];
+          fbRecord('import', '謄本帶入', '', imp.value.log);
+        } catch (e) {
+          if (mine()) {
+            imp.value = { ...IMP0(), msg: '讀取失敗：' + (e && e.message || e) + '。請確認網路後再試一次。' };
+            const log = { files: logFiles, ms: Date.now() - t0, fail: 1, err: (HF() ? HF().scrub(e && e.message || e) : '').slice(0, 200) };
+            fbLastImport = { caseKey: token, log }; fbLastFixed = []; fbRecord('import', '謄本帶入', '', log);
+          }
+        }
       };
       const onTranscriptFiles = async ev => {
         const files = [...(ev.target.files || [])]; ev.target.value = '';
@@ -1043,14 +1172,32 @@ table.props tr.common td.kind{color:#0369a1}
         const H = window.HGTranscript, picked = imp.value.docs.filter(d => d.pick), owners = imp.value.owners.filter(o => o.pick && ownerCan(o));
         if (!imp.value.reviewed || (!picked.length && !owners.length) || !w.value || imp.value.busy) return;
         let added = 0, filled = 0, commons = 0;
+        // D8 修正紀錄：checked＝帶入的欄位數，fixes＝同仁在面板上改過的欄位（只留改動的字）
+        const F = HF(), fixes = [], checked = {}, autoN = (imp.value.autoFix || []).length;
+        const cnt = (f, s) => { const k = f + '|' + s; checked[k] = (checked[k] || 0) + 1; };
+        if (F) {
+          picked.forEach(d => {
+            const s = d.ocr ? 'ocr' : 'text', o = d.orig || {};
+            cnt(F.docGroup(d) + '.整筆刪除', s);
+            Object.keys(F.DOC_KEYS).forEach(k => { if (!trim(o[k]) && !trim(d.row[k])) return; const f = F.docField(d, k); cnt(f, s); const x = F.fix(f, s, o[k], d.row[k]); if (x) fixes.push(x); });
+          });
+          owners.forEach(o => {
+            const s = o.src || 'ocr', g = o.orig || {};
+            cnt('所有權人.整筆刪除', s);
+            Object.keys(F.OWNER_KEYS).forEach(k => { if (!trim(g[k]) && !trim(o[k])) return; const f = F.ownerField(k); cnt(f, s); const x = F.fix(f, s, g[k], o[k]); if (x) fixes.push(x); });
+          });
+        }
+        const trackD = (obj, k, val, d) => { if (F && F.DOC_KEYS[k]) fbTrackAdd(obj, k, val, F.docField(d, k), d.ocr ? 'ocr' : 'text', 'v50Props', '謄本帶入'); };
+        const trackP = (p, k, val, o) => { if (F) fbTrackAdd(p, k, val, F.ownerField(k), o.src || 'ocr', 'sellers', '謄本帶入'); };
         picked.forEach(d => {
           const row = {}; Object.keys(d.row).forEach(k => { row[k] = trim(d.row[k]); });
           if (!row.common) { delete row.common; delete row.commonOf; }
           const ex = w.value.v50Props.find(p => propExists(row) && p.kind === row.kind && numKey(p.number) === numKey(row.number) && (!trim(p.section) || !trim(row.section) || H.sameSection(p.section, row.section)));
-          if (ex) Object.keys(row).forEach(k => { if (row[k] && !trim(ex[k])) { ex[k] = row[k]; filled++; } });
+          if (ex) Object.keys(row).forEach(k => { if (row[k] && !trim(ex[k])) { ex[k] = row[k]; filled++; trackD(ex, k, row[k], d); } });
           else {
             const base = { kind: row.kind, city: '', district: '', section: '', subSection: '', number: '', transferShare: '' };
             w.value.v50Props.push(row.kind === '土地' ? { ...base, area: '', ...row } : { ...base, address: '', mainArea: '', attachedArea: '', ...row }); added++;
+            const nr = w.value.v50Props[w.value.v50Props.length - 1]; Object.keys(row).forEach(k => trackD(nr, k, row[k], d));
             if (row.common) commons++;
           }
         });
@@ -1066,14 +1213,15 @@ table.props tr.common td.kind{color:#0369a1}
         owners.forEach(o => {
           const v = { name: trim(o.name), id: trim(o.id).toUpperCase(), birth: o.birth || '', address: trim(o.address), share: trim(o.share) };
           let p = w.value.sellers.find(s => H.nameMatch(v.name, s.name) || (v.id && trim(s.ledgerId).toUpperCase() === v.id));
-          if (!p) { p = w.value.sellers.find(s => !trim(s.name) && !trim(s.ledgerId)); if (p) { p.name = v.name; pAdded++; } }
-          if (!p) { w.value.sellers.push({ name: v.name, phone: '', role: '本人' }); p = w.value.sellers[w.value.sellers.length - 1]; pAdded++; }
+          if (!p) { p = w.value.sellers.find(s => !trim(s.name) && !trim(s.ledgerId)); if (p) { p.name = v.name; pAdded++; trackP(p, 'name', v.name, o); } }
+          if (!p) { w.value.sellers.push({ name: v.name, phone: '', role: '本人' }); p = w.value.sellers[w.value.sellers.length - 1]; pAdded++; trackP(p, 'name', v.name, o); }
           [['ledgerId', v.id, '統一編號'], ['ledgerBirth', v.birth, '出生日期'], ['ledgerHome', v.address, '住址'], ['v50Share', v.share, '持分']].forEach(([k, val, label]) => {
             if (!val) return;
-            if (!trim(p[k])) { p[k] = val; pFilled++; }
+            if (!trim(p[k])) { p[k] = val; pFilled++; trackP(p, k, val, o); }
             else if (trim(p[k]).toUpperCase() !== String(val).toUpperCase()) diffs.push(`${v.name} 的${label}`);
           });
         });
+        if (F) { fbLastFixed = [...new Set(fixes.map(x => x.f))]; fbRecord('fix', '謄本帶入', '', { stage: 'panel', fixes: fixes.slice(0, 80), checked, autoFix: autoN }); }
         // 原檔存到「文件」分頁（沿用 D5 上傳流程，分類＝謄本）
         let saved = '';
         const files = imp.value.saveOrig ? imp.value.files : [];
@@ -1494,7 +1642,7 @@ table.props tr.common td.kind{color:#0369a1}
         C.crossCheck(ckFound);
         for (const f of ck.value.rows) {
           const v = ckFound[f.key]; if (!v || f.touched || f.ok) continue;
-          f.edit = ckDisplay(f, v.value); f.conf = v.value != null ? v.conf || 0 : 0; f.note = v.note || (v.value == null ? '請框選或直接輸入' : '');
+          f.edit = ckDisplay(f, v.value); f.orig = f.edit; f.conf = v.value != null ? v.conf || 0 : 0; f.note = v.note || (v.value == null ? '請框選或直接輸入' : '');
           f.page = v.page; f.rectPx = v.rect ? { x: v.rect.x, y: v.rect.y, w: v.rect.w, h: v.rect.h } : null;
           if (v._crop) f.crop = v._crop;
         }
@@ -1529,7 +1677,7 @@ table.props tr.common td.kind{color:#0369a1}
         closeContractOcr(); closeView();
         const run = Date.now();
         ck.value = { ...CK0(), open: true, run, fileId: r.file_id, fileName: r.name, caseKey: sel.value ? sel.value.key : '', busy: true, status: '讀取檔案…',
-          rows: CK_FIELDS.map(f => ({ ...f, edit: '', conf: -1, note: '', crop: '', page: 0, rectPx: null, ok: false, touched: false })) };
+          rows: CK_FIELDS.map(f => ({ ...f, edit: '', orig: '', conf: -1, note: '', crop: '', page: 0, rectPx: null, ok: false, touched: false })) };
         const mine = () => ck.value.open && ck.value.run === run;
         try {
           const res = await fetch(`${SUPABASE}/storage/v1/object/authenticated/case-files/${r.path}`, { headers: { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}` }, cache: 'no-store' });
@@ -1577,7 +1725,7 @@ table.props tr.common td.kind{color:#0369a1}
         try {
           const cv = await ckRender(p.page), rect = { x: d.x * cv.width, y: d.y * cv.height, w: d.w * cv.width, h: d.h * cv.height };
           const v = await HGC().readValue(cv, rect, row.kind === 'digits' ? 'digits' : row.kind);
-          row.edit = v && v.value != null ? ckDisplay(row, v.value) : row.edit;
+          row.edit = v && v.value != null ? ckDisplay(row, v.value) : row.edit; if (v && v.value != null) row.orig = row.edit;
           row.conf = v && v.value != null ? (v.score >= 0.9 ? 2 : v.score >= 0.7 ? 1 : 0) : 0;
           row.note = v && v.value != null ? '已依框選範圍重新辨識，請核對' : '框選範圍讀不出內容，請直接輸入';
           row.crop = ckCrop(cv, rect); row.page = p.page; row.rectPx = rect; row.touched = true; row.ok = false;
@@ -1598,6 +1746,17 @@ table.props tr.common td.kind{color:#0369a1}
         const over = changes.filter(c => c.cur !== '');
         if (over.length && !confirm('以下欄位背表已有資料，確定改成合約上的內容？\n' + over.map(c => `${c.f.name}：${c.cur}${c.f.kind === 'money' ? ' 萬' : ''} → ${c.v}${c.f.kind === 'money' ? ' 萬' : ''}`).join('\n'))) return;
         changes.forEach(c => { w.value[c.f.key] = c.v; ckApplied.add(c.f.key); });
+        if (HF()) {
+          const F = HF(), fixes = [], checked = {};
+          rows.forEach(f => {
+            const fk = '合約.' + f.name; checked[fk + '|ocr'] = (checked[fk + '|ocr'] || 0) + 1;
+            const same = f.kind === 'money' ? ckMoney(f.orig) === ckMoney(f.edit) : trim(f.orig) === trim(f.edit);
+            const x = same ? null : F.fix(fk, 'ocr', f.orig, f.edit); if (x) { x.c = f.conf; fixes.push(x); }
+          });
+          fbLastFixed = [...new Set(fixes.map(x => x.f))];
+          fbRecord('fix', '合約辨識', '', { stage: 'panel', fixes, checked, green: rows.filter(f => f.conf === 2).length });
+          changes.forEach(c => fbTrackAdd(w.value, c.f.key, c.v, '合約.' + c.f.name, 'ocr', null, '合約辨識'));
+        }
         cc.value = { fileId: ck.value.fileId, fileName: ck.value.fileName, appliedBy: staffName(), appliedAt: nowText(), fields: Object.fromEntries(rows.map(f => [f.key, trim(f.edit)])), reviewedBy: '', reviewedAt: '' };
         ck.value.msg = (changes.length ? `已帶入 ${changes.length} 欄` : '背表欄位已和合約一致') + '（尚未存檔）。請按上方「存檔」；存檔後請另一位同仁按「我已對照合約核對無誤」完成覆核。';
       };
@@ -1625,10 +1784,164 @@ table.props tr.common td.kind{color:#0369a1}
         if (ck.value.open && ck.value.caseKey !== caseKey(row)) closeContractOcr();
       };
 
+      // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
+      // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
+      const APP_VER = 'desk-D8';
+      const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
+      const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
+      const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
+      const FBQ_KEY = 'hgDeskFbQueue', FBSEEN_KEY = 'hgDeskFbSeen';
+      const HF = () => window.HGFeedback;
+      const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+      const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+      const fbQueue = () => { const v = lsGet(FBQ_KEY, []); return Array.isArray(v) ? v : []; };
+      const fbState = ref({ cloud: 'unknown', queued: fbQueue().length });
+      const fbMissing = e => /desk_feedback|PGRST205|42P01|schema cache|does not exist/i.test(String(e && e.message || e));
+      const fbSend = rec => api(FB_URL, { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(rec) });
+      // 這台電腦最多留 300 筆；超過先丟最舊的自動紀錄，同仁回報盡量保留
+      const fbKeep = list => { while (list.length > 300) { const i = list.findIndex(x => x.rec.kind !== 'report'); list.splice(i > -1 ? i : 0, 1); } lsSet(FBQ_KEY, list); fbState.value.queued = list.length; };
+      let fbFlushing = false;
+      const fbFlush = async () => {
+        const q = fbQueue(); if (fbFlushing || !q.length) return;
+        fbFlushing = true;
+        const sent = new Set();
+        try {
+          for (const it of q) {
+            try { await fbSend({ ...it.rec, detail: { ...(it.rec.detail || {}), queuedAt: it.at } }); sent.add(it.qid); fbState.value.cloud = 'ok'; }
+            catch (e) { fbState.value.cloud = fbMissing(e) ? 'missing' : 'error'; break; }
+          }
+        } finally { fbKeep(fbQueue().filter(x => !sent.has(x.qid))); fbFlushing = false; }
+      };
+      const fbRecord = async (kind, topic, message, detail) => {
+        const rec = { kind, topic: String(topic || '').slice(0, 40), message: String(message || '').slice(0, 2000), detail: detail || {},
+          case_id: String(sel.value && sel.value.caseId || '').slice(0, 200), case_no: trim(sel.value && sel.value.row && sel.value.row['編號']).slice(0, 60), app: APP_VER, created_by: staffName().slice(0, 60) };
+        if (fbState.value.cloud !== 'missing') {
+          try { await fbSend(rec); fbState.value.cloud = 'ok'; if (fbState.value.queued) fbFlush(); return 'cloud'; }
+          catch (e) { fbState.value.cloud = fbMissing(e) ? 'missing' : 'error'; }
+        }
+        const q = fbQueue(); q.push({ qid: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), at: nowText(), rec }); fbKeep(q);
+        return 'local';
+      };
+      const fbv = ref({ loading: false, error: '', rows: [], loadedAt: '', openOnly: false, edit: null });
+      const fbModel = ref(null);
+      const fbLocalRows = () => fbQueue().map(x => ({ ...x.rec, fb_id: 'local-' + x.qid, created_at: x.at, status: x.rec.kind === 'report' ? 'new' : 'done', reply: '', _local: true }));
+      const fbRelearn = () => { if (HF()) fbModel.value = HF().learn([...fbv.value.rows, ...fbLocalRows()]); };
+      const fbLoad = async quiet => {
+        if (fbv.value.loading) return;
+        fbv.value.loading = true; if (!quiet) fbv.value.error = '';
+        try {
+          const rows = await api(`${FB_URL}?select=fb_id,kind,topic,message,detail,case_id,case_no,app,status,reply,created_at,created_by,updated_at,updated_by&order=created_at.desc&limit=1000`);
+          fbv.value.rows = Array.isArray(rows) ? rows : []; fbState.value.cloud = 'ok'; fbv.value.error = '';
+          fbv.value.loadedAt = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+        } catch (e) { if (fbMissing(e)) fbState.value.cloud = 'missing'; else if (!quiet) fbv.value.error = '回報紀錄讀取失敗：' + e.message; }
+        finally { fbv.value.loading = false; fbRelearn(); }
+      };
+      const fbRetry = async () => { fbState.value.cloud = 'unknown'; await fbFlush(); await fbLoad(true); };
+      const fbReports = computed(() => (fbState.value.queued, [...fbLocalRows().filter(r => r.kind === 'report').reverse(), ...fbv.value.rows.filter(r => r.kind === 'report')]));
+      const fbReportsView = computed(() => fbReports.value.filter(r => !fbv.value.openOnly || r._local || r.status === 'new' || r.status === 'doing').slice(0, 300));
+      const fbOpenCount = computed(() => fbReports.value.filter(r => r._local || r.status === 'new').length);
+      const fbSeen = ref(lsGet(FBSEEN_KEY, ''));
+      const fbBadge = computed(() => { const seen = Date.parse(fbSeen.value) || 0, me = staffName(); return fbv.value.rows.filter(r => r.kind === 'report' && r.created_by === me && r.updated_by !== me && trim(r.reply) && (Date.parse(r.updated_at) || 0) > seen).length; });
+      const fbStats = computed(() => {
+        const m = fbModel.value; if (!m) return null;
+        return { n: m.n, imports: m.imports, fails: m.fails, speed: Object.values(m.speed),
+          rates: Object.values(m.rates).filter(x => x.checked > 0 && x.changed > 0).sort((a, b) => b.rate - a.rate || b.checked - a.checked).slice(0, 25),
+          checkedAll: Object.values(m.rates).filter(x => !/整筆刪除$/.test(x.f)).reduce((s, x) => s + x.checked, 0), rules: m.rules.slice(0, 30) };
+      });
+      const fbStCls = r => r._local ? '' : r.status === 'done' ? 'ok' : r.status === 'new' ? 'new' : r.status === 'doing' ? 'doing' : '';
+      const fbTime = t => { if (!t) return ''; const d = new Date(String(t).replace(' ', 'T')); return isNaN(d) ? String(t).slice(0, 16) : `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+      const fbCtx = r => HF() ? HF().contextText(r.detail) : '';
+      const fbEdit = r => { fbv.value.edit = { id: r.fb_id, status: r.status, reply: r.reply || '', busy: false, err: '' }; };
+      const fbSaveEdit = async () => {
+        const e = fbv.value.edit; if (!e || e.busy) return;
+        e.busy = true; e.err = '';
+        try {
+          const rows = await api(`${FB_URL}?fb_id=eq.${encodeURIComponent(e.id)}`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ status: e.status, reply: String(e.reply || '').slice(0, 1000), updated_by: staffName().slice(0, 60) }) });
+          if (!Array.isArray(rows) || rows.length !== 1) throw new Error('雲端沒有更新（目前帳號可能沒有權限）');
+          const i = fbv.value.rows.findIndex(x => x.fb_id === e.id); if (i > -1) fbv.value.rows.splice(i, 1, rows[0]);
+          fbv.value.edit = null;
+        } catch (x) { e.err = '儲存失敗：' + x.message; }
+        finally { e.busy = false; }
+      };
+      const fbExport = () => {
+        const rows = [...fbv.value.rows, ...fbLocalRows()];
+        const blob = new Blob([JSON.stringify({ exportedAt: nowText(), app: APP_VER, count: rows.length, rows }, null, 1)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `作業台回報紀錄_${nowText().slice(0, 10).replace(/-/g, '')}.json`;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      };
+      const openFbView = () => { view.value = 'feedback'; fbSeen.value = new Date().toISOString(); lsSet(FBSEEN_KEY, fbSeen.value); fbLoad(); };
+      // 回報視窗：自動附上這次操作的摘要（不含檔名、原檔、客戶資料）
+      const fbx = ref({ open: false, topic: FB_TOPICS[0], msg: '', attach: true, busy: false, done: '', ctx: null, ctxText: '' });
+      let fbLastImport = null, fbLastFixed = [];
+      const fbContext = () => {
+        const tabName = { forms: '登記表單', files: '文件', receipts: '收據', reply: '客戶回覆' };
+        const c = { tab: view.value === 'case' ? (tabName[tab.value] || tab.value) : view.value === 'roster' ? '客戶名冊' : '回報紀錄',
+          device: (/Mobi|Android|iPhone|iPad/.test(navigator.userAgent) ? '手機／平板' : '電腦') + '，畫面寬 ' + window.innerWidth, ua: String(navigator.userAgent || '').slice(0, 160) };
+        if (fbLastImport && sel.value && fbLastImport.caseKey === sel.value.key) { c.import = fbLastImport.log; c.fixed = fbLastFixed.slice(0, 30); }
+        else if (fbLastFixed.length) c.fixed = fbLastFixed.slice(0, 30);
+        if (ck.value.open) c.contract = { found: ck.value.rows.filter(f => trim(f.edit)).length, green: ck.value.rows.filter(f => f.conf === 2).length, pages: ck.value.pagesN };
+        return c;
+      };
+      const openFeedback = topic => {
+        const ctx = fbContext(), inCase = view.value === 'case' && !!sel.value;
+        const auto = topic || (inCase && ck.value.open ? '合約辨識' : inCase && tab.value === 'forms' && (imp.value.docs.length || ctx.import) ? '謄本帶入'
+          : view.value === 'roster' || (inCase && tab.value === 'reply') ? '客戶名冊與回覆' : inCase && (tab.value === 'files' || tab.value === 'receipts') ? '文件與收據' : inCase ? '登記表單與產生表單' : '其他');
+        fbx.value = { open: true, topic: auto, msg: '', attach: true, busy: false, done: '', ctx, ctxText: HF() ? HF().contextText(ctx) : '' };
+      };
+      const submitFeedback = async () => {
+        const x = fbx.value; if (x.busy || !trim(x.msg)) return;
+        x.busy = true;
+        try {
+          const where = await fbRecord('report', x.topic, trim(x.msg), x.attach ? x.ctx : { tab: x.ctx && x.ctx.tab });
+          x.msg = '';
+          x.done = where === 'cloud' ? '已送出，謝謝！處理進度可以在「回報紀錄」看到。' : '已先存在這台電腦（雲端回報區還沒開通或網路不穩），之後打開作業台會自動送出。謝謝！';
+          if (where === 'cloud') fbLoad(true); else fbRelearn();
+        } finally { x.busy = false; }
+      };
+      // 帶入後追蹤：存檔時比對同仁有沒有再改（改了就記下改動的字），整筆刪掉也記
+      let fbTrack = [];
+      const fbTrackAdd = (obj, key, val, f, s, arr, topic) => { if (trim(val)) fbTrack.push({ obj, key, val: trim(val), f, s, arr, topic }); };
+      const fbAfterSave = () => {
+        const F = HF(); if (!F || !w.value || !fbTrack.length) return;
+        const by = {}, gone = new Set(), add = (t, x) => (by[t] = by[t] || []).push(x);
+        fbTrack.forEach(t => {
+          if (t.arr && !(w.value[t.arr] || []).includes(t.obj)) { if (!gone.has(t.obj)) { gone.add(t.obj); add(t.topic, { f: t.f.split('.')[0] + '.整筆刪除', s: t.s, del: 1 }); } return; }
+          const cur = trim(t.obj[t.key]), x = F.fix(t.f, t.s, t.val, cur);
+          if (x) { add(t.topic, x); t.val = cur; }
+        });
+        fbTrack = fbTrack.filter(t => !gone.has(t.obj));
+        Object.keys(by).forEach(topic => { fbLastFixed = [...new Set([...fbLastFixed, ...by[topic].map(x => x.f)])]; fbRecord('fix', topic, '', { stage: 'after', fixes: by[topic].slice(0, 80) }); });
+      };
+      // 帶入前：依學到的規則自動校正電腦辨識的文字欄，並記下同仁看到的原值（之後比對修改用）
+      const fbAutoFix = (docs, owners) => {
+        const F = HF(), m = fbModel.value, out = [], on = !!(F && m && m.rules.some(r => r.active));
+        const anyOcr = docs.some(d => d.ocr);
+        docs.forEach((d, i) => {
+          if (on && d.ocr) ['city', 'district', 'section', 'subSection', 'address'].forEach(k => {
+            const r = F.applyRules(d.row[k], F.docField(d, k), m);
+            if (r.applied.length) { d.row[k] = r.value; out.push({ where: `第 ${i + 1} 筆${F.DOC_KEYS[k]}`, pairs: r.applied }); }
+          });
+          d.orig = { ...d.row };
+        });
+        owners.forEach((o, i) => {
+          o.src = (o.ev && (o.ev.name || o.ev.id || o.ev.addr)) || anyOcr ? 'ocr' : 'text';
+          if (on && o.src === 'ocr') ['name', 'id', 'address'].forEach(k => {
+            const r = F.applyRules(o[k], F.ownerField(k), m, { idCheck: window.HGTranscript.idCheck });
+            if (r.applied.length) { o[k] = r.value; out.push({ where: `所有權人第 ${i + 1} 位${F.OWNER_KEYS[k]}`, pairs: r.applied }); }
+          });
+          o.orig = { name: o.name, id: o.id, birth: o.birth, address: o.address };
+        });
+        return out;
+      };
+      const impHot = computed(() => { const F = HF(); if (!F || !fbModel.value) return ''; return F.hotList(fbModel.value, ['土地', '建物', '共有部分', '所有權人']).filter(x => !/整筆刪除$/.test(x.f)).slice(0, 6).map(x => x.f.replace('.', '的') + '（' + Math.round(x.rate * 100) + '%）').join('、'); });
+      const hc = (d, k) => { const F = HF(); return { hot: !!(F && fbModel.value && F.hot(fbModel.value, F.docField(d, k))) }; };
+      const hco = k => { const F = HF(); return { hot: !!(F && fbModel.value && F.hot(fbModel.value, F.ownerField(k))) }; };
+
       const signOut = () => { if (confirmLeave()) window.hgCaseSignOut(); };
       window.addEventListener('beforeunload', e => { if (dirty.value) { e.preventDefault(); e.returnValue = ''; } });
       onMounted(async () => {
         await loadCases();
+        fbFlush().then(() => fbLoad(true));   // D8：補送這台電腦暫存的回報，讀回報紀錄（學習用）
         const qs = new URLSearchParams(location.search), id = qs.get('case'), wantTab = qs.get('tab');
         if (id) { const row = cases.value.find(c => c._caseId === id); if (row) openRow(row); else if (!loadError.value) loadError.value = '網址指定的案件找不到（可能已封存）。'; }
         if (wantTab === 'receipts' && sel.value) openReceiptsTab();
@@ -1645,7 +1958,8 @@ table.props tr.common td.kind{color:#0369a1}
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
         FILE_KINDS, KIND_NAME, fl, filesShown, filesSum, wmPreview, fsz, loadFiles, openFilesTab, onCaseFiles, viewFile, closeView, setFileKind, voidFile,
         ck, cc, ccDirty, canOcr, canReview, ckSum, ckGreenCount, ckOkCount, moneyHint, ckCur, ckSame, ckTouch, hlStyle, openContractOcr, closeContractOcr, ckReadRest, pickRegion, showPickPage, pickStart, pickMove, pickEnd, okAllGreen, applyContract, reviewContract,
-        FIRMS, NEED_LABEL, REPLY_STAGES, rp, replyTargets, replyTarget, replyNeeds, replyTodo, mailtoHref, smsHref, copyReply, regenReply };
+        FIRMS, NEED_LABEL, REPLY_STAGES, rp, replyTargets, replyTarget, replyNeeds, replyTodo, mailtoHref, smsHref, copyReply, regenReply,
+        FB_TOPICS, FB_ST, fbState, fbv, fbx, fbReports, fbReportsView, fbOpenCount, fbBadge, fbStats, impHot, hc, hco, fbStCls, fbTime, fbCtx, fbLoad, fbRetry, fbEdit, fbSaveEdit, fbExport, openFeedback, submitFeedback, openFbView };
     }
   }).mount('#desk');
 })();
