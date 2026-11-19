@@ -1,4 +1,4 @@
-/* 宏國地政士作業台：謄本讀取（D3，Claude 2026-11-17）
+/* 宏國地政士作業台：謄本讀取（D3 2026-11-17；D7 2026-11-18 擴充所有權人資料與共有部分，Claude）
  * 第一段：LINE 估價系統 v118 TranscriptFields.js 原文（SHA-256 334af35142a68ebee0bac3d43fd2a16cb13c1b3cdd77a5a6fbedaea55966db3a），已用真實謄本驗證，未修改。
  * 第二段：作業台轉接層。全部在瀏覽器內執行，不上傳檔案。 */
 (function () {
@@ -500,10 +500,11 @@ function transcriptAssembleDocuments_(documents, options) {
   return result;
 }
 
-// ---- 地政士作業台轉接層（Claude 2026-11-17，D3）----
+// ---- 地政士作業台轉接層（Claude 2026-11-17 D3；2026-11-18 D7 擴充）----
 // 上方 transcriptParse_／transcriptAssembleDocuments_ 為 LINE 估價系統 v118 已用真實謄本驗證的規則，原樣沿用。
-// 這一層只做三件事：1) 同一筆謄本跨頁重複的抬頭先合併；2) 換成作業台「標的明細」欄位；
-// 3) 另外讀出所有權人姓名＋權利範圍、他項權利摘要，只供畫面核對，不自動當成本案賣方。
+// 這一層做：1) 同一筆謄本跨頁重複的抬頭先合併；2) 換成作業台「標的明細」欄位；
+// 3) 讀出所有權人（姓名、統一編號、出生日期、住址、權利範圍）與他項權利摘要，供畫面核對；同仁勾選後才帶入賣方；
+// 4) D7：建物標示部的「共有部分」（建號、面積、權利範圍、其他登記事項）另列成可帶入的建物列。
 var HG_CITY = '(?:[臺台]北|新北|桃園|[臺台]中|[臺台]南|高雄|基隆|新竹|嘉義)市|(?:新竹|苗栗|彰化|南投|雲林|嘉義|屏東|宜蘭|花蓮|[臺台]東|澎湖|金門|連江)縣';
 // 電子謄本抬頭常省略縣市（例：北區北元段 0097-0015地號），所以行政區可單獨出現
 var hgSecRe = new RegExp('^(' + HG_CITY + ')?([\\u3400-\\u9fff]{1,3}?[區鄉鎮市])?([\\u3400-\\u9fff]+?段)([\\u3400-\\u9fff]+?小段)?$');
@@ -542,8 +543,10 @@ function hgShare(share) {
   return share.numerator === share.denominator ? '全部' : share.numerator + '/' + share.denominator;
 }
 function hgShareText(v) {
-  v = String(v || '').replace(/[＊*]/g, '');
+  v = String(v || '').replace(/[＊*\s]/g, '');
   if (v === '全部') return '全部';
+  // 「全部 ****1分之1****」辨識時常漏掉分子（「全部分之1」）；開頭是「全部」且後面沒有明確不同的分數，就是全部
+  if (/^全部/.test(v)) { var f = v.match(/(\d+)分之(\d+)/); if (!f || f[1] === f[2]) return '全部'; }
   var m = v.match(/^(?:全部)?([0-9]+)分之([0-9]+)$/);
   return m ? (m[1] === m[2] ? '全部' : m[2] + '/' + m[1]) : '';
 }
@@ -557,6 +560,48 @@ function hgPairs(line) {
   hgLabelRe.lastIndex = 0;
   while ((m = hgLabelRe.exec(line))) found.push({ label: m[1], start: m.index, end: hgLabelRe.lastIndex });
   return found.map(function (f, i) { return { label: f.label, value: line.slice(f.end, i + 1 < found.length ? found[i + 1].start : line.length).replace(/^[＊*]+|[＊*]+$/g, '') }; });
+}
+
+// 民國 063年03月15日 → 1974-03-15（不合理的日期回傳空字串）
+function hgRocDate(s) {
+  var m = hgStrip(hgNormalize(s)).match(/^(?:民國)?(\d{2,3})年(\d{1,2})月(\d{1,2})日$/);
+  if (!m) return '';
+  var y = Number(m[1]) + 1911, mo = Number(m[2]), d = Number(m[3]), t = new Date(Date.UTC(y, mo - 1, d));
+  if (t.getUTCFullYear() !== y || t.getUTCMonth() + 1 !== mo || t.getUTCDate() !== d) return '';
+  return y + '-' + ('0' + mo).slice(-2) + '-' + ('0' + d).slice(-2);
+}
+// 統一編號檢查碼：身分證、新式居留證（第 2 碼 8／9）、舊式居留證（第 2 碼 A～D）、公司統編 8 碼。
+// 回傳 true／false；有遮罩或格式不明時回傳 null（不判斷）。
+var HG_ID_LETTER = { A: 10, B: 11, C: 12, D: 13, E: 14, F: 15, G: 16, H: 17, I: 34, J: 18, K: 19, L: 20, M: 21, N: 22, O: 35, P: 23, Q: 24, R: 25, S: 26, T: 27, U: 28, V: 29, W: 32, X: 30, Y: 31, Z: 33 };
+function hgIdCheck(id) {
+  id = String(id || '').toUpperCase();
+  if (!id || HG_MASK.test(id)) return null;
+  var m = id.match(/^([A-Z])([0-9A-D])(\d{8})$/);
+  if (m) {
+    var head = HG_ID_LETTER[m[1]], second = /\d/.test(m[2]) ? Number(m[2]) : HG_ID_LETTER[m[2]] % 10;
+    if (/\d/.test(m[2]) && !/[1289]/.test(m[2])) return false;
+    var digits = [Math.floor(head / 10), head % 10, second].concat(m[3].split('').map(Number)), w = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1], sum = 0;
+    for (var i = 0; i < 11; i++) sum += digits[i] * w[i];
+    return sum % 10 === 0;
+  }
+  if (/^\d{8}$/.test(id)) {
+    var ws = [1, 2, 1, 2, 1, 2, 4, 1], s = 0;
+    for (var j = 0; j < 8; j++) { var p = Number(id[j]) * ws[j]; s += Math.floor(p / 10) + p % 10; }
+    return s % 5 === 0 || (id[6] === '7' && (s + 1) % 5 === 0);
+  }
+  return null;
+}
+// 辨識結果常見的英數混淆：第 1 碼一定是英文、後面是數字（身分證、居留證）
+function hgFixId(raw) {
+  var s = hgStrip(hgNormalize(raw)).toUpperCase().replace(/[^0-9A-Z＊*○]/g, '');
+  if (/^\d{8}$/.test(s)) return s;
+  var m = s.match(/^([A-Z0-9])(.{9})$/);
+  if (!m) return s;
+  var first = { '0': 'O', '1': 'I', '2': 'Z', '5': 'S', '8': 'B', '6': 'G' }[m[1]] || m[1];
+  var rest = m[2], second = rest[0];
+  var tail = rest.slice(1).replace(/[OQD]/g, '0').replace(/[IL|]/g, '1').replace(/Z/g, '2').replace(/S/g, '5').replace(/B/g, '8').replace(/G/g, '6');
+  if (/[OQ]/.test(second)) second = '0'; else if (/[IL|]/.test(second)) second = '1';
+  return first + second + tail;
 }
 
 // 同一筆謄本跨頁時，每頁都會重印「○○登記第二類謄本」與地建號抬頭；第 2 頁起若與前頁同一筆，就拿掉重複抬頭，
@@ -582,9 +627,8 @@ function hgMergePages(text) {
   return out.join('\n');
 }
 
-// 讀所有權部的「所有權人／權利範圍」與他項權利部摘要（只供核對顯示）。
-// 註：電子謄本的所有權人姓名、統一編號、住址是以圖片印出，文字層讀不到（2026-11-17 用真實電子謄本確認），此時只有權利範圍。
-function hgOwnerRights(text) {
+// 依「○○登記第○類謄本」把整份文字切成一筆一筆（每筆含抬頭地建號、縣市、所有行）
+function hgBlocks(text) {
   var lines = hgNormalize(text).replace(/\r\n?/g, '\n').split('\n').map(hgStrip), blocks = [], cur = null;
   lines.forEach(function (t) {
     if (hgTitleRe.test(t)) { cur = { kind: /^建物/.test(t) ? 'building' : 'land', id: null, city: '', lines: [] }; blocks.push(cur); }
@@ -593,17 +637,28 @@ function hgOwnerRights(text) {
     if (!cur.city) { var c = t.match(hgCityRe); if (c) cur.city = c[1].replace(/^台/, '臺'); }
     cur.lines.push(t);
   });
-  return blocks.map(function (b) {
-    var mode = '', owners = [], rights = [], rightsSeen = false, entry = null;
+  return blocks;
+}
+
+// 讀所有權部的所有權人（姓名、統一編號、出生日期、住址、權利範圍）與他項權利部摘要。
+// 電子謄本的姓名、統一編號、住址是以圖片印出，文字層讀不到；D7 起由電腦內辨識補成文字後再讀（見 hg-transcript-ocr.js）。
+function hgOwnerRights(text) {
+  return hgBlocks(text).map(function (b) {
+    var mode = '', owners = [], rights = [], rightsSeen = false, entry = null, cur = null, mgr = false;
+    var newOwner = function () { cur = { name: '', id: '', birth: '', address: '', share: '' }; owners.push(cur); mgr = false; return cur; };
     b.lines.forEach(function (t) {
       if (/(?:土地|建物)所有權部/.test(t)) { mode = 'own'; return; }
       if (/(?:土地|建物)他項權利部/.test(t)) { mode = 'rights'; rightsSeen = true; return; }
       if (/(?:土地|建物)標示部/.test(t)) { mode = ''; return; }
       hgPairs(t).forEach(function (p) {
         if (mode === 'own') {
-          if (p.label === '登記次序') owners.push({ name: '', share: '' });
-          else if (p.label === '所有權人' || p.label === '管理者') { if (!owners.length || owners[owners.length - 1].name) owners.push({ name: '', share: '' }); owners[owners.length - 1].name = p.value; }
-          else if (p.label === '權利範圍') { if (!owners.length) owners.push({ name: '', share: '' }); owners[owners.length - 1].share = hgShareText(p.value) || p.value; }
+          if (p.label === '登記次序') newOwner();
+          else if (p.label === '所有權人') { if (!cur || cur.name) newOwner(); cur.name = p.value; }
+          else if (p.label === '管理者') { if (!cur) newOwner(); mgr = true; }
+          else if (p.label === '統一編號') { if (!cur) newOwner(); if (!mgr && !cur.id) cur.id = hgFixId(p.value); }
+          else if (p.label === '出生日期') { if (!cur) newOwner(); if (!mgr && !cur.birth) cur.birth = hgRocDate(p.value); }
+          else if (p.label === '住址') { if (!cur) newOwner(); if (!mgr && !cur.address) cur.address = p.value; }
+          else if (p.label === '權利範圍') { if (!cur) newOwner(); cur.share = hgShareText(p.value) || p.value; }
         } else if (mode === 'rights') {
           if (p.label === '登記次序' || (p.label === '權利種類' && entry && entry.kind)) { entry = { kind: '', holder: '', amount: '' }; rights.push(entry); }
           if (!entry) { entry = { kind: '', holder: '', amount: '' }; rights.push(entry); }
@@ -613,9 +668,45 @@ function hgOwnerRights(text) {
         }
       });
     });
-    owners = owners.filter(function (o) { return o.name || o.share; });
+    owners = owners.filter(function (o) { return o.name || o.share || o.id; });
     rights = rights.filter(function (r) { return r.kind || r.holder; });
     return { kind: b.kind, id: b.id, city: b.city, owners: owners, rights: rights, rightsState: rights.length ? 'some' : rightsSeen ? 'none' : 'unknown' };
+  });
+}
+
+// D7：建物標示部的共有部分。格式（電子謄本）：
+//   共有部分：○○段 01234-000建號 ****1,234.56平方公尺
+//             權利範圍：****10000分之123****
+//             其他登記事項：含停車位編號○○號……（每一筆共有部分各自一行；最後才是建物本身的其他登記事項）
+var hgCommonNoRe = /([㐀-鿿]+段(?:[㐀-鿿]+小段)?)?0*(\d{1,5})-0*(\d{1,3})建號/;
+var hgAreaRe = /((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?:平方公尺|平方米|㎡)/;
+function hgCommonParts(text) {
+  return hgBlocks(text).filter(function (b) { return b.kind === 'building'; }).map(function (b) {
+    var parts = [], cur = null, inDisplay = false, waitNo = false;
+    b.lines.forEach(function (t0) {
+      var t = t0.replace(/[＊*]+/g, '');
+      if (/建物標示部/.test(t)) { inDisplay = true; return; }
+      if (/(?:建物|土地)(?:所有權部|他項權利部)/.test(t)) { inDisplay = false; cur = null; return; }
+      if (!inDisplay) return;
+      var m = t.match(/^共有部分[：:]?(.*)$/);
+      if (m) { cur = { section: '', number: '', area: '', share: '', note: '', noteDone: false }; parts.push(cur); t = m[1]; waitNo = true; }
+      if (!cur) return;
+      if (waitNo && !cur.number) {
+        var n = t.match(hgCommonNoRe);
+        if (n) { cur.section = n[1] || ''; cur.number = Number(n[3]) ? Number(n[2]) + '-' + Number(n[3]) : String(Number(n[2])); t = t.slice(t.indexOf(n[0]) + n[0].length); }
+      }
+      if (cur.number && !cur.area) { var a = t.match(hgAreaRe); if (a && !/權利範圍/.test(t.slice(0, t.indexOf(a[0])))) { cur.area = String(Number(a[1].replace(/,/g, ''))); t = t.slice(t.indexOf(a[0]) + a[0].length); } }
+      if (cur.number) waitNo = false;
+      var s = t.match(/權利範圍[：:]?((?:全部)?\d+分之\d+|全部)/);
+      if (s && !cur.share) cur.share = hgShareText(s[1]);
+      var o = t.match(/其他登記事項[：:](.*)$/);
+      if (o) {
+        if (cur.share && !cur.noteDone && /使用執照|建築基地/.test(o[1])) { cur.noteDone = true; cur = null; }   // 共有部分沒有自己的其他登記事項，這行是建物本身的
+        else if (cur.share && !cur.noteDone) { cur.note = o[1] === '（空白）' || o[1] === '(空白)' ? '' : o[1]; cur.noteDone = true; }
+        else if (cur.noteDone) cur = null;                                             // 建物本身的其他登記事項：共有部分到此結束
+      } else if (cur && cur.noteDone && cur.note && !/[：:]/.test(t) && t && !/^共有部分/.test(t0)) cur.note += t;   // 續行
+    });
+    return { id: b.id, parts: parts.filter(function (p) { return p.number; }).map(function (p) { return { section: p.section, number: p.number, area: p.area, share: p.share, note: p.note }; }) };
   });
 }
 
@@ -638,12 +729,15 @@ function hgTranscriptToDesk(text, opt) {
   opt = opt || {};
   var merged = hgMergePages(text);
   var parsed = transcriptParse_(merged, { at: opt.at || new Date() });
-  var extras = hgOwnerRights(merged), warnings = [];
+  var extras = hgOwnerRights(merged), commons = hgCommonParts(merged), warnings = [];
   (parsed.issues || []).forEach(function (x) { if (!x.documentKey && !HG_SKIP_CODES.test(x.code)) warnings.push(x.message); });
-  var docs = (parsed.documents || []).map(function (d) {
+  var docs = [];
+  (parsed.documents || []).forEach(function (d) {
     var isB = d.kind === 'building', geo = hgSplitSection(d.section), number = d.number ? hgNumber(d.number) : '';
-    var extra = extras.filter(function (e) { return e.kind === d.kind && e.id && e.id.number === number && hgSameSection(e.id.section, d.section); })[0] || { owners: [], rights: [], rightsState: 'unknown', city: '' };
+    var same = function (e) { return e.id && e.id.number === number && hgSameSection(e.id.section, d.section); };
+    var extra = extras.filter(function (e) { return e.kind === d.kind && same(e); })[0] || { owners: [], rights: [], rightsState: 'unknown', city: '' };
     var row = { kind: isB ? '建物' : '土地', city: geo.city || extra.city || '', district: geo.district, section: geo.section, subSection: geo.subSection, number: number, transferShare: hgShare(d.share) };
+    var cps = isB ? ((commons.filter(same)[0] || {}).parts || []) : [];
     if (isB) {
       row.address = d.address || '';
       row.mainArea = d.mainAreaM2 !== null && d.mainAreaM2 !== undefined ? String(d.mainAreaM2) : '';
@@ -654,16 +748,49 @@ function hgTranscriptToDesk(text, opt) {
     var issues = (d.issues || []).filter(function (x) { return !HG_SKIP_CODES.test(x.code) && HG_DESK_KEYS.test(x.key); }).map(function (x) { return x.message; });
     if (!number) issues.unshift('沒有讀到唯一的地號／建號，請手動填寫或不要帶入這一筆。');
     if (row.transferShare) issues.push('「移轉權利範圍」先帶謄本上目前的權利範圍；若本次只移轉一部分，請改成本次範圍。');
-    if (isB) issues.push('建物面積只帶主建物總面積與陽台／雨遮等附屬建物；共有部分（公設）請另行核對。');
-    return {
+    if (isB) issues.push(cps.length ? '建物面積帶主建物總面積與陽台／雨遮等附屬建物；共有部分 ' + cps.length + ' 筆已另列在下方。' : '這份謄本的建物標示部沒有共有部分（透天常見；大樓請核對是否漏讀）。');
+    docs.push({
       key: d.key || '', row: row, owners: extra.owners, rights: extra.rights, rightsState: extra.rightsState,
       rightsText: extra.rights.length ? hgRightsText(extra.rights) : extra.rightsState === 'none' ? '謄本他項權利部沒有記載權利' : '這份謄本沒有他項權利部（可能未申請全部）',
       landRefs: (d.landRefs || []).map(function (r) { return r.section + hgNumber(r.number); }),
       issues: issues.filter(function (x, i, a) { return a.indexOf(x) === i; })
-    };
+    });
+    cps.forEach(function (cp, i) {
+      var g = cp.section ? hgSplitSection(cp.section) : geo;
+      var crow = { kind: '建物', common: '共有部分', commonOf: number, city: row.city, district: row.district, section: g.section || geo.section, subSection: cp.section ? g.subSection : geo.subSection,
+        number: cp.number, transferShare: cp.share, address: '', mainArea: cp.area, attachedArea: '' };
+      var ci = [];
+      if (!cp.area) ci.push('沒有讀到共有部分面積，請看原件補上。');
+      if (!cp.share) ci.push('沒有讀到共有部分的權利範圍，請看原件補上。');
+      else ci.push('面積是共有部分的總面積，移轉權利範圍帶謄本的共有部分權利範圍，請核對。');
+      if (/停車|車位/.test(cp.note)) ci.push('含停車位：' + cp.note);
+      docs.push({ key: (d.key || number) + '#共有' + (i + 1), common: true, row: crow, owners: [], rights: [], rightsState: 'n/a', rightsText: '', note: cp.note,
+        landRefs: [], issues: ci });
+    });
   });
   if (!docs.length && !warnings.length) warnings.push('沒有找到謄本的標示部，請確認是地政機關核發的土地或建物登記謄本。');
   return { docs: docs, warnings: warnings.filter(function (x, i, a) { return a.indexOf(x) === i; }) };
+}
+
+// 所有權人彙整：同一人（統一編號相同，或姓名相同）出現在多筆標的時合併，列出每筆的權利範圍
+function hgOwnersOf(docs) {
+  var out = [];
+  (docs || []).forEach(function (d) {
+    if (d.common) return;
+    var label = (d.row.section || '') + (d.row.subSection || '') + (d.row.number || '') + (d.row.kind === '建物' ? '建號' : '地號');
+    (d.owners || []).forEach(function (o) {
+      if (!o.name && !o.id) return;
+      var key = o.id && !HG_MASK.test(o.id) ? 'id:' + o.id : 'name:' + hgStrip(o.name);
+      var hit = out.filter(function (x) { return x.key === key || (o.name && x.name && hgStrip(x.name) === hgStrip(o.name) && (!x.id || !o.id || x.id === o.id)); })[0];
+      if (!hit) { hit = { key: key, name: o.name, id: o.id, birth: o.birth, address: o.address, shares: [] }; out.push(hit); }
+      ['name', 'id', 'birth', 'address'].forEach(function (k) { if (!hit[k] && o[k]) hit[k] = o[k]; });
+      hit.shares.push({ label: label, share: o.share || '' });
+    });
+  });
+  return out.map(function (x) {
+    var shares = x.shares.map(function (s) { return s.share; }), one = shares.every(function (s) { return s && s === shares[0]; }) ? shares[0] : '';
+    return { name: x.name, id: x.id, birth: x.birth, address: x.address, shares: x.shares, share: one, masked: HG_MASK.test(x.name || ''), idOk: hgIdCheck(x.id) };
+  });
 }
 
 // PDF 文字層 → 依座標排回一行一行（同一列的字由左到右，中間有明顯空隙就補空白）
@@ -701,7 +828,8 @@ async function hgPdfToText(data, pdfjs, opt) {
   } finally { try { await doc.destroy(); } catch (e) {} }
 }
 
-var HGTranscript = { version: 'D3-2026-11-17', toDesk: hgTranscriptToDesk, mergePages: hgMergePages, ownerRights: hgOwnerRights,
+var HGTranscript = { version: 'D7-2026-11-18', toDesk: hgTranscriptToDesk, mergePages: hgMergePages, ownerRights: hgOwnerRights, commonParts: hgCommonParts,
+  ownersOf: hgOwnersOf, idCheck: hgIdCheck, fixId: hgFixId, rocDate: hgRocDate,
   nameMatch: hgNameMatch, splitSection: hgSplitSection, number: hgNumber, sameSection: hgSameSection,
   linesFromItems: hgLinesFromItems, pdfToText: hgPdfToText, parse: transcriptParse_ };
 if (typeof window !== 'undefined') window.HGTranscript = HGTranscript;

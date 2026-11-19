@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
-<!-- 地政士作業台 D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
+<!-- 地政士作業台 D7（Claude 2026-11-18：謄本帶入支援掃描檔與照片、電腦內辨識所有權人資料、共有部分、帶入賣方、新增買賣方）；D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -134,6 +134,25 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 .ck-inner .sel{position:absolute;border:2px dashed #1d4ed8;background:rgba(29,78,216,.10);pointer-events:none}
 .ck-rec{margin-top:10px;font-size:13px;padding:8px 12px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0}
 .ck-rec.todo{background:#fffbeb;border-color:#fde68a}
+.imp .prog{height:6px;background:#e2e8f0;border-radius:3px;margin:8px 0 2px;overflow:hidden}
+.imp .prog div{height:100%;background:var(--navy);transition:width .3s}
+.imp .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:9px;background:#e0f2fe;color:#075985;margin-left:4px;font-weight:400}
+.imp .tag.ocr{background:#fef3c7;color:#92400e}
+table.props tr.common td{background:#f8fafc}
+table.props tr.common td.kind{color:#0369a1}
+.own{margin-top:10px;border:1px solid #c7d2fe;border-radius:10px;padding:8px 10px;background:#fff}
+.own table.props{min-width:900px}
+.own table.props td{vertical-align:top}
+.own .ev{display:block;max-width:260px;max-height:34px;margin-top:3px;border:1px solid var(--line-2);border-radius:3px;background:#fff}
+.own .idok{font-size:11.5px;color:var(--ok)}
+.own .idbad{font-size:11.5px;color:var(--err);font-weight:700}
+.own .idna{font-size:11.5px;color:var(--muted)}
+.imp-view{margin-top:10px;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;background:#fff}
+.imp-view .bar{display:flex;gap:10px;align-items:center;padding:6px 10px;background:#f1f5f9;flex-wrap:wrap;font-size:13px}
+.imp-view .pg{max-height:75vh;overflow:auto}
+.imp-view img{width:100%;display:block}
+.party .ptop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12.5px}
+.padd{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
 </style>
 <script>
 // 登入閘門（與背表相同：總管理帳號、access/<uid>.active；資料庫端另以 case_staff 名單把關）
@@ -194,7 +213,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
 </script>
 <script src="forms/vue.global.js"></script>
 <script src="forms/hg-forms.js"></script>
-<script src="forms/hg-transcript.js"></script>
+<script src="forms/hg-transcript.js?v=d7"></script>
 </head>
 <body>
 <div id="desk" v-cloak>
@@ -309,9 +328,10 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           <div class="imp" data-testid="desk-import">
             <div class="row">
               <b style="color:var(--navy)">從謄本帶入</b>
-              <span class="btn filebtn" :class="{primary: !imp.docs.length}">{{ imp.busy ? '讀取中…' : '選擇電子謄本 PDF' }}<input type="file" accept="application/pdf,.pdf" multiple @change="onTranscriptFiles" :disabled="imp.busy || !!sel.blocked" data-testid="desk-import-file"></span>
-              <span class="muted">可一次選多份。檔案只在這台電腦讀取，不會上傳。手機拍照辨識：下一步上線。</span>
+              <span class="btn filebtn" :class="{primary: !imp.docs.length}">{{ imp.busy ? '讀取中…' : '選擇謄本（電子謄本、掃描 PDF、照片）' }}<input type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple @change="onTranscriptFiles" :disabled="imp.busy || !!sel.blocked" data-testid="desk-import-file"></span>
+              <span class="muted">在這台電腦讀取與辨識，不送外部、不付費。地政事務所的電子謄本最準（約 5 秒）；照片請拍正、整頁入鏡、不反光（每頁約 15～40 秒）。也可在「文件」分頁的謄本按「帶入謄本」。</span>
             </div>
+            <div v-if="imp.busy" class="prog"><div :style="{ width: imp.pct + '%' }"></div></div>
             <div v-if="imp.msg" class="status" data-testid="desk-import-msg">{{ imp.msg }}</div>
             <ul v-if="imp.warnings.length" class="warnlist"><li v-for="x in imp.warnings" :key="x">{{ x }}</li></ul>
             <template v-if="imp.docs.length">
@@ -320,26 +340,32 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
                   <thead><tr><th>帶入</th><th>種類</th><th>縣市</th><th>鄉鎮市區</th><th>段</th><th>小段</th><th>地號／建號</th><th>面積（㎡）</th><th>附屬建物（㎡）</th><th>建物門牌</th><th>移轉權利範圍</th></tr></thead>
                   <tbody>
                     <template v-for="(d, i) in imp.docs" :key="i">
-                      <tr>
+                      <tr :class="{common: d.common}" :data-testid="'desk-import-row-' + i">
                         <td><input type="checkbox" v-model="d.pick" :aria-label="'帶入第' + (i + 1) + '筆'"></td>
-                        <td class="kind">{{ d.row.kind }}</td>
+                        <td class="kind">{{ d.common ? '共有部分' : d.row.kind }}<span v-if="d.ocr" class="tag ocr">辨識</span></td>
                         <td><input v-model="d.row.city"></td><td><input v-model="d.row.district"></td><td><input v-model="d.row.section"></td><td><input v-model="d.row.subSection"></td>
                         <td><input v-model="d.row.number"></td>
                         <td><input v-if="d.row.kind === '土地'" v-model="d.row.area" inputmode="decimal"><input v-else v-model="d.row.mainArea" inputmode="decimal"></td>
-                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.attachedArea" inputmode="decimal"></td>
-                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.address" class="wide"></td>
+                        <td><input v-if="d.row.kind === '建物' && !d.common" v-model="d.row.attachedArea" inputmode="decimal"></td>
+                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.address" class="wide" :placeholder="d.common ? '（共有部分可留空）' : ''"></td>
                         <td><input v-model="d.row.transferShare"></td>
                       </tr>
                       <tr class="sub">
                         <td></td>
                         <td colspan="10">
-                          <div class="muted">來源：{{ d.file }}{{ d.landRefs.length ? '｜建物坐落：' + d.landRefs.join('、') : '' }}</div>
+                          <div class="muted">來源：{{ d.file }}{{ d.landRefs.length ? '｜建物坐落：' + d.landRefs.join('、') : '' }}
+                            <button v-if="d.ocr && imp.thumbs.some(t => t.file === d.file)" type="button" class="mini" @click="viewThumb(d.file)" style="margin-left:6px">看原圖對照</button></div>
                           <div v-if="propExists(d.row)" class="okc" style="color:var(--warn)">作業台已有這筆標的：只會補上空白欄位，不會覆蓋已填的資料。</div>
-                          <div>謄本所有權人：
-                            <template v-if="d.owners.length"><span v-for="(o, k) in d.owners" :key="k">{{ k ? '；' : '' }}{{ o.name || '（電子謄本的姓名是圖片，請看原件）' }}　權利範圍 {{ o.share || '未讀到' }}<span v-if="o.name" :class="ownerOk(o) ? 'okc' : 'badc'">　{{ ownerOk(o) ? '✓ 與本案賣方相符' : '✗ 不在本案賣方名單' }}</span></span></template>
-                            <span v-else class="muted">未讀到（可能只申請部分謄本）</span>
-                          </div>
-                          <div>他項權利：{{ d.rightsText }}</div>
+                          <template v-if="d.common">
+                            <div>屬於 {{ d.row.commonOf }} 建號的共有部分（公設）。面積是共有部分的總面積，移轉權利範圍是謄本記載的持分。<template v-if="d.note">其他登記事項：{{ d.note }}</template></div>
+                          </template>
+                          <template v-else>
+                            <div>謄本所有權人：
+                              <template v-if="d.owners.length"><span v-for="(o, k) in d.owners" :key="k">{{ k ? '；' : '' }}{{ o.name || '（未讀到姓名）' }}　權利範圍 {{ o.share || '未讀到' }}<span v-if="o.name" :class="ownerOk(o) ? 'okc' : 'badc'">　{{ ownerOk(o) ? '✓ 與本案賣方相符' : '✗ 不在本案賣方名單' }}</span></span></template>
+                              <span v-else class="muted">未讀到（可能只申請部分謄本）</span>
+                            </div>
+                            <div>他項權利：{{ d.rightsText }}</div>
+                          </template>
                           <ul v-if="d.issues.length" class="warnlist"><li v-for="x in d.issues" :key="x">{{ x }}</li></ul>
                         </td>
                       </tr>
@@ -347,12 +373,39 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
                   </tbody>
                 </table>
               </div>
+              <div v-if="imp.owners.length" class="own" data-testid="desk-import-owners">
+                <b style="color:var(--navy)">謄本所有權人 → 義務人（賣方）</b>
+                <span class="muted">（可直接修改；截圖是謄本上的原字，請逐字核對。同名的賣方只補空白欄位，不會覆蓋已填的資料）</span>
+                <div class="tw" style="margin-top:6px">
+                  <table class="props">
+                    <thead><tr><th>帶入賣方</th><th>姓名</th><th>統一編號</th><th>出生日期</th><th>住址</th><th>各筆權利範圍</th><th>本案賣方</th></tr></thead>
+                    <tbody>
+                      <tr v-for="(o, i) in imp.owners" :key="i" :data-testid="'desk-owner-' + i">
+                        <td><input type="checkbox" v-model="o.pick" :disabled="!ownerCan(o)" :aria-label="'帶入賣方' + (i + 1)" :data-testid="'desk-owner-pick-' + i"></td>
+                        <td style="min-width:110px"><input v-model="o.name"><img v-if="o.ev.name" :src="o.ev.name" class="ev" alt="謄本姓名原字"></td>
+                        <td style="min-width:130px"><input v-model="o.id" @input="o.id = o.id.toUpperCase()"><div :class="idCls(o)">{{ idHint(o) }}</div><img v-if="o.ev.id" :src="o.ev.id" class="ev" alt="謄本統一編號原字"></td>
+                        <td><input type="date" v-model="o.birth"></td>
+                        <td style="min-width:260px"><input v-model="o.address" class="wide"><img v-if="o.ev.addr" :src="o.ev.addr" class="ev" alt="謄本住址原字"></td>
+                        <td style="font-size:12px">{{ o.shares.map(s => s.label + '：' + (s.share || '未讀到')).join('；') }}</td>
+                        <td style="font-size:12px;white-space:nowrap" :class="ownerSeller(o) ? 'okc' : ''">{{ ownerSeller(o) ? '✓ 已在名單（補空白欄）' : o.masked ? '姓名有遮罩，請手動填' : '新增一位' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div v-if="imp.view" class="imp-view" data-testid="desk-import-view">
+                <div class="bar"><b>原圖：{{ imp.view.file }}</b>
+                  <label>第 <select v-model.number="imp.view.idx" style="padding:2px 4px"><option v-for="(t, k) in imp.thumbs.filter(t => t.file === imp.view.file)" :key="k" :value="k">{{ t.page }}</option></select> 頁</label>
+                  <button type="button" class="btn sm" @click="imp.view = null">關閉</button></div>
+                <div class="pg"><img :src="(imp.thumbs.filter(t => t.file === imp.view.file)[imp.view.idx] || {}).src" alt="謄本原圖"></div>
+              </div>
               <div class="checks">
-                <label v-if="imp.docs.some(d => d.rightsState !== 'unknown')"><input type="checkbox" v-model="imp.useRights"> 他項權利情形一併填入公契欄（目前{{ w.v50Reg.otherRights ? '已有內容，會接在後面' : '空白' }}）</label>
+                <label v-if="imp.docs.some(d => d.rightsState !== 'unknown' && d.rightsState !== 'n/a')"><input type="checkbox" v-model="imp.useRights"> 他項權利情形一併填入公契欄（目前{{ w.v50Reg.otherRights ? '已有內容，會接在後面' : '空白' }}）</label>
+                <label v-if="imp.files.length && sel.caseId"><input type="checkbox" v-model="imp.saveOrig" data-testid="desk-import-save"> 帶入時把謄本原檔存到「文件」分頁（{{ imp.files.length }} 份）</label>
                 <label><input type="checkbox" v-model="imp.reviewed" data-testid="desk-import-reviewed"> 我已對照謄本原件逐欄核對（所有權人不相符時，請先確認是否為繼承、贈與或代理）</label>
               </div>
               <div class="row">
-                <button type="button" class="btn primary" @click="applyTranscript" :disabled="!imp.reviewed || !imp.docs.some(d => d.pick)" data-testid="desk-import-apply">帶入勾選的標的</button>
+                <button type="button" class="btn primary" @click="applyTranscript" :disabled="!imp.reviewed || imp.busy || (!imp.docs.some(d => d.pick) && !imp.owners.some(o => o.pick))" data-testid="desk-import-apply">帶入勾選的標的與賣方</button>
                 <button type="button" class="btn" @click="clearImport">取消</button>
               </div>
             </template>
@@ -385,13 +438,13 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
             <table class="props" data-testid="desk-props">
               <thead><tr><th>種類</th><th>縣市</th><th>鄉鎮市區</th><th>段</th><th>小段</th><th>地號／建號</th><th>面積（㎡）</th><th>附屬建物（㎡）</th><th>建物門牌</th><th>移轉權利範圍</th><th></th></tr></thead>
               <tbody>
-                <tr v-for="(p, i) in w.v50Props" :key="i">
-                  <td class="kind">{{ p.kind }}</td>
+                <tr v-for="(p, i) in w.v50Props" :key="i" :class="{common: p.common}">
+                  <td class="kind">{{ p.common ? '共有部分' : p.kind }}</td>
                   <td><input v-model="p.city"></td><td><input v-model="p.district"></td><td><input v-model="p.section"></td><td><input v-model="p.subSection"></td>
                   <td><input v-model="p.number" :placeholder="p.kind === '土地' ? '地號' : '建號'"></td>
                   <td><input v-if="p.kind === '土地'" v-model="p.area" inputmode="decimal"><input v-else v-model="p.mainArea" inputmode="decimal" placeholder="面積合計"></td>
                   <td><input v-if="p.kind === '建物'" v-model="p.attachedArea" inputmode="decimal"></td>
-                  <td><input v-if="p.kind === '建物'" v-model="p.address" class="wide"></td>
+                  <td><input v-if="p.kind === '建物'" v-model="p.address" class="wide" :placeholder="p.common ? '（共有部分 屬 ' + (p.commonOf || '') + ' 建號）' : ''"></td>
                   <td><input v-model="p.transferShare" placeholder="全部、1/2…"></td>
                   <td><button type="button" class="btn sm" @click="w.v50Props.splice(i, 1)">移除</button></td>
                 </tr>
@@ -406,7 +459,8 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
           </div>
 
           <h3>3. 權利人／義務人（與背表、履保表、紀錄簿共用）</h3>
-          <div v-for="(row, i) in partyRows" :key="row.side + i" class="party">
+          <div v-for="(row, i) in partyRows" :key="row.side + i" class="party" :data-testid="'desk-party-' + i">
+            <div v-if="row.person._draft" class="ptop"><span class="muted">新增的{{ row.side === '買方' ? '權利人（買方）' : '義務人（賣方）' }}，存檔後背表也會看到</span><button type="button" class="btn sm" @click="removePerson(row)">移除</button></div>
             <div class="grid">
               <label>{{ row.side === '買方' ? '權利人（買方）' : '義務人（賣方）' }}｜{{ row.person.role || '本人' }}<input v-model="row.person.name"></label>
               <label>身分證統一編號<input v-model="row.person.ledgerId"></label>
@@ -421,7 +475,8 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
             </div>
             <p v-if="row.person.role === '代理人'" class="note">身分為「代理人」，不會列入權利人／義務人欄，請人工核對代理授權。</p>
           </div>
-          <p v-if="!partyRows.length" class="note">此案尚未填寫買賣方姓名，請先在背表第一頁填寫。</p>
+          <p v-if="!partyRows.length" class="note">此案尚未填寫買賣方。可按下方按鈕新增，或用上方「從謄本帶入」把所有權人帶入賣方。</p>
+          <div class="padd"><button type="button" class="btn" @click="addPerson('賣方')" data-testid="desk-add-seller">＋新增義務人（賣方）</button><button type="button" class="btn" @click="addPerson('買方')" data-testid="desk-add-buyer">＋新增權利人（買方）</button></div>
 
           <h3>4. 產生表單</h3>
           <div class="forms">
@@ -512,6 +567,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
                     <td style="white-space:nowrap">
                       <button type="button" class="btn sm" @click="viewFile(r)" data-testid="desk-files-view">開啟</button>
                       <button v-if="canOcr(r)" type="button" class="btn sm" @click="openContractOcr(r)" :disabled="ck.busy" data-testid="desk-files-ocr">辨識合約</button>
+                      <button v-if="canTranscript(r)" type="button" class="btn sm" @click="importFromCaseFile(r)" :disabled="imp.busy" data-testid="desk-files-transcript">帶入謄本</button>
                       <button v-if="!r.void" type="button" class="btn sm" @click="voidFile(r)" data-testid="desk-files-void">作廢</button>
                     </td>
                   </tr>
@@ -597,7 +653,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
               </template>
             </div>
           </template>
-          <p class="note">合約書可按「辨識合約」：在這台電腦上讀出總價款、各期款、簽約日、履保帳號，核對後帶入背表欄位（不送外部、不用付費）。</p>
+          <p class="note">合約書可按「辨識合約」：在這台電腦上讀出總價款、各期款、簽約日、履保帳號，核對後帶入背表欄位（不送外部、不用付費）。謄本可按「帶入謄本」：讀出標的、共有部分與所有權人，到「登記表單」核對後帶入。</p>
           <p class="note">檔案存在事務所的雲端私人檔案區，只有背表名單內、已登入的同仁看得到，網路上沒有公開連結。檔案會先在這台電腦處理（照片縮成適合閱讀的大小、身分證件加浮水印、大的掃描檔壓縮）再上傳。放錯檔案請按「作廢」：不會刪除、作廢後不能恢復。</p>
         </div>
 
@@ -785,7 +841,27 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
       // 登記表單（與背表 V50 相同欄位：v50Props、v50Reg、買賣方同一份物件）
       const autoType = computed(() => { const s = String(w.value && w.value.ledgerService || ''); return /買賣/.test(s) ? '買賣' : /贈與/.test(s) ? '贈與' : /繼承/.test(s) ? '繼承' : /抵押權設定/.test(s) ? '抵押權設定' : /抵押權塗銷/.test(s) ? '抵押權塗銷' : ''; });
       const agentName = computed(() => w.value ? (trim(w.value.ledgerRegistrationAgent) || trim(w.value.ledgerAgent)) : '');
-      const partyRows = computed(() => w.value ? [...w.value.sellers.map(p => ({ side: '賣方', person: p })), ...w.value.buyers.map(p => ({ side: '買方', person: p }))].filter(r => trim(r.person.name)) : []);
+      const draftTick = ref(0);   // _draft 是不可列舉屬性，Vue 不會偵測到；改標記時同步加一，讓畫面重算
+      const partyRows = computed(() => (draftTick.value, w.value ? [...w.value.sellers.map(p => ({ side: '賣方', person: p })), ...w.value.buyers.map(p => ({ side: '買方', person: p }))].filter(r => trim(r.person.name) || r.person._draft) : []));
+      // D7：作業台直接新增買賣方。_draft／_reused 標記設成不可列舉，不會寫進雲端資料（JSON 會略過）
+      const flag = (p, k, v) => Object.defineProperty(p, k, { value: v, enumerable: false, writable: true, configurable: true });
+      const markDraft = (p, reused) => { flag(p, '_draft', true); flag(p, '_reused', !!reused); draftTick.value++; return p; };
+      // 背表新案件預設有一列空白買方／賣方：先用那一列，不另外多加一列（避免客戶姓名欄出現「、、」）
+      const addPerson = side => {
+        if (!w.value) return;
+        const list = side === '買方' ? w.value.buyers : w.value.sellers;
+        const blank = list.find(p => !p._draft && !trim(p.name) && !trim(p.phone) && !trim(p.ledgerId) && !trim(p.email));
+        if (blank) markDraft(blank, true); else list.push(markDraft({ name: '', phone: '', role: '本人' }));
+      };
+      const removePerson = row => {
+        const list = row.side === '買方' ? w.value.buyers : w.value.sellers, i = list.indexOf(row.person);
+        if (i < 0) return;
+        if ((trim(row.person.name) || trim(row.person.ledgerId)) && !confirm(`要移除剛新增的「${trim(row.person.name) || '未填姓名'}」嗎？`)) return;
+        if (row.person._reused) {   // 原本背表的空白列：清回空白、保留這一列
+          Object.keys(row.person).forEach(k => { if (k !== 'role') row.person[k] = ''; });
+          row.person.role = row.person.role || '本人'; flag(row.person, '_draft', false); draftTick.value++;
+        } else list.splice(i, 1);
+      };
       const officeOptions = computed(() => [...new Set([...OFFICES, ...(w.value && w.value.ledgerAuthority ? [w.value.ledgerAuthority] : [])])]);
       const scrivenerOptions = computed(() => [...new Set([...SCRIVENERS, ...(w.value && w.value.ledgerRegistrationAgent ? [w.value.ledgerRegistrationAgent] : [])])]);
       const caseRecord = () => {
@@ -807,7 +883,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
       const fillLandBuildNo = () => {
         const props = w.value.v50Props.filter(p => trim(p.number));
         if (!props.length) return alert('請先填寫標的的地號或建號。');
-        const text = props.map(p => `${p.district || ''}${p.section || ''}${p.subSection || ''}${trim(p.number)}${p.kind === '建物' ? '建號' : '地號'}`).join('、');
+        const text = props.map(p => `${p.district || ''}${p.section || ''}${p.subSection || ''}${trim(p.number)}${p.kind === '建物' ? '建號' : '地號'}${p.common ? '（共有部分）' : ''}`).join('、');
         const cur = trim(w.value.landBuildNo);
         if (cur && cur !== text && !confirm(`背表「地建號」目前是：\n${cur}\n\n要改成：\n${text}？`)) return;
         w.value.landBuildNo = text;
@@ -872,60 +948,154 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
       const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
       let pdfjsP = null;
       const loadPdfjs = () => pdfjsP || (pdfjsP = import(PDFJS + 'build/pdf.min.mjs').then(m => { m.GlobalWorkerOptions.workerSrc = PDFJS + 'build/pdf.worker.min.mjs'; return m; }).catch(() => { pdfjsP = null; throw new Error('PDF 讀取元件載入失敗，請確認網路後再試一次。'); }));
-      const IMP0 = () => ({ busy: false, msg: '', docs: [], warnings: [], reviewed: false, useRights: false });
+      const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], thumbs: [], files: [], view: null, reviewed: false, useRights: false, saveOrig: true });
       const imp = ref(IMP0());
       const clearImport = () => { imp.value = IMP0(); };
       const numKey = v => window.HGTranscript.number(trim(v).replace(/之/g, '-').replace(/[地建]?號$/, ''));
       const propExists = row => !!w.value && w.value.v50Props.some(p => p.kind === row.kind && numKey(p.number) === numKey(row.number) && !!trim(row.number) &&
         (!trim(p.section) || !trim(row.section) || window.HGTranscript.sameSection(p.section, row.section)));
       const ownerOk = o => !!w.value && w.value.sellers.some(p => window.HGTranscript.nameMatch(o.name, p.name));
-      const onTranscriptFiles = async ev => {
-        const files = [...(ev.target.files || [])]; ev.target.value = '';
-        if (!files.length || imp.value.busy || !sel.value) return;
-        const H = window.HGTranscript; if (!H) return alert('謄本讀取程式未載入，請重新整理頁面。');
-        const token = sel.value.key;
+      // D7 所有權人：統一編號檢查碼、是否已在賣方名單
+      const idState = o => window.HGTranscript.idCheck(trim(o.id));
+      const idHint = o => { if (!trim(o.id)) return '未讀到'; const s = idState(o); return s === true ? '✓ 檢查碼正確' : s === false ? '✗ 檢查碼不符，請對照原件修正' : '格式無法檢查，請對照原件'; };
+      const idCls = o => { const s = idState(o); return s === true ? 'idok' : s === false ? 'idbad' : 'idna'; };
+      const ownerSeller = o => !!w.value && w.value.sellers.find(p => (trim(o.name) && window.HGTranscript.nameMatch(o.name, p.name)) || (trim(o.id) && trim(p.ledgerId).toUpperCase() === trim(o.id).toUpperCase()));
+      const ownerCan = o => !!trim(o.name) && !o.masked && !/[○●◯〇＊*□]/.test(o.name) && idState(o) !== false;
+      const viewThumb = file => { imp.value.view = { file, idx: 0 }; };
+      const strip = s => String(s || '').replace(/\s/g, '');
+      const ownerEvidence = (o, ev) => {
+        const pick = (label, val) => { const v = strip(val).slice(0, 6); if (!v) return ''; const hit = ev.find(e => label.test(strip(e.text)) && strip(e.text).includes(v)) || ev.find(e => strip(e.text).includes(v)); return hit ? hit.crop : ''; };
+        return { name: pick(/所有權人/, o.name), id: pick(/統一編號/, o.id), addr: pick(/址/, o.address) };
+      };
+      const isPdfFile = f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || '');
+      const isImgFile = f => /^image\/(jpeg|png|webp)$/.test(f.type || '') || /\.(jpe?g|png|webp)$/i.test(f.name || '');
+      const runImport = async (list, src) => {
+        if (imp.value.busy || !sel.value) return;
+        const H = window.HGTranscript;
+        if (!H || !H.ownersOf) return alert('謄本讀取程式是舊版，請按 Ctrl+F5 重新整理頁面後再試一次。');
+        const token = sel.value.key, mine = () => !!sel.value && sel.value.key === token;
         imp.value = { ...IMP0(), busy: true, msg: '讀取中…（在這台電腦處理，不會上傳）' };
         try {
           const pdfjs = await loadPdfjs();
-          const docs = [], warnings = [];
-          for (const f of files) {
-            if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { warnings.push(`「${f.name}」不是 PDF；手機拍照辨識下一步上線。`); continue; }
+          await loadScript('forms/hg-transcript-ocr.js?v=d7');
+          const ensureOcr = async () => {
+            if (window.HGOcr && window.HGOcr.ready) return;
+            if (mine()) imp.value.msg = '載入辨識程式…（第一次使用約 21 MB，之後會記住）';
+            await loadScript('forms/hg-ocr.js');
+            const got = {};
+            await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => { got[l] = [g, t]; const v = Object.values(got); if (mine()) imp.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100); } });
+          };
+          const docs = [], warnings = [], evidence = [], thumbs = [], used = [];
+          for (const [n, it] of list.entries()) {
+            const f = it.file, tag = list.length > 1 ? `（第 ${n + 1}/${list.length} 份）` : '';
+            if (!isPdfFile(f) && !isImgFile(f)) { warnings.push(`「${f.name}」不是 PDF 或照片（JPG／PNG），未讀取。iPhone 的 HEIC 照片請先改存成 JPG。`); continue; }
             if (f.size > 30 * 1024 * 1024) { warnings.push(`「${f.name}」超過 30MB，未讀取。`); continue; }
-            let t;
-            try { t = await H.pdfToText(new Uint8Array(await f.arrayBuffer()), pdfjs, { cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }); }
-            catch (e) { warnings.push(`「${f.name}」無法開啟：${e && e.name === 'PasswordException' ? '檔案有密碼保護' : (e && e.message || e)}`); continue; }
-            if (t.chars < 30) { warnings.push(`「${f.name}」沒有文字層（可能是掃描或拍照轉成的 PDF），只有電子謄本能直接讀；手機拍照辨識下一步上線。`); continue; }
-            const r = H.toDesk(t.text);
-            r.warnings.forEach(x => warnings.push(`「${f.name}」：${x}`));
-            r.docs.forEach(d => { d.file = f.name; d.pick = !!d.row.number; docs.push(d); });
+            const opt = { pdfjs, pdfOpts: { cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }, ensureOcr,
+              onStatus: t => { if (mine()) imp.value.msg = t + tag; }, onProgress: (d, t) => { if (mine()) imp.value.pct = Math.round(d / Math.max(1, t) * 100); }, cancelled: () => !mine() };
+            let r, d;
+            try {
+              r = await window.HGTranscriptOcr.readFile(f, opt); d = H.toDesk(r.text);
+              // 有文字層但讀不到謄本（例如掃描器附的文字層品質差）：改用整頁辨識再試一次
+              if (!d.docs.length && r.mode === 'text' && isPdfFile(f) && r.pages <= 12) { r = await window.HGTranscriptOcr.readFile(f, { ...opt, forceOcr: true }); d = H.toDesk(r.text); }
+            } catch (e) { warnings.push(`「${f.name}」無法讀取：${e && e.name === 'PasswordException' ? '檔案有密碼保護' : (e && e.message || e)}`); continue; }
+            if (!mine()) return;
+            const ocr = r.mode !== 'text';
+            d.warnings.forEach(x => warnings.push(`「${f.name}」：${x}`));
+            d.docs.forEach(x => { x.file = f.name; x.pick = !!x.row.number; x.ocr = ocr; docs.push(x); });
+            Object.keys(r.thumbs || {}).forEach(p => thumbs.push({ file: f.name, page: Number(p), src: r.thumbs[p] }));
+            r.evidence.forEach(e => evidence.push(e));
+            if (d.docs.length) used.push(it);
+            if (r.mode === 'ocr' && r.score && r.score < 0.85) warnings.push(`「${f.name}」照片／掃描不夠清楚（清晰度 ${Math.round(r.score * 100)} 分），請特別仔細核對，或重拍一張更清楚的。`);
           }
-          if (!sel.value || sel.value.key !== token) return;
-          imp.value = { ...IMP0(), docs, warnings, useRights: docs.some(d => d.rightsState !== 'unknown') && !trim(w.value.v50Reg.otherRights),
-            msg: docs.length ? `讀到 ${docs.length} 筆標的。請對照謄本原件逐欄核對（可直接修改），勾選要帶入的筆數。` : '沒有讀到可帶入的標的。' };
-        } catch (e) { if (sel.value && sel.value.key === token) imp.value = { ...IMP0(), msg: '讀取失敗：' + (e && e.message || e) }; }
+          const owners = H.ownersOf(docs).map(o => ({ ...o, pick: false, ev: ownerEvidence(o, evidence) }));
+          const named = w.value.sellers.filter(p => trim(p.name)).length;
+          owners.forEach(o => { o.pick = ownerCan(o) && (!!ownerSeller(o) || !named); });
+          const nOcr = docs.filter(x => x.ocr).length, nCommon = docs.filter(x => x.common).length;
+          imp.value = { ...IMP0(), docs, warnings, owners, thumbs, files: src && src.local ? used : [], saveOrig: !!(src && src.local),
+            useRights: docs.some(x => x.rightsState !== 'unknown' && x.rightsState !== 'n/a') && !trim(w.value.v50Reg.otherRights),
+            msg: docs.length ? `讀到 ${docs.length - nCommon} 筆標的${nCommon ? `、${nCommon} 筆共有部分` : ''}${owners.length ? `、${owners.length} 位所有權人` : ''}。${nOcr ? '標「辨識」的是電腦辨識結果，' : ''}請對照謄本原件逐欄核對（可直接修改），勾選要帶入的項目。` : '沒有讀到可帶入的標的。' };
+        } catch (e) { if (mine()) imp.value = { ...IMP0(), msg: '讀取失敗：' + (e && e.message || e) + '。請確認網路後再試一次。' }; }
       };
-      const applyTranscript = () => {
-        const picked = imp.value.docs.filter(d => d.pick);
-        if (!imp.value.reviewed || !picked.length || !w.value) return;
-        let added = 0, filled = 0;
+      const onTranscriptFiles = async ev => {
+        const files = [...(ev.target.files || [])]; ev.target.value = '';
+        if (!files.length) return;
+        await runImport(files.map(file => ({ file })), { local: true });
+      };
+      const canTranscript = r => !r.void && r.kind === 'transcript' && (r.mime === 'application/pdf' || /^image\//.test(r.mime || ''));
+      const importFromCaseFile = async r => {
+        if (imp.value.busy || !sel.value) return;
+        tab.value = 'forms';
+        setTimeout(() => { const el = document.querySelector('[data-testid="desk-import"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+        const token = sel.value.key;
+        imp.value = { ...IMP0(), busy: true, msg: `讀取「${r.name}」…` };
+        let file;
+        try {
+          const res = await fetch(`${SUPABASE}/storage/v1/object/authenticated/case-files/${r.path}`, { headers: { apikey: KEY, Authorization: `Bearer ${await window.hgCaseToken()}` }, cache: 'no-store' });
+          if (!res.ok) throw new Error('檔案讀取失敗（HTTP ' + res.status + '）');
+          const blob = await res.blob();
+          file = new File([blob], r.name, { type: r.mime || blob.type });
+        } catch (e) { if (sel.value && sel.value.key === token) imp.value = { ...IMP0(), msg: '讀取失敗：' + e.message }; return; }
+        if (!sel.value || sel.value.key !== token) return;
+        imp.value.busy = false;
+        await runImport([{ file }], { local: false });
+      };
+      const applyTranscript = async () => {
+        const H = window.HGTranscript, picked = imp.value.docs.filter(d => d.pick), owners = imp.value.owners.filter(o => o.pick && ownerCan(o));
+        if (!imp.value.reviewed || (!picked.length && !owners.length) || !w.value || imp.value.busy) return;
+        let added = 0, filled = 0, commons = 0;
         picked.forEach(d => {
           const row = {}; Object.keys(d.row).forEach(k => { row[k] = trim(d.row[k]); });
-          const ex = w.value.v50Props.find(p => propExists(row) && p.kind === row.kind && numKey(p.number) === numKey(row.number) && (!trim(p.section) || !trim(row.section) || window.HGTranscript.sameSection(p.section, row.section)));
+          if (!row.common) { delete row.common; delete row.commonOf; }
+          const ex = w.value.v50Props.find(p => propExists(row) && p.kind === row.kind && numKey(p.number) === numKey(row.number) && (!trim(p.section) || !trim(row.section) || H.sameSection(p.section, row.section)));
           if (ex) Object.keys(row).forEach(k => { if (row[k] && !trim(ex[k])) { ex[k] = row[k]; filled++; } });
           else {
             const base = { kind: row.kind, city: '', district: '', section: '', subSection: '', number: '', transferShare: '' };
             w.value.v50Props.push(row.kind === '土地' ? { ...base, area: '', ...row } : { ...base, address: '', mainArea: '', attachedArea: '', ...row }); added++;
+            if (row.common) commons++;
           }
         });
         if (imp.value.useRights) {
           // 同一個權利（例如共同擔保的抵押權）只寫一行，前面列出所有相關地建號
           const groups = new Map();
-          picked.filter(d => d.rightsState !== 'unknown').forEach(d => { const k = d.rightsState === 'none' ? '無他項權利登記' : d.rightsText; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(`${d.row.section}${d.row.subSection}${d.row.number}${d.row.kind === '建物' ? '建號' : '地號'}`); });
+          picked.filter(d => d.rightsState !== 'unknown' && d.rightsState !== 'n/a').forEach(d => { const k = d.rightsState === 'none' ? '無他項權利登記' : d.rightsText; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(`${d.row.section}${d.row.subSection}${d.row.number}${d.row.kind === '建物' ? '建號' : '地號'}`); });
           const text = [...groups].map(([k, ids]) => ids.join('、') + '：' + k).join('\n');
           if (text) w.value.v50Reg.otherRights = trim(w.value.v50Reg.otherRights) ? trim(w.value.v50Reg.otherRights) + '\n' + text : text;
         }
-        imp.value = { ...IMP0(), msg: !added && !filled && !imp.value.useRights ? '勾選的標的作業台都已填寫，沒有變更。'
-          : `已帶入：新增 ${added} 筆標的${filled ? `，補上 ${filled} 個空白欄位` : ''}。請檢查下方「標的明細」，再按「依明細更新背表地建號」與上方「存檔」。` };
+        // 所有權人 → 義務人（賣方）：同名或同統一編號的只補空白欄；空白的賣方列先用；都沒有才新增
+        let pAdded = 0, pFilled = 0; const diffs = [];
+        owners.forEach(o => {
+          const v = { name: trim(o.name), id: trim(o.id).toUpperCase(), birth: o.birth || '', address: trim(o.address), share: trim(o.share) };
+          let p = w.value.sellers.find(s => H.nameMatch(v.name, s.name) || (v.id && trim(s.ledgerId).toUpperCase() === v.id));
+          if (!p) { p = w.value.sellers.find(s => !trim(s.name) && !trim(s.ledgerId)); if (p) { p.name = v.name; pAdded++; } }
+          if (!p) { w.value.sellers.push({ name: v.name, phone: '', role: '本人' }); p = w.value.sellers[w.value.sellers.length - 1]; pAdded++; }
+          [['ledgerId', v.id, '統一編號'], ['ledgerBirth', v.birth, '出生日期'], ['ledgerHome', v.address, '住址'], ['v50Share', v.share, '持分']].forEach(([k, val, label]) => {
+            if (!val) return;
+            if (!trim(p[k])) { p[k] = val; pFilled++; }
+            else if (trim(p[k]).toUpperCase() !== String(val).toUpperCase()) diffs.push(`${v.name} 的${label}`);
+          });
+        });
+        // 原檔存到「文件」分頁（沿用 D5 上傳流程，分類＝謄本）
+        let saved = '';
+        const files = imp.value.saveOrig ? imp.value.files : [];
+        if (files.length && sel.value && sel.value.caseId) {
+          if (fl.value.busy) saved = '「文件」分頁正在上傳其他檔案，謄本原檔這次沒有存，請稍後到「文件」分頁上傳。';
+          else {
+            imp.value.busy = true; imp.value.msg = '把謄本原檔存到「文件」分頁…';
+            // 文件分頁還沒開過時先對準這件案件，否則上傳完重新整理清單會把結果訊息清掉
+            if (fl.value.caseId !== sel.value.caseId) { closeView(); fl.value = { ...FL0(fl.value), caseId: sel.value.caseId }; }
+            const keep = { kind: fl.value.kind, note: fl.value.note };
+            fl.value.kind = 'transcript'; fl.value.note = '從謄本帶入時存檔';
+            const job = onCaseFiles({ target: { files: files.map(x => x.file), value: '' } });
+            fl.value.kind = keep.kind; fl.value.note = keep.note;
+            try { await job; } catch (e) {}
+            saved = fl.value.msg ? '文件分頁：' + fl.value.msg : '';
+          }
+        }
+        const parts = [];
+        if (added || filled) parts.push(`標的新增 ${added} 筆${commons ? `（含共有部分 ${commons} 筆）` : ''}${filled ? `、補上 ${filled} 個空白欄位` : ''}`);
+        if (pAdded || pFilled) parts.push(`賣方新增 ${pAdded} 位、補上 ${pFilled} 個欄位`);
+        imp.value = { ...IMP0(), msg: (parts.length ? '已帶入：' + parts.join('；') + '。請檢查下方「標的明細」與「權利人／義務人」，再按「依明細更新背表地建號」與上方「存檔」。' : '勾選的項目作業台都已填寫，沒有變更。')
+          + (diffs.length ? `\n已有資料與謄本不同、沒有覆蓋：${diffs.join('、')}，請人工確認。` : '') + (saved ? '\n' + saved : '') };
       };
 
       // D3 客戶回覆建議（Claude 2026-11-17）：只產生文字，不自動寄出。範本集中在 REPLY_STAGES，之後依楊總調整。
@@ -1471,6 +1641,7 @@ table.props tr.sub td{background:#fbfdff;font-size:12px;color:#334155;line-heigh
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
         tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab,
         imp, clearImport, onTranscriptFiles, applyTranscript, propExists, ownerOk,
+        addPerson, removePerson, idHint, idCls, ownerSeller, ownerCan, viewThumb, canTranscript, importFromCaseFile,
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
         FILE_KINDS, KIND_NAME, fl, filesShown, filesSum, wmPreview, fsz, loadFiles, openFilesTab, onCaseFiles, viewFile, closeView, setFileKind, voidFile,
         ck, cc, ccDirty, canOcr, canReview, ckSum, ckGreenCount, ckOkCount, moneyHint, ckCur, ckSame, ckTouch, hlStyle, openContractOcr, closeContractOcr, ckReadRest, pickRegion, showPickPage, pickStart, pickMove, pickEnd, okAllGreen, applyContract, reviewContract,
