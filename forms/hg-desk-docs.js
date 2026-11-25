@@ -201,6 +201,111 @@
     return B;
   }
 
-  const api = { zip, docx, html, saleContract, saleContractCheck, houseLandTax, houseLandBlocks, PAY };
+  /* ---------- D16 繼承：應繼分（民法第1138、1139、1140、1144條）、繼承系統表、遺產分割協議書 ---------- */
+  const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+  const frac = (n, d) => { const g = gcd(n, d) || 1; return [n / g, d / g]; };
+  const fmul = (a, b) => frac(a[0] * b[0], a[1] * b[1]);
+  const fstr = f => f[0] === f[1] ? '全部' : `${f[1]}分之${f[0]}`;
+  const ORDER = { '子女': 1, '代位（孫子女）': 1, '父母': 2, '兄弟姊妹': 3, '祖父母': 4 };
+  function inheritShares(heirs) {
+    const list = (Array.isArray(heirs) ? heirs : []).filter(h => h && has(h.name));
+    const alive = h => !h.status || h.status === '現存';
+    const spouse = list.filter(h => h.relation === '配偶' && alive(h));
+    const res = new Map(), notes = [];
+    // 第一順位：子女；已死亡或拋棄的子女，由其直系卑親屬代位（拋棄者不代位）
+    const kids = list.filter(h => h.relation === '子女');
+    const stocks = [];
+    kids.forEach(k => {
+      if (alive(k)) stocks.push({ heads: [k.name] });
+      else if (k.status === '死亡') { const reps = list.filter(h => h.relation === '代位（孫子女）' && S(h.of) === S(k.name) && alive(h)).map(h => h.name); if (reps.length) stocks.push({ heads: reps }); else notes.push(`${k.name} 已死亡且無代位繼承人，不列入。`); }
+      else notes.push(`${k.name} ${k.status}，不列入。`);
+    });
+    list.filter(h => h.relation === '代位（孫子女）' && !kids.some(k => S(k.name) === S(h.of))).forEach(h => notes.push(`${h.name} 的代位對象「${S(h.of) || '未填'}」不在子女名單內，請核對。`));
+    let order = 0, group = [];
+    if (stocks.length) { order = 1; group = stocks; }
+    else for (const [rel, o] of [['父母', 2], ['兄弟姊妹', 3], ['祖父母', 4]]) { const g = list.filter(h => h.relation === rel && alive(h)).map(h => ({ heads: [h.name] })); if (g.length) { order = o; group = g; break; } }
+    let spouseShare = [0, 1];
+    if (spouse.length > 1) notes.push('配偶只能有一位，請核對。');
+    if (spouse.length) spouseShare = !order ? [1, 1] : order === 1 ? frac(1, group.length + 1) : order === 4 ? [2, 3] : [1, 2];
+    const rest = spouse.length ? frac(spouseShare[1] - spouseShare[0], spouseShare[1]) : [1, 1];
+    if (spouse.length) res.set(spouse[0].name, spouseShare);
+    if (order) {
+      const each = order === 1 && spouse.length ? spouseShare : frac(rest[0], rest[1] * group.length);
+      group.forEach(g => g.heads.forEach(n => res.set(n, fmul(each, [1, g.heads.length]))));
+    }
+    if (!res.size) notes.push('沒有可繼承的人，請核對繼承人資料。');
+    return { order, shares: [...res.entries()].map(([name, f]) => ({ name, share: fstr(f), frac: f })), notes };
+  }
+  function inheritBlocks(w) {
+    const inh = (w.v50Reg && w.v50Reg.inh) || {}, d = inh.decedent || {}, heirs = (inh.heirs || []).filter(h => has(h.name)), calc = inheritShares(heirs);
+    const shareOf = n => (calc.shares.find(s => s.name === n) || {}).share || '';
+    const B = [{ t: 'h', text: '繼　承　系　統　表' }];
+    B.push({ t: 'table', rows: [['被繼承人', '出生日期', '死亡日期', '身分證統一編號', '死亡時住所'], [or(d.name), or(d.birth), or(d.death), or(d.id), or(d.address)]], widths: [1600, 1500, 1500, 1900, 3138] });
+    B.push({ t: 'h2', text: '繼承人' });
+    const rows = [['稱謂', '姓名', '出生日期', '身分證統一編號', '狀態', '應繼分', '備註']];
+    heirs.forEach(h => rows.push([h.relation === '代位（孫子女）' ? `代位（${S(h.of)}之子女）` : S(h.relation), h.name, S(h.birth), S(h.id), S(h.status) || '現存', shareOf(h.name), S(h.note)]));
+    B.push({ t: 'table', rows, widths: [1400, 1300, 1200, 1700, 1100, 1100, 1838] });
+    calc.notes.forEach(n => B.push({ t: 'p', text: '・' + n, size: 20 }));
+    B.push({ t: 'p', text: '本系統表由申請人依民法有關規定自行訂定，如有遺漏或錯誤致他人受損害者，申請人願負法律責任。', before: 160, bold: true });
+    B.push({ t: 'p', text: `申請人：${or(inh.applicant)}（簽名）` , before: 160 });
+    B.push({ t: 'p', text: rocDate(inh.date), right: true, before: 120 });
+    B.push({ t: 'p', text: '（土地登記規則第119條第4項。應繼分依民法第1138、1139、1140、1144條試算，拋棄繼承、死亡者不列入；請核對戶籍資料後使用。）', size: 20 });
+    return B;
+  }
+  function partitionBlocks(w) {
+    const inh = (w.v50Reg && w.v50Reg.inh) || {}, d = inh.decedent || {}, heirs = (inh.heirs || []).filter(h => has(h.name) && (!h.status || h.status === '現存'));
+    const props = Array.isArray(w.v50Props) ? w.v50Props : [], alloc = Array.isArray(inh.alloc) ? inh.alloc : [];
+    const B = [{ t: 'h', text: '遺產分割協議書' }];
+    const p = (text, o) => B.push(Object.assign({ t: 'p', text }, o || {}));
+    p(`立協議書人 ${heirs.map(h => h.name).join('、') || BLANK} 為被繼承人 ${or(d.name)}（${has(d.death) ? '民國 ' + S(d.death) + ' 死亡' : '死亡日期 ' + BLANK}）之全體繼承人，茲就被繼承人所遺下列遺產，經全體繼承人協議分割如下：`);
+    B.push({ t: 'h2', text: '一、遺產分割方式' });
+    const rows = [['項次', '遺產標示', '權利範圍', '分割取得人', '取得權利範圍']];
+    const pl = propLines(props), lineOf = (pp) => pp.kind === '土地' ? `${S(pp.district)}${S(pp.section)}段${has(pp.subSection) ? S(pp.subSection) + '小段' : ''}${S(pp.number)}地號` : `${S(pp.district)}${S(pp.section)}段${S(pp.number)}建號${has(pp.address) ? '（' + S(pp.address) + '）' : ''}`;
+    props.forEach((pp, i) => { const a = alloc.filter(x => +x.prop === i && has(x.heir)); if (!a.length) rows.push([String(i + 1), lineOf(pp), or(pp.transferShare), BLANK, BLANK]); else a.forEach((x, j) => rows.push([j ? '' : String(i + 1), j ? '' : lineOf(pp), j ? '' : or(pp.transferShare), x.heir, or(x.share, '全部')])); });
+    if (!props.length) rows.push(['1', BLANK, BLANK, BLANK, BLANK]);
+    B.push({ t: 'table', rows, widths: [700, 3800, 1300, 1900, 1938] });
+    void pl;
+    B.push({ t: 'h2', text: '二、其他約定' });
+    (has(inh.other) ? S(inh.other).split(/\n+/) : ['被繼承人之存款、債務及其他遺產，另依全體繼承人協議辦理。']).forEach((l, i) => p(`${i + 1}、${l}`, { indent: 480, hanging: 480 }));
+    p('三、本協議書經全體繼承人同意，各自簽名並蓋用印鑑章，一式　份，各執一份為憑。');
+    B.push({ t: 'h2', text: '立協議書人' });
+    const sig = [['繼承人', '身分證統一編號', '住址', '簽名及印鑑章']];
+    heirs.forEach(h => sig.push([h.name, S(h.id), S(h.address), '']));
+    B.push({ t: 'table', rows: sig, widths: [1600, 2000, 3838, 2200] });
+    p(rocDate(inh.date), { center: true, before: 200 });
+    p('（作業台依案件資料產生之草稿。分割繼承登記須全體繼承人簽名並蓋印鑑章、檢附印鑑證明；請地政士審閱後使用。）', { size: 20 });
+    return B;
+  }
+
+  /* ---------- D16 贈與稅（遺產及贈與稅法第19、22條；115年免稅額 244 萬、級距 2,811 萬／5,621 萬） ---------- */
+  const GIFT = { exempt: 2440000, b1: 28110000, b2: 56210000 };
+  function giftTax(i) {
+    i = i || {};
+    const total = num(i.amount), prior = num(i.priorAmount), priorTax = num(i.priorTax), deduct = num(i.deduct);
+    const out = { ok: false, notes: [] };
+    if (!(total > 0)) { out.notes.push('請填本次贈與財產價值（土地以公告現值、房屋以評定現值計算）。'); return out; }
+    if (i.spouse) { Object.assign(out, { ok: true, net: 0, tax: 0, rate: 0 }); out.notes.push('配偶相互贈與之財產不計入贈與總額（遺產及贈與稅法第20條第1項第6款），仍應申報。'); return out; }
+    const marriage = i.marriage ? Math.min(total, 1000000) : 0;
+    const net = Math.max(0, total + prior - marriage - GIFT.exempt - deduct);
+    let tax = net <= GIFT.b1 ? net * 0.10 : net <= GIFT.b2 ? net * 0.15 - 1405500 : net * 0.20 - 4216000;
+    tax = Math.max(0, Math.round(tax) - priorTax);
+    const rate = net <= GIFT.b1 ? 0.10 : net <= GIFT.b2 ? 0.15 : 0.20;
+    Object.assign(out, { ok: true, total, prior, marriage, deduct, net, tax, rate });
+    if (marriage) out.notes.push('父母於子女婚嫁時所贈與之財物，總金額 100 萬元內不計入贈與總額（同法第20條第1項第7款），以結婚登記前後 6 個月內為限，請核對。');
+    out.notes.push('免稅額每位贈與人每年 244 萬元（115年財政部公告，與114年相同）；同一年度內多次贈與應合併計算，已納稅額扣抵。');
+    out.notes.push('受贈人負擔之土地增值稅、契稅可列為扣除額（同法第21條）。贈與人應於贈與行為發生後 30 日內申報（同法第24條）。');
+    return out;
+  }
+  function giftTaxBlocks(w, i, r, who) {
+    const B = [{ t: 'h', text: '贈與稅　申報資料表（試算）' }];
+    B.push({ t: 'p', text: `案件：${S(w.propertyName) || S(w.address) || BLANK}　　贈與人：${S(who) || BLANK}　　贈與日：${S(i.date) || BLANK}` });
+    B.push({ t: 'table', rows: [['項目', '金額（元）'], ['本次贈與財產價值', money(r.total || num(i.amount))], ['本年度以前各次贈與', money(r.prior || 0)], ['減：婚嫁贈與不計入', money(r.marriage || 0)], ['減：免稅額', money(GIFT.exempt)], ['減：扣除額（受贈人負擔土增稅、契稅）', money(r.deduct || 0)], ['課稅贈與淨額', r.ok ? money(r.net) : ''], ['適用稅率', r.ok ? Math.round((r.rate || 0) * 100) + '%' : ''], ['減：本年度已納贈與稅', money(num(i.priorTax))], ['應納贈與稅（試算）', r.ok ? money(r.tax) : '']], widths: [5600, 4038] });
+    B.push({ t: 'h2', text: '說明' });
+    (r.notes || []).forEach(n => B.push({ t: 'p', text: '・' + n, indent: 360, hanging: 240 }));
+    B.push({ t: 'p', text: '・稅率：課稅贈與淨額 2,811 萬元以下 10%；超過 2,811 萬元至 5,621 萬元 15%（累進差額 140.55 萬元）；超過 5,621 萬元 20%（累進差額 421.6 萬元）。實際以國稅局核定為準。', indent: 360, hanging: 240 });
+    return B;
+  }
+
+  const api = { zip, docx, html, saleContract, saleContractCheck, houseLandTax, houseLandBlocks, PAY, inheritShares, inheritBlocks, partitionBlocks, giftTax, giftTaxBlocks, GIFT };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.HGDeskDocs = api;
 })(typeof window !== 'undefined' ? window : globalThis);

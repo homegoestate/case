@@ -266,7 +266,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 })();
 </script>
 <script src="forms/vue.global.js"></script>
-<script src="forms/hg-forms-desk.js?v=d10"></script>
+<script src="forms/hg-forms-desk.js?v=d16"></script>
 <script src="forms/hg-reg-notes.js?v=d15"></script>
 <style>
 .reg-notes{margin:12px 0;padding:9px 12px;border:1px solid var(--line,#ced9dd);border-radius:6px}
@@ -289,7 +289,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 <script src="forms/hg-online-price.js?v=d10"></script>
 <script src="forms/hg-online-alerts.js?v=d10"></script>
 <script src="forms/hg-online-desk.js?v=d10"></script>
-<script src="forms/hg-desk-docs.js?v=d15"></script>
+<script src="forms/hg-desk-docs.js?v=d16"></script>
 <style>
 .online-desk fieldset{border:0;padding:0;margin:0;min-width:0}
 .online-title,.online-task,.online-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -352,6 +352,11 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 .d13-plan label{display:flex;flex-direction:column;font-size:12px}.d13-plan input{width:120px}.d13-plan label.wide input{width:280px;max-width:70vw}
 .list li .d13-badge{background:#fef2f2;color:#b91c1c;margin-left:4px}
 .tabs .d13-dot{color:#dc2626;font-size:10px;margin-left:3px;vertical-align:top}
+/* D16：新版提示、本次更新、繼承人表 */
+.d16-newver{background:#1d4ed8;color:#fff;padding:8px 16px;font-size:13.5px}.d16-newver .btn{margin-left:6px}
+.d16-whatsnew{margin:10px 14px 0;padding:10px 14px;border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;font-size:13px}
+.d16-whatsnew ul{margin:6px 0 8px;padding-left:20px}.d16-whatsnew li{margin:2px 0}
+.d16-heirs input,.d16-heirs select{width:100%;min-width:70px}
 /* D14：快速登錄 */
 .d14-quick{margin-top:10px;border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;background:#f8fafc}
 .d14-quick summary{cursor:pointer;font-size:13.5px;color:var(--navy)}
@@ -379,6 +384,18 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
     </div>
   </div>
 
+  <div v-if="newVer" class="d16-newver" data-testid="d16-newver">作業台已有新版本（{{ newVer.replace('desk-', '') }}）。<button type="button" class="btn sm primary" @click="reloadPage">按這裡更新</button>　未存檔的修改請先存檔。</div>
+  <div v-if="whatsNew" class="d16-whatsnew" data-testid="d16-whatsnew">
+    <b>作業台本次更新（11/25）</b>　先在左側點一件案件，就會看到：
+    <ul>
+      <li><b>案件上方</b>：辦理進度（簽約→用印→完稅→送件→補正→辦結）、法定期限提醒、<b>快速登錄</b>（登記原因、記送件、收件字號）</li>
+      <li><b>左側清單</b>：期限警示、我的、未收款 三個篩選</li>
+      <li><b>登記與稅務表單</b>：依登記原因自動列出適用書表（買賣公契／<b>贈與公契</b>、申請書含分割繼承），一次下載、申請書備註可引用切結用語</li>
+      <li><b>私契・繼承・贈與・存檔</b>：私契 Word、房地合一試算、<b>繼承系統表（自動算應繼分）、遺產分割協議書、贈與稅試算</b>、案件檔案包 ZIP、PDF 存到本案文件</li>
+      <li><b>收費與收據</b>：應收、已收、未收代書費</li>
+    </ul>
+    <button type="button" class="btn sm" @click="dismissNew" data-testid="d16-dismiss">知道了</button>
+  </div>
   <div class="wrap">
     <!-- 案件選擇 -->
     <div class="card picker" data-testid="desk-picker">
@@ -559,7 +576,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         <div class="tabs">
           <button type="button" :class="{on: tab === 'online'}" @click="tab = 'online'" data-testid="desk-tab-online">線上申報</button>
           <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記與稅務表單</button>
-          <button type="button" :class="{on: tab === 'docs'}" @click="tab = 'docs'" data-testid="desk-tab-docs">私契・房地合一・存檔</button>
+          <button type="button" :class="{on: tab === 'docs'}" @click="tab = 'docs'" data-testid="desk-tab-docs">{{ isInherit ? '繼承書表・存檔' : caseTypeName === '贈與' ? '贈與稅・存檔' : '私契・房地合一・存檔' }}</button>
           <button type="button" :class="{on: tab === 'files'}" @click="openFilesTab" data-testid="desk-tab-files">文件</button>
           <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收費與收據<span v-if="caseFee.unpaid" class="d13-dot" title="有未收代書費">●</span></button>
           <button type="button" :class="{on: tab === 'reply'}" @click="tab = 'reply'" data-testid="desk-tab-reply">客戶回覆</button>
@@ -716,7 +733,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             </label>
             <label>公契立約日期<span class="inline"><input type="date" v-model="w.v50Reg.contractDate"><button type="button" class="mini" @click="w.v50Reg.contractDate = w.contractDate">同簽約日</button></span></label>
             <label>原因發生日期<span class="inline"><input type="date" v-model="w.v50Reg.causeDate"><button type="button" class="mini" @click="w.v50Reg.causeDate = w.v50Reg.contractDate">同公契立約日</button></span></label>
-            <label>公契買賣價款總金額（元）<span class="inline"><input v-model="w.v50Reg.priceTotal" inputmode="numeric" placeholder="例 12,000,000"><button type="button" class="mini" @click="fillPrice">帶入成交總價</button></span></label>
+            <label>{{ caseTypeName === '贈與' ? '贈與權利價值（元，土地公告現值＋房屋評定現值）' : '公契買賣價款總金額（元）' }}<span class="inline"><input v-model="w.v50Reg.priceTotal" inputmode="numeric" placeholder="例 12,000,000"><button type="button" class="mini" @click="fillPrice">帶入成交總價</button></span></label>
           </div>
           <div class="grid" style="margin-top:8px">
             <label>附繳證件（每行一項，最多 9 項）<span class="inline"><button type="button" class="mini" @click="fillAttachments">帶入買賣常用附件</button></span><textarea v-model="w.v50Reg.attachments" rows="3"></textarea></label>
@@ -784,7 +801,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           </div>
           <p class="d12-set" v-if="caseSetTodo.length" data-testid="d12-set-todo">「{{ caseTypeName }}」常用的其他書表，作業台尚未提供，仍需另行準備：{{ caseSetTodo.join('、') }}。</p>
           <div class="forms">
-            <div v-for="t in FORM_LIST" :key="t.id" class="fcard" :data-testid="'desk-card-' + t.id">
+            <div v-for="t in formList" :key="t.id" class="fcard" :data-testid="'desk-card-' + t.id">
               <b>{{ t.name }}</b>
               <ul v-if="blocks[t.id]?.length" role="alert"><li v-for="x in blocks[t.id]" :key="x">請先處理：{{ x }}</li></ul>
               <ul v-if="checks[t.id].length"><li v-for="x in checks[t.id]" :key="x">{{ x }}</li></ul>
@@ -802,6 +819,77 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         </div>
 
         <div class="card d15" v-show="tab === 'docs'" data-testid="desk-docs">
+          <template v-if="isInherit">
+          <h3 style="margin-top:0">一、繼承系統表、遺產分割協議書（Word 可編輯）</h3>
+          <p class="note" style="margin-top:0">繼承系統表依土地登記規則第119條第4項附切結文字；應繼分依民法第1138、1140、1144條自動試算（拋棄繼承、死亡者不列入，死亡子女由其子女代位）。分割繼承才需要遺產分割協議書。</p>
+          <div class="grid">
+            <label>被繼承人<input v-model="w.v50Reg.inh.decedent.name" :disabled="!!sel.blocked" data-testid="d16-dec-name"></label>
+            <label>身分證統一編號<input v-model="w.v50Reg.inh.decedent.id" :disabled="!!sel.blocked"></label>
+            <label>出生日期<input v-model="w.v50Reg.inh.decedent.birth" placeholder="例 040/03/05" :disabled="!!sel.blocked"></label>
+            <label>死亡日期<input v-model="w.v50Reg.inh.decedent.death" placeholder="例 115/06/02" :disabled="!!sel.blocked"></label>
+            <label class="wide">死亡時住所<input v-model="w.v50Reg.inh.decedent.address" :disabled="!!sel.blocked"></label>
+          </div>
+          <div style="margin:6px 0"><button type="button" class="mini" @click="inhPrefill" :disabled="!!sel.blocked">從本案當事人帶入（義務人＝被繼承人、權利人＝繼承人）</button></div>
+          <div class="tw"><table class="d13-table d16-heirs" data-testid="d16-heirs">
+            <thead><tr><th>稱謂</th><th>姓名</th><th>出生日期</th><th>身分證</th><th>住址</th><th>狀態</th><th>代位對象</th><th>應繼分</th></tr></thead>
+            <tbody><tr v-for="(h, i) in w.v50Reg.inh.heirs" :key="i">
+              <td><select v-model="h.relation" :disabled="!!sel.blocked"><option>配偶</option><option>子女</option><option>代位（孫子女）</option><option>父母</option><option>兄弟姊妹</option><option>祖父母</option></select></td>
+              <td><input v-model.trim="h.name" :disabled="!!sel.blocked" :data-testid="'d16-heir-name-' + i"></td><td><input v-model="h.birth" :disabled="!!sel.blocked"></td><td><input v-model="h.id" :disabled="!!sel.blocked"></td><td><input v-model="h.address" :disabled="!!sel.blocked"></td>
+              <td><select v-model="h.status" :disabled="!!sel.blocked"><option>現存</option><option>拋棄繼承</option><option>死亡</option></select></td>
+              <td><input v-if="h.relation === '代位（孫子女）'" v-model.trim="h.of" placeholder="已死亡子女姓名" :disabled="!!sel.blocked"></td>
+              <td><b :data-testid="'d16-share-' + i">{{ shareOfHeir(h.name) }}</b></td></tr>
+              <tr v-if="!w.v50Reg.inh.heirs.length"><td colspan="8" class="muted">尚無繼承人，請按「從本案當事人帶入」或「＋繼承人」。</td></tr></tbody>
+          </table></div>
+          <ul v-if="inhShares.notes.length" class="d14-miss" style="margin:4px 0;padding-left:18px"><li v-for="n in inhShares.notes" :key="n">{{ n }}</li></ul>
+          <div class="d9-actions" style="margin-top:6px"><button type="button" class="btn" @click="inhAddHeir" :disabled="!!sel.blocked">＋繼承人</button></div>
+          <div class="grid" style="margin-top:6px">
+            <label>申請人（簽名）<input v-model="w.v50Reg.inh.applicant" :disabled="!!sel.blocked"></label>
+            <label>文件日期<input type="date" v-model="w.v50Reg.inh.date" :disabled="!!sel.blocked"></label>
+          </div>
+          <template v-if="caseTypeName === '分割繼承'">
+            <h4 style="margin:10px 0 4px">遺產分割方式（依標的明細）</h4>
+            <div v-for="(p, i) in w.v50Props" :key="'a' + i" class="d14-filing">
+              <b style="min-width:150px">{{ propLabel(p) }}</b>
+              <template v-for="(a, j) in w.v50Reg.inh.alloc" :key="'x' + j"><span v-if="+a.prop === i" class="inline"><select v-model="a.heir" :disabled="!!sel.blocked"><option value="">取得人</option><option v-for="s in inhShares.shares" :key="s.name">{{ s.name }}</option></select><input v-model.trim="a.share" style="width:80px" :disabled="!!sel.blocked"></span></template>
+              <button type="button" class="mini" @click="inhAddAlloc(i)" :disabled="!!sel.blocked">＋取得人</button>
+            </div>
+            <label style="display:block;margin-top:6px">其他約定（每行一條，空白時用預設文字）<textarea v-model="w.v50Reg.inh.other" rows="2" style="width:100%" :disabled="!!sel.blocked"></textarea></label>
+          </template>
+          <div class="d9-actions" style="margin-top:8px">
+            <button type="button" class="btn" @click="inhPreview('table')">預覽繼承系統表</button><button type="button" class="btn primary" @click="inhDownload('table')" data-testid="d16-inh-download">下載繼承系統表 Word</button>
+            <template v-if="caseTypeName === '分割繼承'"><button type="button" class="btn" @click="inhPreview('partition')">預覽遺產分割協議書</button><button type="button" class="btn primary" @click="inhDownload('partition')" data-testid="d16-part-download">下載遺產分割協議書 Word</button></template>
+          </div>
+          <p class="note">登記申請書在「登記與稅務表單」產生（登記原因勾繼承或分割繼承）；遺產稅申報仍在國稅局辦理，免稅證明或完稅證明請上傳到「文件」。</p>
+          </template>
+
+          <template v-else-if="caseTypeName === '贈與'">
+          <h3 style="margin-top:0">一、贈與稅：試算與申報資料表</h3>
+          <p class="note" style="margin-top:0">贈與公契在「登記與稅務表單」產生（內政部原表套印）。贈與稅依遺產及贈與稅法第19至24條；115年免稅額每位贈與人每年 244 萬元。贈與行為發生後 30 日內申報。</p>
+          <div class="grid">
+            <label>贈與人<select v-model="w.v50Reg.gt.donor" :disabled="!!sel.blocked"><option value="">請選擇</option><option v-for="n in htSellers" :key="n">{{ n }}</option></select></label>
+            <label>贈與日（立約日）<input type="date" v-model="w.v50Reg.gt.date" :disabled="!!sel.blocked"></label>
+            <label>本次贈與財產價值（元）<input v-model.trim="w.v50Reg.gt.amount" inputmode="numeric" :disabled="!!sel.blocked" data-testid="d16-gt-amount"></label>
+            <label>本年度先前已贈與（元）<input v-model.trim="w.v50Reg.gt.priorAmount" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>本年度已納贈與稅（元）<input v-model.trim="w.v50Reg.gt.priorTax" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>扣除額：受贈人負擔土增稅、契稅（元）<input v-model.trim="w.v50Reg.gt.deduct" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label class="reg-notes-check"><input type="checkbox" v-model="w.v50Reg.gt.spouse" :disabled="!!sel.blocked">配偶相互贈與</label>
+            <label class="reg-notes-check"><input type="checkbox" v-model="w.v50Reg.gt.marriage" :disabled="!!sel.blocked">父母於子女婚嫁時贈與（100 萬內）</label>
+          </div>
+          <div style="margin-top:6px"><button type="button" class="mini" @click="gtFill" :disabled="!!sel.blocked">從本案帶入（贈與權利價值、立約日、贈與人）</button></div>
+          <div class="d13-fee" style="margin-top:8px" data-testid="d16-gt-result">
+            <table v-if="gtResult.ok" class="d13-table"><tbody>
+              <tr><td>課稅贈與淨額</td><td>{{ money(gtResult.net) }}</td></tr>
+              <tr><td>適用稅率</td><td>{{ Math.round((gtResult.rate || 0) * 100) }}%</td></tr>
+              <tr class="d13-unpaid"><td><b>應納贈與稅（試算）</b></td><td><b>{{ money(gtResult.tax) }}</b></td></tr>
+            </tbody></table>
+            <ul style="margin:6px 0 0;padding-left:18px;font-size:12.5px"><li v-for="n in gtResult.notes" :key="n">{{ n }}</li></ul>
+          </div>
+          <div class="d9-actions" style="margin-top:8px"><button type="button" class="btn" @click="gtPreview" :disabled="!gtResult.ok">預覽／列印</button><button type="button" class="btn primary" @click="gtDownload" :disabled="!gtResult.ok" data-testid="d16-gt-download">下載贈與稅資料表 Word</button></div>
+          </template>
+
+          <p v-else-if="caseTypeName && caseTypeName !== '買賣'" class="note" style="margin-top:0">「{{ caseTypeName }}」案件的申請書在「登記與稅務表單」產生；下方可下載本案檔案包。</p>
+
+          <template v-if="!caseTypeName || caseTypeName === '買賣'">
           <h3 style="margin-top:0">一、私契：成屋買賣契約書（Word 可編輯）</h3>
           <p class="note" style="margin-top:0">依內政部「成屋買賣定型化契約應記載及不得記載事項」架構擬定的宏國草稿，自動帶入買賣方、標的、總價、各期款與日期、履保銀行、貸款、地政士。缺的地方留「＿＿＿＿」，下載後可在 Word 修改。</p>
           <div v-if="pcCheck.miss.length" class="alert warn" data-testid="d15-pc-miss">還缺：{{ pcCheck.miss.join('、') }}（可先產生，缺漏處會留白）</div>
@@ -844,7 +932,9 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           </div>
           <div class="d9-actions" style="margin-top:8px"><button type="button" class="btn" @click="htPreview" :disabled="!htResult.ok">預覽／列印</button><button type="button" class="btn primary" @click="htDownload" :disabled="!htResult.ok" data-testid="d15-ht-download">下載申報資料表 Word</button></div>
 
-          <h3>三、存檔</h3>
+          </template>
+
+          <h3>存檔</h3>
           <div class="d9-actions">
             <button type="button" class="btn primary" @click="casePackage" :disabled="!!pkgBusy || !!genBusy" data-testid="d15-package">{{ pkgBusy === 'zip' ? '打包中…' : '下載本案檔案包（ZIP）' }}</button>
             <button type="button" class="btn" @click="saveDraftsToCase" :disabled="!!pkgBusy || !!genBusy || !sel.caseId || !readyForms.length" data-testid="d15-save-cloud">{{ pkgBusy === 'cloud' ? '存檔中…' : '把 PDF 草稿存到本案文件（雲端）' }}</button>
@@ -1108,8 +1198,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
   const SUPABASE = 'https://stsbxxredsudldyxwqpw.supabase.co';
   const KEY = 'sb_publishable_Ii9luYqjDErotcRxiBVEtw_StDtZc5w';
   const ENDPOINT = `${SUPABASE}/rest/v1/nexus_data?id=eq.1`;
-  const TYPES = ['買賣', '贈與', '繼承', '抵押權設定', '抵押權塗銷'];
-  const FORM_LIST = [{ id: 'registration-application', name: '土地登記申請書' }, { id: 'sale-contract', name: '土地建築改良物所有權買賣移轉契約書（公契）' }, ...HGDeskTax.forms];
+  const TYPES = ['買賣', '贈與', '繼承', '分割繼承', '共有物分割', '抵押權設定', '抵押權塗銷'];
+  const FORM_LIST = [{ id: 'registration-application', name: '土地登記申請書' }, { id: 'sale-contract', name: '土地建築改良物所有權買賣移轉契約書（公契）' }, { id: 'gift-contract', name: '土地建築改良物所有權贈與移轉契約書（公契）' }, ...HGDeskTax.forms];
   const OFFICES = ['臺南市臺南地政事務所', '臺南市東南地政事務所', '臺南市安南地政事務所', '臺南市永康地政事務所', '臺南市歸仁地政事務所', '臺南市新化地政事務所', '臺南市麻豆地政事務所', '臺南市佳里地政事務所', '臺南市鹽水地政事務所', '臺南市白河地政事務所', '臺南市玉井地政事務所'];
   const SCRIVENERS = ['楊翊晟', '楊明宗'];
   const REG_DEFAULT = { type: '', causeDate: '', contractDate: '', priceTotal: '', attachments: '', otherRights: '', applicationNotes: '', remarks: '' };
@@ -1217,7 +1307,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         if (!finished) {
           const contract = d12Date(f.v50Reg && f.v50Reg.contractDate) || sign;
           const cause = d12Date(f.v50Reg && f.v50Reg.causeDate);
-          if (type === '繼承') add('繼承登記、遺產稅', null, D12_LAW.inherit, sent, '死亡日起 6 個月，請核對除戶謄本');
+          if (/繼承/.test(type)) add('繼承登記、遺產稅', null, D12_LAW.inherit, sent, '死亡日起 6 個月，請核對除戶謄本');
           else {
             if (D12_TAX_TYPES.includes(type)) {
               if (contract) add('申報土增稅' + (type === '共有物分割' ? '' : '、契稅'), d12AddDays(contract, 29), D12_LAW.tax, sent || (!!paid && paid <= today));
@@ -1291,6 +1381,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         if (!Array.isArray(f.v44Filings)) f.v44Filings = [];
         if (!f.v50Reg.pc || typeof f.v50Reg.pc !== 'object') f.v50Reg.pc = { reviewDate: '', landPrice: '', buildPrice: '', parking: '', penaltyPct: '15', handoverNote: '', other: '' };
         if (!f.v50Reg.ht || typeof f.v50Reg.ht !== 'object') f.v50Reg.ht = { seller: '', acquireWay: '買賣', acquireDate: '', saleDate: '', price: '', cost: '', fee: '', feeEstimated: false, landGain: '', selfUse: false, resident: 'yes' };
+        if (!f.v50Reg.inh || typeof f.v50Reg.inh !== 'object') f.v50Reg.inh = { decedent: { name: '', id: '', birth: '', death: '', address: '' }, heirs: [], alloc: [], applicant: '', date: '', other: '' };
+        if (!f.v50Reg.gt || typeof f.v50Reg.gt !== 'object') f.v50Reg.gt = { donor: '', date: '', amount: '', priorAmount: '', priorTax: '', deduct: '', spouse: false, marriage: false };
         HGDeskTax.init(f);
         HGOnlineDesk.init(f);
         if (!Array.isArray(f.sellers)) f.sellers = []; if (!Array.isArray(f.buyers)) f.buyers = [];
@@ -1396,6 +1488,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             return [t.id,{warnings:[],blocking:['請在「線上申報 → 承辦與委任」填妥買賣雙方各自委任的兩位地政士，並確認本案登記原因為買賣。']}];
           }
           const warnings = window.HGForms?.preflight(t.id, record) || [];
+          if (t.id === 'gift-contract' && record.type !== '贈與') return [t.id, { warnings: [], blocking: ['本表適用贈與，請先把登記原因選為「贈與」。'] }];
           if (t.id === 'sale-contract' && record.type && record.type !== '買賣') {
             return [t.id, { warnings: [], blocking: ['本案登記原因為「' + record.type + '」，本表適用買賣。'] }];
           }
@@ -1474,15 +1567,38 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       };
       // D12：一次下載全部可產生的草稿；書表清單提示尚未提供的常用書表
       const D12_SET_TODO = {
-        買賣: ['登記清冊', '地政士委任書', '房地合一申報書'],
-        贈與: ['贈與移轉契約書（公契）', '登記清冊', '贈與稅申報書'],
-        繼承: ['繼承系統表', '遺產分割協議書', '登記清冊', '遺產稅申報書'],
+        買賣: ['登記清冊', '地政士委任書'],
+        贈與: ['登記清冊（贈與公契、贈與稅資料表已可產生）'],
+        繼承: ['登記清冊', '遺產稅申報書（國稅局）'],
+        分割繼承: ['登記清冊', '遺產稅申報書（國稅局）'],
         抵押權設定: ['抵押權設定契約書', '登記清冊'],
         抵押權塗銷: ['清償證明或塗銷同意書（銀行出具，核對即可）'],
         共有物分割: ['共有物分割契約書（公契）', '登記清冊']
       };
       const caseTypeName = computed(() => w.value ? d12TypeOf(w.value) : '');
       const caseSetTodo = computed(() => D12_SET_TODO[caseTypeName.value] || []);
+      // D16：依登記原因只列適用的表單（買賣公契／贈與公契；繼承與抵押不列土增稅、契稅）
+      const formList = computed(() => { const t = caseTypeName.value; return FORM_LIST.filter(f => f.id === 'sale-contract' ? (!t || t === '買賣') : f.id === 'gift-contract' ? t === '贈與' : f.tax ? !/繼承|抵押權/.test(t) : true); });
+      const isInherit = computed(() => /繼承/.test(caseTypeName.value));
+      const inhShares = computed(() => w.value && isInherit.value ? window.HGDeskDocs.inheritShares(w.value.v50Reg.inh.heirs) : { shares: [], notes: [] });
+      const shareOfHeir = n => (inhShares.value.shares.find(s => s.name === n) || {}).share || '—';
+      const inhPrefill = () => {
+        const f = w.value, inh = f.v50Reg.inh, sellers = (f.sellers || []).filter(p => p && trim(p.name) && p.role !== '代理人'), buyers = (f.buyers || []).filter(p => p && trim(p.name) && p.role !== '代理人');
+        if (!trim(inh.decedent.name) && sellers[0]) Object.assign(inh.decedent, { name: sellers[0].name, id: trim(sellers[0].ledgerId), address: trim(sellers[0].ledgerHome) });
+        buyers.forEach(b => { if (!inh.heirs.some(h => h.name === b.name)) inh.heirs.push({ name: b.name, relation: '子女', id: trim(b.ledgerId), birth: trim(b.ledgerBirth), address: trim(b.ledgerHome), status: '現存', of: '', note: '' }); });
+        if (!trim(inh.applicant) && buyers[0]) inh.applicant = buyers[0].name;
+      };
+      const inhAddHeir = () => w.value.v50Reg.inh.heirs.push({ name: '', relation: '子女', id: '', birth: '', address: '', status: '現存', of: '', note: '' });
+      const inhAddAlloc = i => w.value.v50Reg.inh.alloc.push({ prop: i, heir: '', share: '全部' });
+      const propLabel = p => p.kind === '土地' ? `${trim(p.section)}段${trim(p.number)}地號` : `${trim(p.section)}段${trim(p.number)}建號`;
+      const inhDoc = which => { const H = window.HGDeskDocs, blocksList = which === 'table' ? H.inheritBlocks(w.value) : H.partitionBlocks(w.value); return blocksList; };
+      const inhPreview = which => openHtml(inhDoc(which), caseNo() + (which === 'table' ? ' 繼承系統表' : ' 遺產分割協議書'));
+      const inhDownload = which => { dlBlob(window.HGDeskDocs.docx(inhDoc(which)), caseNo() + (which === 'table' ? '_繼承系統表_草稿.docx' : '_遺產分割協議書_草稿.docx'), DOCX); docMsg.value = '已下載' + (which === 'table' ? '繼承系統表' : '遺產分割協議書') + ' Word 草稿。'; };
+      const gtResult = computed(() => w.value && caseTypeName.value === '贈與' ? window.HGDeskDocs.giftTax(w.value.v50Reg.gt) : { ok: false, notes: [] });
+      const gtFill = () => { const g = w.value.v50Reg.gt, r = w.value.v50Reg; if (!trim(g.amount) && trim(r.priceTotal)) g.amount = String(r.priceTotal).replace(/[^\d]/g, ''); if (!trim(g.date)) g.date = r.contractDate || ''; if (!trim(g.donor) && htSellers.value.length === 1) g.donor = htSellers.value[0]; };
+      const gtBlocks = () => window.HGDeskDocs.giftTaxBlocks(w.value, w.value.v50Reg.gt, gtResult.value, w.value.v50Reg.gt.donor);
+      const gtPreview = () => openHtml(gtBlocks(), caseNo() + ' 贈與稅申報資料表');
+      const gtDownload = () => { dlBlob(window.HGDeskDocs.docx(gtBlocks()), caseNo() + '_贈與稅申報資料表_' + (trim(w.value.v50Reg.gt.donor) || '贈與人') + '.docx', DOCX); docMsg.value = '已下載贈與稅申報資料表。'; };
       // D15 私契、房地合一、案件檔案包與存雲端（Claude 2026-11-25）。Word／ZIP 由 forms/hg-desk-docs.js 在瀏覽器內產生。
       const caseNo = () => (sel.value && trim(sel.value.row['編號'])) || '未編號';
       const dlBlob = (bytes, name, type) => { const url = URL.createObjectURL(new Blob([bytes], { type })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000); };
@@ -1513,8 +1629,13 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         pkgBusy.value = 'zip'; docMsg.value = '整理檔案中…';
         try {
           for (const t of readyForms.value) { try { const o = await buildFormOutput(t.id); files.push({ name: o.filename, data: o.bytes }); } catch (e) { skipped.push(t.name + '：' + (e && e.message ? e.message : e)); } if (w.value !== selected) return; }
-          if (caseTypeName.value === '買賣' && w.value.v50Props.length) files.push({ name: no + '_成屋買賣契約書（私契）_草稿.docx', data: pcDocx() });
-          if (htResult.value.ok) files.push({ name: no + '_房地合一申報資料表_' + (trim(w.value.v50Reg.ht.seller) || '出售人') + '.docx', data: htDocx() });
+          if ((caseTypeName.value === '買賣' || !caseTypeName.value) && w.value.v50Props.length) files.push({ name: no + '_成屋買賣契約書（私契）_草稿.docx', data: pcDocx() });
+          if (htResult.value.ok && caseTypeName.value === '買賣') files.push({ name: no + '_房地合一申報資料表_' + (trim(w.value.v50Reg.ht.seller) || '出售人') + '.docx', data: htDocx() });
+          if (isInherit.value && w.value.v50Reg.inh.heirs.some(h => trim(h.name))) {
+            files.push({ name: no + '_繼承系統表_草稿.docx', data: window.HGDeskDocs.docx(inhDoc('table')) });
+            if (caseTypeName.value === '分割繼承') files.push({ name: no + '_遺產分割協議書_草稿.docx', data: window.HGDeskDocs.docx(inhDoc('partition')) });
+          }
+          if (gtResult.value.ok) files.push({ name: no + '_贈與稅申報資料表_' + (trim(w.value.v50Reg.gt.donor) || '贈與人') + '.docx', data: window.HGDeskDocs.docx(gtBlocks()) });
           const notes = trim(w.value.v50Reg.applicationNotes);
           if (notes) files.push({ name: no + '_申請書備註與切結.txt', data: '﻿' + notes.replace(/\n/g, '\r\n') });
           files.push({ name: no + '_案件資料備份.json', data: JSON.stringify({ 匯出: new Date().toISOString(), 編號: no, 案名: sel.value.row['案名'] || '', 版本: 'desk-D15', 表單: w.value }, null, 2) });
@@ -1547,7 +1668,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           if (tab.value === 'files') loadFiles();
         } finally { pkgBusy.value = ''; }
       };
-      const readyForms = computed(() => w.value && w.value.v50Props.length ? FORM_LIST.filter(t => !(blocks.value[t.id] && blocks.value[t.id].length)) : []);
+      const readyForms = computed(() => w.value && w.value.v50Props.length ? formList.value.filter(t => !(blocks.value[t.id] && blocks.value[t.id].length)) : []);
       const genAllBusy = ref(false);
       const generateAll = async () => {
         if (genBusy.value || genAllBusy.value || !w.value) return;
@@ -2520,7 +2641,15 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D15';
+      const APP_VER = 'desk-D16';
+      // D16：新版提示與本次更新說明（ERP 視窗長時間開著時，作業台不會自己重新載入）
+      const newVer = ref(''), whatsNew = ref(false);
+      try { whatsNew.value = localStorage.getItem('hg_desk_seen_ver') !== APP_VER; } catch (e) {}
+      const dismissNew = () => { whatsNew.value = false; try { localStorage.setItem('hg_desk_seen_ver', APP_VER); } catch (e) {} };
+      const reloadPage = () => { if (dirty.value && !confirm('這件案件有尚未存檔的修改，確定要重新整理嗎？')) return; location.reload(); };
+      const checkNewVersion = async () => { try { const t = await (await fetch('desk.html?vc=' + Date.now(), { cache: 'no-store' })).text(); const m = t.match(/const APP_VER = '([^']+)'/); if (m && m[1] !== APP_VER) newVer.value = m[1]; } catch (e) {} };
+      setTimeout(checkNewVersion, 20000); setInterval(checkNewVersion, 10 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkNewVersion(); });
       const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
       const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
       const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
@@ -2666,6 +2795,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
         rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName, feeData, caseFee, rowFee, FILING_KINDS, FILING_STATUS, quickOpen, quickFilings, quickAddFiling, quickSetStatus, quickMissing,
         docMsg, pkgBusy, pcCheck, htSellers, htResult, htFill, htEstimateFee, pcPreview, pcDownload, htPreview, htDownload, casePackage, saveDraftsToCase,
+        formList, isInherit, inhShares, shareOfHeir, inhPrefill, inhAddHeir, inhAddAlloc, propLabel, inhPreview, inhDownload, gtResult, gtFill, gtPreview, gtDownload, newVer, whatsNew, dismissNew, reloadPage,
         blocks, tax, pdfPreview, pdfDialog, releasePreview, copyMailAddress, openNotePicker,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,

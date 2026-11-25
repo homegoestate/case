@@ -18,6 +18,13 @@
       sourceUrl: 'https://www.land.moi.gov.tw/chhtml/addcount?cupid=413&tmptype=d1-20180621100203.pdf', sourcePage: SOURCE_PAGE,
       versionNote: '2026-10-28 從內政部現行下載頁取得；紙本格式，非數位櫃臺交換檔。',
       sha256: '7e5bc11fb6184e48b7f155cb2df4065a05cc16b15a6797b7c41d391659d96fd3'
+    },
+    // D16（Claude 2026-11-25）：贈與公契。格子座標由原表框線量得（第1頁土地4欄、建物4欄；第2頁當事人4列）。
+    'gift-contract': {
+      id: 'gift-contract', name: '土地建築改良物所有權贈與移轉契約書', file: 'paper-gift-contract.pdf',
+      sourceUrl: 'https://www.land.moi.gov.tw/chhtml/addcount?cupid=406&tmptype=d1-20180619114327.pdf', sourcePage: SOURCE_PAGE,
+      versionNote: '2026-11-25 從內政部現行下載頁取得；紙本格式，非數位櫃臺交換檔。',
+      sha256: 'd5d66d5c4f9e315bcb0b9ecbb960d939da760f41b8d79294084da6d6f8ef0ece'
     }
   };
 
@@ -117,6 +124,13 @@
       if (c.properties.some(p => p.transferShare) && [...buyers(c)].some(p => !p.share)) w.add('買方持分尚有空白。');
       if (!r.priceTotal) w.add('買賣價款總金額未填。');
       if (!r.contractDate) w.add('公契立約日期未填。');
+    } else if (templateId === 'gift-contract') {
+      if (c.type && c.type !== '贈與') w.add(`本案登記原因為「${c.type}」，贈與移轉契約書只適用贈與。`);
+      if (!buyers(c).length || !sellers(c).length) w.add('贈與契約書至少需要一位受贈人與一位贈與人（身分為本人或共有人）。');
+      partyWarnings([...buyers(c), ...sellers(c)], w);
+      if (c.properties.some(p => p.transferShare) && [...buyers(c)].some(p => !p.share)) w.add('受贈人持分尚有空白。');
+      if (!r.priceTotal) w.add('贈與權利價值未填（土地公告現值與房屋評定現值合計）。');
+      if (!r.contractDate) w.add('公契立約日期未填。');
     } else {
       if (!c.type) w.add('登記原因未選擇（買賣／贈與等）。');
       if (!r.office) w.add('受理地政事務所未填。');
@@ -208,6 +222,58 @@
     }
   }
 
+  async function gift(L, pdf, source, c, font, warnings) {
+    const { f, address } = maker(L, pdf, font, warnings);
+    const lands = c.properties.filter(p => p.kind === '土地'), buildings = c.properties.filter(p => p.kind === '建物');
+    const parties = [...buyers(c), ...sellers(c)], r = c.registration || {};
+    if (!buyers(c).length || !sellers(c).length) throw new FormError('贈與契約書至少需要一位受贈人（權利人）與一位贈與人（義務人），請先填寫當事人。');
+    const lchunks = chunks(lands, 4), bchunks = chunks(buildings, 4);
+    for (let batch = 0; batch < Math.max(lchunks.length, bchunks.length); batch++) {
+      const [p] = await pagesFrom(pdf, source, [0]);
+      (lchunks[batch] || []).forEach((land, i) => {
+        const x = 262 + i * 80, w = 80, n = batch * 4 + i;
+        for (const [key, y, h, val] of [['district', 235, 84, land.district], ['section', 321, 56, land.section], ['subsection', 379, 56, land.subSection], ['number', 437, 85, land.number], ['area', 524, 113, land.area], ['share', 639, 180, land.transferShare]])
+          f(p, `gland${n}_${key}`, [x, y, w, h], val, { size: 9, label: '土地' + (n + 1) + key });
+      });
+      (bchunks[batch] || []).forEach((b, i) => {
+        const x = 814 + i * 104.25, w = 104.25, addr = splitAddress(b.address), n = batch * 4 + i;
+        const detail = buildingDetails(b);
+        detail.notes.forEach(note => warnings.add(note));
+        f(p, `gbuilding${n}_number`, [x, 235, w, 27], b.number);
+        f(p, `gbuilding${n}_district`, [x, 264, w, 26], b.district);
+        f(p, `gbuilding${n}_street`, [x, 292, w, 27], addr.parts[4]);
+        f(p, `gbuilding${n}_lane`, [x, 321, w, 27], [addr.parts[5], addr.parts[6], addr.parts[7]].join(''));
+        f(p, `gbuilding${n}_addressno`, [x, 350, w, 27], [addr.parts[8], addr.parts[9]].join(''));
+        f(p, `gbuilding${n}_section`, [x, 379, w, 27], detail.section);
+        f(p, `gbuilding${n}_subsection`, [x, 408, w, 27], detail.subSection);
+        f(p, `gbuilding${n}_base`, [x, 437, w, 27], detail.base);
+        [466, 495, 524, 552, 581].forEach((y, j) => f(p, `gbuilding${n}_floor${j}`, [x, y, w, 27], detail.floors[j] || '', { label: '建物分層面積' }));
+        f(p, `gbuilding${n}_mainArea`, [x, 610, w, 27], b.mainArea);
+        f(p, `gbuilding${n}_attachedPurpose`, [x, 639, w, 43], detail.purpose);
+        f(p, `gbuilding${n}_attachedArea`, [x, 684, w, 82], b.attachedArea);
+        f(p, `gbuilding${n}_share`, [x, 768, w, 51], b.transferShare);
+      });
+    }
+    for (const [batch, list] of chunks(parties, 4).entries()) {
+      const [p] = await pagesFrom(pdf, source, [1]);
+      f(p, `g_other_rights_${batch}`, [315, 150, 315, 54], r.otherRights || '', { align: 0, label: '他項權利情形' });
+      f(p, `g_value_${batch}`, [314, 208, 316, 52], r.priceTotal ? `新臺幣 ${r.priceTotal} 元` : '', { align: 0, size: 12, label: '贈與權利價值' });
+      f(p, `g_agreements_${batch}`, [158, 263, 472, 186], r.remarks || '', { align: 0, size: 10, label: '贈與其他約定' });
+      list.forEach((party, i) => {
+        const y = 568 + i * 49, base = `gparty${batch * 4 + i}`;
+        f(p, `${base}_role`, [121, y, 68, 48], isBuyer(party) ? '受贈人' : '贈與人', { size: 9 });
+        f(p, `${base}_name`, [191, y, 160, 48], party.name, { size: 10 });
+        f(p, `${base}_buyerShare`, [353, y, 62, 48], isBuyer(party) ? party.share : '', { size: 8 });
+        f(p, `${base}_sellerShare`, [417, y, 54, 48], isSeller(party) ? party.share : '', { size: 8 });
+        f(p, `${base}_birth`, [473, y, 62, 48], roc(party.birthDate), { size: 8 });
+        f(p, `${base}_id`, [537, y, 96, 48], party.identityNo, { size: 9 });
+        address(p, `${base}_address`, party.address, [634, 700, 766, 820, 853, 919, 963, 1028, 1072, 1116, 1149], y, 48);
+      });
+      const d = dateParts(r.contractDate);
+      f(p, `g_year_${batch}`, [508, 766, 134, 36], d[0]); f(p, `g_month_${batch}`, [668, 766, 212, 36], d[1]); f(p, `g_day_${batch}`, [907, 766, 212, 36], d[2]);
+    }
+  }
+
   async function application(L, pdf, source, c, font, warnings) {
     const { f, check, address } = maker(L, pdf, font, warnings), r = c.registration || {};
     const [p] = await pagesFrom(pdf, source, [0]);
@@ -218,9 +284,10 @@
     f(p, 'cause_year', [995, 270, 29, 30], r.causeDate ? cause[0] : '', { size: 9 });
     f(p, 'cause_month', [1058, 270, 27, 30], r.causeDate ? cause[1] : '', { size: 9 });
     f(p, 'cause_day', [1117, 270, 27, 30], r.causeDate ? cause[2] : '', { size: 9 });
-    const typeMap = { '買賣': 382, '贈與': 382, '繼承': 382, '抵押權設定': 407, '抵押權塗銷': 432 };
+    const typeMap = { '買賣': 382, '贈與': 382, '繼承': 382, '分割繼承': 382, '共有物分割': 382, '抵押權設定': 407, '抵押權塗銷': 432 };
     if (typeMap[c.type]) check(p, 'registration_event', 112, typeMap[c.type] - 9, true);
-    for (const [kind, x, y] of [['買賣', 465, 374], ['贈與', 549, 374], ['繼承', 632, 374], ['抵押權設定', 465, 399]]) check(p, `reason_${kind}`, x, y, c.type === kind);
+    // D16：分割繼承、共有物分割的勾選框位置由原表文字位置量得（與買賣、贈與、繼承同一列）
+    for (const [kind, x, y] of [['買賣', 465, 374], ['贈與', 549, 374], ['繼承', 632, 374], ['分割繼承', 715, 374], ['共有物分割', 919, 374], ['抵押權設定', 465, 399]]) check(p, `reason_${kind}`, x, y, c.type === kind);
     check(p, 'contract_enclosed', 391, 525, ['買賣', '抵押權設定'].includes(c.type));
     const attach = String(r.attachments || '').split('\n').map(s => s.trim()).filter(Boolean);
     if (attach.length > 9) throw new FormError('申請書附繳證件最多先填 9 項，請合併同類項目或另以清冊附表處理。');
@@ -262,12 +329,15 @@
     const c = { ...record, parties: record.parties || [], properties: record.properties || [] };
     if (!c.properties.length) throw new FormError('請先新增至少一筆土地或建物標的。');
     if (templateId === 'sale-contract' && c.type && c.type !== '買賣') throw new FormError(`本案登記原因為「${c.type}」，買賣移轉契約書只適用買賣。`);
+    if (templateId === 'gift-contract' && c.type && c.type !== '贈與') throw new FormError(`本案登記原因為「${c.type}」，贈與移轉契約書只適用贈與。`);
     const source = await normalizeSource(L, await L.PDFDocument.load(assets.templateBytes));
     const pdf = await L.PDFDocument.create();
     pdf.registerFontkit(assets.fontkit);
     const font = await pdf.embedFont(assets.fontBytes, { subset: false, features: { palt: false, kern: false, liga: false, locl: false }, customName: 'HomeGoNotoSansTC' });
     const warnings = new Set(['本文件為可編輯套表草稿；簽名、印章及機關處理欄未代填。', ...preflight(templateId, c)]);
-    if (templateId === 'sale-contract') await sale(L, pdf, source, c, font, warnings); else await application(L, pdf, source, c, font, warnings);
+    if (templateId === 'sale-contract') await sale(L, pdf, source, c, font, warnings);
+    else if (templateId === 'gift-contract') await gift(L, pdf, source, c, font, warnings);
+    else await application(L, pdf, source, c, font, warnings);
     addReview(L, pdf, font, c, t, warnings);
     const pages = pdf.getPages(); pages.forEach((p, i) => footer(L, p, font, c, i, pages.length));
     pdf.setTitle(`${t.name} - ${c.caseNumber || '未編號'} - 待覆核草稿`); pdf.setAuthor('宏國地政｜易丞地政'); pdf.setSubject(`來源 ${t.sourceUrl}`);
