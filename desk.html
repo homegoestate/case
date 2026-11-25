@@ -267,7 +267,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 </script>
 <script src="forms/vue.global.js"></script>
 <script src="forms/hg-forms-desk.js?v=d10"></script>
-<script src="forms/hg-reg-notes.js?v=d10"></script>
+<script src="forms/hg-reg-notes.js?v=d15"></script>
 <style>
 .reg-notes{margin:12px 0;padding:9px 12px;border:1px solid var(--line,#ced9dd);border-radius:6px}
 .reg-notes summary{cursor:pointer;font-weight:700;color:var(--navy)}
@@ -289,6 +289,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 <script src="forms/hg-online-price.js?v=d10"></script>
 <script src="forms/hg-online-alerts.js?v=d10"></script>
 <script src="forms/hg-online-desk.js?v=d10"></script>
+<script src="forms/hg-desk-docs.js?v=d15"></script>
 <style>
 .online-desk fieldset{border:0;padding:0;margin:0;min-width:0}
 .online-title,.online-task,.online-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -558,6 +559,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         <div class="tabs">
           <button type="button" :class="{on: tab === 'online'}" @click="tab = 'online'" data-testid="desk-tab-online">線上申報</button>
           <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記與稅務表單</button>
+          <button type="button" :class="{on: tab === 'docs'}" @click="tab = 'docs'" data-testid="desk-tab-docs">私契・房地合一・存檔</button>
           <button type="button" :class="{on: tab === 'files'}" @click="openFilesTab" data-testid="desk-tab-files">文件</button>
           <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收費與收據<span v-if="caseFee.unpaid" class="d13-dot" title="有未收代書費">●</span></button>
           <button type="button" :class="{on: tab === 'reply'}" @click="tab = 'reply'" data-testid="desk-tab-reply">客戶回覆</button>
@@ -777,7 +779,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <h3 id="d9-outputs">5. 產生表單</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button type="button" class="btn primary" @click="generateAll" :disabled="!!genBusy || !readyForms.length" data-testid="d12-generate-all">{{ genAllBusy ? '依序下載中…' : !w.v50Props.length ? '請先填「2. 標的明細」' : '一次下載可產生的 ' + readyForms.length + ' 份草稿' }}</button>
-            <span class="muted" style="font-size:12.5px">只下載沒有「請先處理」的表單；瀏覽器第一次會詢問是否允許下載多個檔案，請按允許。</span>
+            <button type="button" class="btn" @click="casePackage" :disabled="!!pkgBusy || !!genBusy" data-testid="d15-package-forms">{{ pkgBusy === 'zip' ? '打包中…' : '下載本案檔案包（ZIP）' }}</button>
+            <span class="muted" style="font-size:12.5px">只下載沒有「請先處理」的表單；檔案包另含私契、房地合一資料表與案件資料備份，見「私契・房地合一・存檔」分頁。</span>
           </div>
           <p class="d12-set" v-if="caseSetTodo.length" data-testid="d12-set-todo">「{{ caseTypeName }}」常用的其他書表，作業台尚未提供，仍需另行準備：{{ caseSetTodo.join('、') }}。</p>
           <div class="forms">
@@ -796,6 +799,58 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <div class="d9-actions"><b>{{ pdfPreview.name }}</b><span><a :href="pdfPreview.url" :download="pdfPreview.name">下載這份 PDF</a>　<button type="button" class="btn" @click="pdfDialog.close()">關閉</button></span></div>
             <iframe v-if="pdfPreview.url" :src="pdfPreview.url" title="文件 PDF 預覽"></iframe>
           </dialog>
+        </div>
+
+        <div class="card d15" v-show="tab === 'docs'" data-testid="desk-docs">
+          <h3 style="margin-top:0">一、私契：成屋買賣契約書（Word 可編輯）</h3>
+          <p class="note" style="margin-top:0">依內政部「成屋買賣定型化契約應記載及不得記載事項」架構擬定的宏國草稿，自動帶入買賣方、標的、總價、各期款與日期、履保銀行、貸款、地政士。缺的地方留「＿＿＿＿」，下載後可在 Word 修改。</p>
+          <div v-if="pcCheck.miss.length" class="alert warn" data-testid="d15-pc-miss">還缺：{{ pcCheck.miss.join('、') }}（可先產生，缺漏處會留白）</div>
+          <div v-if="pcCheck.warn.length" class="alert warn">{{ pcCheck.warn.join('；') }}</div>
+          <div class="grid">
+            <label>交付買方審閱日<input type="date" v-model="w.v50Reg.pc.reviewDate" :disabled="!!sel.blocked"></label>
+            <label>土地價款（元，可空白）<input v-model.trim="w.v50Reg.pc.landPrice" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>建物價款（元，可空白）<input v-model.trim="w.v50Reg.pc.buildPrice" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>違約金上限（總價 %，不得超過 15）<input v-model.trim="w.v50Reg.pc.penaltyPct" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>車位（無則留空）<input v-model="w.v50Reg.pc.parking" placeholder="例：坡道平面式，編號 B1-12，權利範圍 1/50" :disabled="!!sel.blocked"></label>
+            <label>點交補充<input v-model="w.v50Reg.pc.handoverNote" placeholder="例：附冷氣兩台、廚具" :disabled="!!sel.blocked"></label>
+          </div>
+          <label style="display:block;margin-top:6px">其他約定事項（每行一條）<textarea v-model="w.v50Reg.pc.other" rows="3" :disabled="!!sel.blocked" style="width:100%"></textarea></label>
+          <div class="d9-actions" style="margin-top:8px"><button type="button" class="btn" @click="pcPreview" data-testid="d15-pc-preview">預覽／列印（可存 PDF）</button><button type="button" class="btn primary" @click="pcDownload" data-testid="d15-pc-download">下載私契 Word</button></div>
+
+          <h3>二、房地合一稅：試算與申報資料表</h3>
+          <p class="note" style="margin-top:0">依所得稅法第14條之4、第14條之5、第4條之5。完成移轉登記日之次日起 30 日內申報；試算以國稅局核定為準。</p>
+          <div class="grid">
+            <label>出售人<select v-model="w.v50Reg.ht.seller" :disabled="!!sel.blocked"><option value="">請選擇</option><option v-for="n in htSellers" :key="n">{{ n }}</option></select></label>
+            <label>取得原因<select v-model="w.v50Reg.ht.acquireWay" :disabled="!!sel.blocked"><option>買賣</option><option>繼承</option><option>受贈</option><option>自地自建</option><option>其他</option></select></label>
+            <label>取得日<input type="date" v-model="w.v50Reg.ht.acquireDate" :disabled="!!sel.blocked" data-testid="d15-ht-acq"></label>
+            <label>交易日（完成移轉登記日）<input type="date" v-model="w.v50Reg.ht.saleDate" :disabled="!!sel.blocked" data-testid="d15-ht-sale"></label>
+            <label>成交價額（元）<input v-model.trim="w.v50Reg.ht.price" inputmode="numeric" :disabled="!!sel.blocked" data-testid="d15-ht-price"></label>
+            <label>原始取得成本（元）<input v-model.trim="w.v50Reg.ht.cost" inputmode="numeric" :disabled="!!sel.blocked" data-testid="d15-ht-cost"></label>
+            <label>取得、改良及移轉費用（元）<span class="inline"><input v-model.trim="w.v50Reg.ht.fee" @input="w.v50Reg.ht.feeEstimated = false" inputmode="numeric" :disabled="!!sel.blocked"><button type="button" class="mini" @click="htEstimateFee" :disabled="!!sel.blocked">無單據估算</button></span></label>
+            <label>土地漲價總數額（元，見土增稅單）<input v-model.trim="w.v50Reg.ht.landGain" inputmode="numeric" :disabled="!!sel.blocked"></label>
+            <label>身分<select v-model="w.v50Reg.ht.resident" :disabled="!!sel.blocked"><option value="yes">境內居住之個人</option><option value="no">非境內居住之個人</option></select></label>
+            <label class="reg-notes-check"><input type="checkbox" v-model="w.v50Reg.ht.selfUse" :disabled="!!sel.blocked">申請自住房地優惠（設籍居住滿 6 年等）</label>
+          </div>
+          <div style="margin-top:6px"><button type="button" class="mini" @click="htFill" :disabled="!!sel.blocked">從本案帶入成交價、交易日、出售人</button></div>
+          <div class="d13-fee" style="margin-top:8px" data-testid="d15-ht-result">
+            <template v-if="htResult.ok">
+              <table class="d13-table"><tbody>
+                <tr v-for="s in htResult.steps" :key="s[0]"><td>{{ s[0] }}</td><td>{{ money(s[1]) }}</td></tr>
+                <tr><td>持有期間／稅率</td><td>{{ htResult.days }} 日（約 {{ htResult.years }} 年）／{{ Math.round(htResult.rate * 100) }}%（{{ htResult.label }}）</td></tr>
+                <tr class="d13-unpaid"><td><b>應納稅額（試算）</b></td><td><b>{{ money(htResult.tax) }}</b></td></tr>
+              </tbody></table>
+            </template>
+            <ul style="margin:6px 0 0;padding-left:18px;font-size:12.5px"><li v-for="n in htResult.notes" :key="n">{{ n }}</li></ul>
+          </div>
+          <div class="d9-actions" style="margin-top:8px"><button type="button" class="btn" @click="htPreview" :disabled="!htResult.ok">預覽／列印</button><button type="button" class="btn primary" @click="htDownload" :disabled="!htResult.ok" data-testid="d15-ht-download">下載申報資料表 Word</button></div>
+
+          <h3>三、存檔</h3>
+          <div class="d9-actions">
+            <button type="button" class="btn primary" @click="casePackage" :disabled="!!pkgBusy || !!genBusy" data-testid="d15-package">{{ pkgBusy === 'zip' ? '打包中…' : '下載本案檔案包（ZIP）' }}</button>
+            <button type="button" class="btn" @click="saveDraftsToCase" :disabled="!!pkgBusy || !!genBusy || !sel.caseId || !readyForms.length" data-testid="d15-save-cloud">{{ pkgBusy === 'cloud' ? '存檔中…' : '把 PDF 草稿存到本案文件（雲端）' }}</button>
+          </div>
+          <p class="note">檔案包含：可產生的登記與稅務 PDF 草稿、私契 Word、房地合一資料表、申請書備註與切結文字、案件資料備份（JSON），下載後可直接放到 NAS 的案件資料夾。雲端「文件」只收 PDF，所以只存 PDF 草稿；Word 請用檔案包。修改過的內容請先按上方「存檔」。</p>
+          <div class="status" role="status" data-testid="d15-msg">{{ docMsg }}</div>
         </div>
 
         <div class="card reply" v-show="tab === 'reply'" data-testid="desk-reply">
@@ -1234,6 +1289,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         f.v50Reg = { ...REG_DEFAULT, ...(f.v50Reg || {}) };
         if (!f.v50Reg.feePlan || typeof f.v50Reg.feePlan !== 'object') f.v50Reg.feePlan = { buyer: '', seller: '', note: '' };
         if (!Array.isArray(f.v44Filings)) f.v44Filings = [];
+        if (!f.v50Reg.pc || typeof f.v50Reg.pc !== 'object') f.v50Reg.pc = { reviewDate: '', landPrice: '', buildPrice: '', parking: '', penaltyPct: '15', handoverNote: '', other: '' };
+        if (!f.v50Reg.ht || typeof f.v50Reg.ht !== 'object') f.v50Reg.ht = { seller: '', acquireWay: '買賣', acquireDate: '', saleDate: '', price: '', cost: '', fee: '', feeEstimated: false, landGain: '', selfUse: false, resident: 'yes' };
         HGDeskTax.init(f);
         HGOnlineDesk.init(f);
         if (!Array.isArray(f.sellers)) f.sellers = []; if (!Array.isArray(f.buyers)) f.buyers = [];
@@ -1386,24 +1443,24 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         return (cache[url] = buf);
       };
       const download = (bytes, name) => { const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000); };
-      const generate = async (id, preview = false) => {
-        if (genBusy.value || !w.value || blocks.value[id]?.length) return;
-        const selected = w.value, H = window.HGForms, item = FORM_LIST.find(t => t.id === id);
+      // D15：產生單份 PDF 的核心（原 generate 內容抽出，供預覽、下載、檔案包、存雲端共用）
+      const buildFormOutput = async id => {
+        const H = window.HGForms, item = FORM_LIST.find(t => t.id === id);
         const input = clone(item.tax ? tax.record(id) : caseRecord());
         const number = trim(sel.value.row['編號']) || '未編號';
+        if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
+        if (!window.fontkit) await loadScript('forms/fontkit.umd.min.js');
+        if (item.tax) return { bytes: await tax.engine(id).generate(input), filename: number + '_' + item.name + '_草稿.pdf' };
+        const template = H.TEMPLATES[id];
+        const [templateBytes, fontBytes] = await Promise.all([getBytes('forms/' + template.file, template.sha256), getBytes('forms/NotoSansTC-Regular.ttf')]);
+        return await H.generate(id, input, { PDFLib: window.PDFLib, fontkit: window.fontkit, templateBytes, fontBytes });
+      };
+      const generate = async (id, preview = false) => {
+        if (genBusy.value || !w.value || blocks.value[id]?.length) return;
+        const selected = w.value;
         genBusy.value = id; genMsg.value = '載入原表與字型中…（首次約需數秒）';
         try {
-          if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
-          if (!window.fontkit) await loadScript('forms/fontkit.umd.min.js');
-          let output;
-          if (item.tax) {
-            const bytes = await tax.engine(id).generate(input);
-            output = { bytes, filename: number + '_' + item.name + '_草稿.pdf' };
-          } else {
-            const template = H.TEMPLATES[id];
-            const [templateBytes, fontBytes] = await Promise.all([getBytes('forms/' + template.file, template.sha256), getBytes('forms/NotoSansTC-Regular.ttf')]);
-            output = await H.generate(id, input, { PDFLib: window.PDFLib, fontkit: window.fontkit, templateBytes, fontBytes });
-          }
+          const output = await buildFormOutput(id);
           if (w.value !== selected) return;
           if (preview) {
             releasePreview();
@@ -1426,6 +1483,70 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       };
       const caseTypeName = computed(() => w.value ? d12TypeOf(w.value) : '');
       const caseSetTodo = computed(() => D12_SET_TODO[caseTypeName.value] || []);
+      // D15 私契、房地合一、案件檔案包與存雲端（Claude 2026-11-25）。Word／ZIP 由 forms/hg-desk-docs.js 在瀏覽器內產生。
+      const caseNo = () => (sel.value && trim(sel.value.row['編號'])) || '未編號';
+      const dlBlob = (bytes, name, type) => { const url = URL.createObjectURL(new Blob([bytes], { type })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000); };
+      const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      const docMsg = ref(''), pkgBusy = ref('');
+      const pcCheck = computed(() => w.value ? window.HGDeskDocs.saleContractCheck(w.value) : { miss: [], warn: [] });
+      const htSellers = computed(() => w.value ? (w.value.sellers || []).filter(p => p && trim(p.name) && p.role !== '代理人').map(p => p.name) : []);
+      const htInput = () => { const h = w.value.v50Reg.ht; return { ...h, price: h.price, cost: h.cost, fee: h.fee, landGain: h.landGain, feeEstimated: !!h.feeEstimated, selfUse: !!h.selfUse, resident: h.resident !== 'no' }; };
+      const htResult = computed(() => w.value ? window.HGDeskDocs.houseLandTax(htInput()) : { ok: false, notes: [] });
+      const htFill = () => {
+        const h = w.value.v50Reg.ht, f = w.value;
+        if (!trim(h.price) && Number(f.totalPrice)) h.price = String(Math.round(Number(f.totalPrice) * 10000));
+        if (!trim(h.saleDate)) { const done = (f.v44Filings || []).filter(x => x && x.status === '已辦結' && x.completedDate).map(x => x.completedDate).sort().pop(); h.saleDate = done || ''; }
+        if (!trim(h.seller) && htSellers.value.length === 1) h.seller = htSellers.value[0];
+      };
+      const htEstimateFee = () => { const h = w.value.v50Reg.ht, p = Number(String(h.price).replace(/[^\d.]/g, '')) || 0; h.fee = String(Math.min(300000, Math.round(p * 0.03))); h.feeEstimated = true; };
+      const pcDocx = () => window.HGDeskDocs.docx(window.HGDeskDocs.saleContract(w.value, { scrivener: trim(w.value.ledgerRegistrationAgent) }));
+      const htDocx = () => window.HGDeskDocs.docx(window.HGDeskDocs.houseLandBlocks(w.value, w.value.v50Reg.ht, htResult.value, w.value.v50Reg.ht.seller));
+      const openHtml = (blocksList, title) => { const win = window.open('', '_blank'); if (!win) { alert('瀏覽器擋住了新分頁，請允許此網站開啟新分頁後再按一次。'); return; } win.document.open(); win.document.write(window.HGDeskDocs.html(blocksList, title)); win.document.close(); };
+      const pcPreview = () => openHtml(window.HGDeskDocs.saleContract(w.value, { scrivener: trim(w.value.ledgerRegistrationAgent) }), caseNo() + ' 成屋買賣契約書（草稿）');
+      const pcDownload = () => { dlBlob(pcDocx(), caseNo() + '_成屋買賣契約書（私契）_草稿.docx', DOCX); docMsg.value = '已下載私契 Word 草稿。' + (dirty.value ? '本案尚有未存檔修改。' : ''); };
+      const htPreview = () => openHtml(window.HGDeskDocs.houseLandBlocks(w.value, w.value.v50Reg.ht, htResult.value, w.value.v50Reg.ht.seller), caseNo() + ' 房地合一申報資料表');
+      const htDownload = () => { dlBlob(htDocx(), caseNo() + '_房地合一申報資料表_' + (trim(w.value.v50Reg.ht.seller) || '出售人') + '.docx', DOCX); docMsg.value = '已下載房地合一申報資料表。'; };
+      const stamp8 = () => { const d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
+      const casePackage = async () => {
+        if (pkgBusy.value || genBusy.value || !w.value) return;
+        const selected = w.value, no = caseNo(), files = [], skipped = [];
+        pkgBusy.value = 'zip'; docMsg.value = '整理檔案中…';
+        try {
+          for (const t of readyForms.value) { try { const o = await buildFormOutput(t.id); files.push({ name: o.filename, data: o.bytes }); } catch (e) { skipped.push(t.name + '：' + (e && e.message ? e.message : e)); } if (w.value !== selected) return; }
+          if (caseTypeName.value === '買賣' && w.value.v50Props.length) files.push({ name: no + '_成屋買賣契約書（私契）_草稿.docx', data: pcDocx() });
+          if (htResult.value.ok) files.push({ name: no + '_房地合一申報資料表_' + (trim(w.value.v50Reg.ht.seller) || '出售人') + '.docx', data: htDocx() });
+          const notes = trim(w.value.v50Reg.applicationNotes);
+          if (notes) files.push({ name: no + '_申請書備註與切結.txt', data: '﻿' + notes.replace(/\n/g, '\r\n') });
+          files.push({ name: no + '_案件資料備份.json', data: JSON.stringify({ 匯出: new Date().toISOString(), 編號: no, 案名: sel.value.row['案名'] || '', 版本: 'desk-D15', 表單: w.value }, null, 2) });
+          dlBlob(window.HGDeskDocs.zip(files), no + '_案件檔案包_' + stamp8() + '.zip', 'application/zip');
+          docMsg.value = `已下載檔案包（${files.length} 個檔案）` + (skipped.length ? '；未產生：' + skipped.join('；') : '') + '。可直接存到 NAS 的案件資料夾。';
+        } catch (e) { docMsg.value = '檔案包產生失敗：' + (e && e.message ? e.message : e); }
+        finally { pkgBusy.value = ''; }
+      };
+      const saveDraftsToCase = async () => {
+        if (pkgBusy.value || genBusy.value || !w.value || !sel.value || !sel.value.caseId) return;
+        const list = readyForms.value.slice(); if (!list.length) return;
+        if (!confirm(`把 ${list.length} 份 PDF 草稿存到本案「文件」（雲端，存了只能作廢不能刪）？`)) return;
+        const selected = w.value, id = sel.value.caseId, row = sel.value.row, who = staffName(), done = [], failed = [];
+        pkgBusy.value = 'cloud';
+        try {
+          const dir = await caseDir(id);
+          for (const t of list) {
+            if (w.value !== selected) return;
+            docMsg.value = `存到本案文件中（${done.length + failed.length + 1}/${list.length}）`;
+            try {
+              const o = await buildFormOutput(t.id), objPath = `case/${dir}/${stampText()}-${rand6()}.pdf`, blob = new Blob([o.bytes], { type: 'application/pdf' });
+              await putObject(objPath, blob, 'application/pdf');
+              await api(`${SUPABASE}/rest/v1/case_files`, { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({
+                case_id: id, case_no: trim(row['編號']), case_name: trim(row['案名'] || row['地址']).slice(0, 200), kind: t.tax ? 'tax' : t.id === 'sale-contract' ? 'contract' : 'other', path: objPath,
+                name: o.filename.slice(0, 200), mime: 'application/pdf', size: blob.size, watermark: '', note: '作業台產生的草稿（未簽名）', created_by: who, updated_by: who }) });
+              done.push(t.name);
+            } catch (e) { failed.push(t.name + '：' + (e && e.message ? e.message : e)); }
+          }
+          docMsg.value = (done.length ? `已存到本案文件 ${done.length} 份` : '') + (failed.length ? `；未存 ${failed.length} 份：${failed.join('；')}` : '') + '。';
+          if (tab.value === 'files') loadFiles();
+        } finally { pkgBusy.value = ''; }
+      };
       const readyForms = computed(() => w.value && w.value.v50Props.length ? FORM_LIST.filter(t => !(blocks.value[t.id] && blocks.value[t.id].length)) : []);
       const genAllBusy = ref(false);
       const generateAll = async () => {
@@ -2399,7 +2520,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D14';
+      const APP_VER = 'desk-D15';
       const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
       const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
       const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
@@ -2544,6 +2665,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
         rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName, feeData, caseFee, rowFee, FILING_KINDS, FILING_STATUS, quickOpen, quickFilings, quickAddFiling, quickSetStatus, quickMissing,
+        docMsg, pkgBusy, pcCheck, htSellers, htResult, htFill, htEstimateFee, pcPreview, pcDownload, htPreview, htDownload, casePackage, saveDraftsToCase,
         blocks, tax, pdfPreview, pdfDialog, releasePreview, copyMailAddress, openNotePicker,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,

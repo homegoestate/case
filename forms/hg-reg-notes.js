@@ -36,7 +36,15 @@
     { id: 'online-declaration', group: '書狀與申辦方式', title: '土地登記線上聲明序號', input: '線上聲明序號',
       when: '已辦理土地登記線上聲明，且選擇在申請書記明序號時，從本案聲明資料抄錄。亦可檢附驗證後的聲明登錄表。',
       prefix: '線上聲明序號：', sources: [{ label: '申請土地登記應附文件法令補充規定第5點（112年6月2日修正）',
-        url: 'https://gazette.nat.gov.tw/EG_FileManager/eguploadpub/eg029102/ch02/type2/gov10/num2/Eg.htm' }] }
+        url: 'https://gazette.nat.gov.tw/EG_FileManager/eguploadpub/eg029102/ch02/type2/gov10/num2/Eg.htm' }] },
+    // D15（Claude 2026-11-25）：以下兩項已對照全國法規資料庫條文
+    { id: 'inherit-table', group: '繼承', title: '繼承系統表切結', signer: '申請人簽名',
+      when: '辦理繼承登記，繼承系統表由申請人依民法自行訂定時，須在系統表註明並簽名。要寫在申請書備註或另附，依受理地政事務所要求。',
+      text: '如有遺漏或錯誤致他人受損害者，申請人願負法律責任。', sources: [law(119, '第4項')], checkedAt: '2026-11-25' },
+    { id: 'lost-deed', group: '書狀與申辦方式', title: '權利書狀滅失補給（敘明原因）', input: '滅失原因（例：搬家時遺失）', signer: '登記名義人簽名',
+      prefix: '權利書狀滅失原因：', suffix: '。如有不實，願負法律責任。',
+      when: '申請書狀補給時，由登記名義人敘明滅失原因並檢附切結書或其他證明文件。條文沒有規定固定文字，本句為範例，請依事實修改。登記機關公告三十日無異議後補給，名義人原則須親自到場。',
+      sources: [law(155, '第1、2項')], checkedAt: '2026-11-25' }
   ];
   const clean = value => typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
   function caseReferences(form) {
@@ -109,7 +117,7 @@
       groups() { return [...new Set(rules.map(item => item.group)), '本案資料']; },
       options() { return findOptions(this.allOptions, this.group, this.query); },
       item() { return this.options.find(option => option.id === this.picked); },
-      preview() { return this.item?.text || (this.item?.input && clean(this.entry) ? this.item.prefix + clean(this.entry) : ''); },
+      preview() { return this.item?.text || (this.item?.input && clean(this.entry) ? (this.item.prefix || '') + clean(this.entry) + (this.item.suffix || '') : ''); },
       duplicate() { return !!this.preview && appendNote(this.modelValue, this.preview) === (this.modelValue ?? ''); },
       canAppend() { return this.preview && !this.duplicate && !this.locked && (!this.item.signer || this.checked); }
     },
@@ -133,7 +141,7 @@
       <p v-if="!options.length" class="muted">{{ group === '本案資料' && !query ? '尚無可引用的標的、原因日期或稅務文件字號。' : '目前沒有符合的項目。' }}</p>
       <template v-if="item">
         <p>{{ item.when }}</p>
-        <p v-if="item.sources" class="muted"><a v-for="s in item.sources" :key="s.url" :href="s.url" target="_blank" rel="noopener noreferrer">{{ s.label }}</a> <span>核對日期 2026-11-20</span></p>
+        <p v-if="item.sources" class="muted"><a v-for="s in item.sources" :key="s.url" :href="s.url" target="_blank" rel="noopener noreferrer">{{ s.label }}</a> <span>核對日期 {{ item.checkedAt || '2026-11-20' }}</span></p>
         <p v-else class="muted">來源為{{ item.sourceLabel }}</p>
         <label v-if="item.input">{{ item.input }}<input type="text" v-model="entry" data-testid="reg-notes-entry"></label>
         <div v-if="preview" class="reg-notes-preview"><b>將加入的文字</b><div data-testid="reg-notes-preview">{{ preview }}</div></div>
