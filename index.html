@@ -19973,6 +19973,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
                 <button @click="openDesk" title="在新分頁開啟地政士作業台（標的明細、登記申請書、公契）。作業台讀的是雲端上次存檔的內容。" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 text-sm shadow-sm transition-colors border border-teal-600 font-bold" data-testid="desk-link">
                   <i class="fas fa-file-signature mr-1"></i> 地政士作業台
                 </button>
+                <button type="button" @click="openDesk('online')" title="在新分頁開啟本案線上申報、異動即時通與機關回執" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 text-sm shadow-sm transition-colors border border-teal-600 font-bold" data-testid="online-desk-link">線上申報</button>
 
                 <button @click="recoverLocalCaseBackups" class="flex-1 md:flex-none flex items-center justify-center px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm shadow-sm transition-colors border border-orange-700 font-bold" title="掃描本機舊資料並合併回案件總庫">
                   <i class="fas fa-life-ring mr-1"></i> 救援本機資料
@@ -22747,9 +22748,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
            };
 
            // V51 地政士作業台入口（Claude 2026-11-16）：有目前案件且已有識別碼時直接開該案；否則開作業台自行選案。
-           const openDesk = () => {
-               const c = currentCaseIndex.value > -1 ? cases.value[currentCaseIndex.value] : null;
-               const url = 'desk.html' + (c && c._caseId ? '?case=' + encodeURIComponent(c._caseId) : '');
+           const matchesDraftRef = (c,ref) => ref.startsWith('id:') ? c._caseId===ref.slice(3) : caseSignature(c)===ref.slice(4);
+           const openDesk = (tab) => {
+               const ref = form.value.sopDraftRef;
+               const matches = currentCaseIndex.value > -1 && ref ? cases.value.filter(c=>matchesDraftRef(c,ref)) : [];
+               const c = matches.length === 1 ? matches[0] : null;
+               const query = new URLSearchParams();
+               if (c && c._caseId) query.set('case',c._caseId);
+               if (tab === 'online') query.set('tab','online');
+               const url = 'desk.html' + (query.toString() ? '?' + query.toString() : '');
                const w = window.open(url, '_blank');
                if (w) { try { w.opener = null; } catch (e) {} } else alert('瀏覽器擋住了新分頁，請允許此網站開啟新分頁後再按一次。');
            };
@@ -22995,6 +23002,16 @@ const v44ExportAnnual=()=>{
            });
  
            const defaultForm = JSON.parse(JSON.stringify(form.value));
+           // These fields are authored by the registration desk. This page preserves the
+           // current case's copy. A draft, a duplicate, or another case cannot supply them.
+           const deskFields = ['v50Reg', 'v50Props'];
+           const readCaseSnapshot = row => row && row._form_json ? JSON.parse(row._form_json) : {};
+           const keepDeskFields = (target, source) => {
+               for (const key of deskFields) {
+                   if (Object.prototype.hasOwnProperty.call(source,key)) target[key] = source[key];
+                   else delete target[key];
+               }
+           };
            // V41 | 僅此頁下拉選項，並不新增或改動既有案例儲存結構。
            // 地政士職別只能由實際委任/登記資料核對，不從「承辦員工」名單推斷持照身分。
            const ledgerAgentFields = [
@@ -23737,6 +23754,16 @@ const v44ExportAnnual=()=>{
                     if(!Array.isArray(remoteNow)||!Array.isArray(remoteNow[0]?.payload)) throw new Error('雲端案件資料格式錯誤，已停止同步。');
                     if(v44StableJson(remoteNow[0].payload)!==v44CloudBaseline) throw new Error('其他同仁已更新雲端案件。本機草稿仍在，請先匯出交接 CSV、核對差異，再重新載入，避免覆寫。');
 
+                    const incomingById = new Map(normalizedCases.filter(c => c._caseId).map(c => [c._caseId,c]));
+                    for (const remoteCase of remoteNow[0].payload) {
+                        if (!remoteCase._caseId || !incomingById.has(remoteCase._caseId)) continue;
+                        const incoming = incomingById.get(remoteCase._caseId);
+                        if (incoming._form_json === remoteCase._form_json) continue;
+                        const prior = readCaseSnapshot(remoteCase), next = readCaseSnapshot(incoming);
+                        if (deskFields.some(k => v44StableJson(prior[k]) !== v44StableJson(next[k]))) {
+                            throw new Error('本機與雲端的登記或線上申報資料不同。請保留草稿並重新讀取案件後核對。此次未同步。');
+                        }
+                    }
                     const response = await fetch(SUPABASE_ENDPOINT + '&select=id', {
                         method: 'PATCH',
                         headers: {
@@ -23994,7 +24021,8 @@ const v44ExportAnnual=()=>{
                     try { localStorage.setItem('nexus_cases_db', JSON.stringify(cases.value)); } catch(err) {}
 
                     if (GAS_URL) {
-                        syncToCloud().then(() => {
+                        syncToCloud().then(ok => {
+                            if (!ok) return;
                             alert(`✅ 匯入並同步成功！共載入 ${cases.value.length} 筆案件。\n\n匯入前備份：${backupKey}`);
                         }).catch((err) => {
                             console.error(err);
@@ -24072,7 +24100,7 @@ const v44ExportAnnual=()=>{
  
                const draftRef=form.value.sopDraftRef;
                if(draftRef){
-                 const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>draftRef.startsWith('id:') ? c._caseId===draftRef.slice(3) : caseSignature(c)===draftRef.slice(4));
+                 const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>matchesDraftRef(c,draftRef));
                  if(matches.length===1){currentCaseIndex.value=matches[0].i;}
                  else {draftRestoreBlocked.value=true; sopDraftStatus.value='草稿無法唯一對應原案，請從總庫重開或另存新案';}
                }
@@ -24083,7 +24111,7 @@ const v44ExportAnnual=()=>{
             const editCase = (idx) => { v49PendingQuote.value = null;
                 currentCaseIndex.value = idx;
                 const c = cases.value[idx];
-                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm))); 
+                form.value = JSON.parse(JSON.stringify(defaultForm)); 
                 
                 draftRestoreBlocked.value=false;
                 selectedStaff.value=String(c['承辦'] || '').split('、').map(v=>v.trim()).filter(Boolean);
@@ -24184,22 +24212,34 @@ const v44ExportAnnual=()=>{
                 currentCaseIndex.value = -1;
                 roadmapType.value = 'house';
                 selectedStaff.value=[]; draftRestoreBlocked.value=false;
-                Object.assign(form.value, JSON.parse(JSON.stringify(defaultForm)));
-                try { localStorage.removeItem('nexus_form_draft_v33'); }catch(e){}
+                form.value = JSON.parse(JSON.stringify(defaultForm));
+                try { localStorage.setItem('nexus_form_draft_v33',JSON.stringify(form.value)); }catch(e){}
                 if(switchToNew) showManager.value = false;
            };
  
            const addNewCase = () => { if(confirm('建立全新案件？(未存檔資料將遺失)')) resetForm(false); };
-           const saveAsNew = () => { if(confirm('另存為新案件？')) { currentCaseIndex.value = -1; draftRestoreBlocked.value=false; form.value.sopDraftRef=''; form.value.closingDate = ''; form.value.sopChecks = {}; saveLocal(true); } };
+           const saveAsNew = () => { if(confirm('另存為新案件？')) {
+                    // Carry the requested back-sheet details, not the previous filing or consent.
+                    const copied = JSON.parse(JSON.stringify(form.value));
+                    for (const key of Object.keys(copied)) if (!Object.prototype.hasOwnProperty.call(defaultForm,key)) delete copied[key];
+                    for (const party of [...copied.buyers,...copied.sellers]) {
+                        for (const key of ['v50Share','landAlert','taxAlert','taxMailAddress','infoConsent','infoConsentAt']) delete party[key];
+                    }
+                    form.value = copied;
+                    currentCaseIndex.value = -1; draftRestoreBlocked.value=false; form.value.sopDraftRef=''; form.value.closingDate = ''; form.value.sopChecks = {}; saveLocal(true); } };
  
            const saveLocal = (isSaveAsNew = false) => {
                 if(draftRestoreBlocked.value) return alert('草稿無法唯一對應原案件，請從總庫重新開啟原案，或明確選擇「另存新案」；目前尚未保存。');
                 if(!isSaveAsNew && form.value.sopDraftRef) {
                   const draftRef=form.value.sopDraftRef;
-                  const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>draftRef.startsWith('id:') ? c._caseId===draftRef.slice(3) : caseSignature(c)===draftRef.slice(4));
+                  const matches=cases.value.map((c,i)=>({c,i})).filter(({c})=>matchesDraftRef(c,draftRef));
                   if(matches.length!==1) return alert('目前總庫已變更，無法唯一對應原案件；請重新開啟案件，或另存新案。未執行存檔。');
                   currentCaseIndex.value=matches[0].i;
                 }
+                try {
+                    const currentRow = currentCaseIndex.value < 0 ? null : cases.value[currentCaseIndex.value];
+                    keepDeskFields(form.value, readCaseSnapshot(currentRow));
+                } catch(e) { return alert('原案件快照無法讀取，請重新開啟並核對資料。此次未存檔。'); }
                 const sellerDisplay = form.value.sellers.map(s => s.name).join('、');
                 const buyerDisplay = form.value.buyers.map(b => b.name).join('、');
                 const fullEscrowNum = form.value.escrowIdPrefix + form.value.escrowIdSuffix;
