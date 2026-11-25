@@ -338,6 +338,19 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 .list li .d12-badge{display:inline-block;margin-top:3px;font-size:11.5px;padding:0 7px;border-radius:999px;background:#fff7ed;color:#c2410c}
 .list li .d12-badge.over{background:#fef2f2;color:#b91c1c}
 .d12-set{margin:6px 0 10px;font-size:12.5px;color:var(--muted)}
+/* D13：每案收費與未收款 */
+.d13-fee{margin:12px 0 4px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fbfdff}
+.d13-fee h4{margin:0 0 6px;font-size:14px;color:var(--navy)}.d13-fee h4 .muted{font-weight:400;font-size:12.5px;margin-left:6px}
+.d13-table{width:100%;border-collapse:collapse;font-size:13px}
+.d13-table th,.d13-table td{padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:left}
+.d13-table th{font-size:12px;color:var(--muted);background:#f8fafc}
+.d13-table td:not(:first-child),.d13-table th:not(:first-child){text-align:right;white-space:nowrap}
+.d13-table tr.d13-unpaid td{color:#b91c1c}
+.d13-plan{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:end;margin-top:8px;font-size:12.5px}
+.d13-plan>span{flex-basis:100%;color:var(--muted)}
+.d13-plan label{display:flex;flex-direction:column;font-size:12px}.d13-plan input{width:120px}.d13-plan label.wide input{width:280px;max-width:70vw}
+.list li .d13-badge{background:#fef2f2;color:#b91c1c;margin-left:4px}
+.tabs .d13-dot{color:#dc2626;font-size:10px;margin-left:3px;vertical-align:top}
 @media (max-width:560px){.d12-steps>div{min-width:0;font-size:11.5px}.d12-steps small{font-size:10px;letter-spacing:-.2px}.d12-dl{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -366,6 +379,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         <button type="button" :class="{on: scope === 'closed'}" @click="scope = 'closed'">已結案 {{ counts.closed }}</button>
         <button type="button" :class="{on: scope === 'due'}" @click="scope = 'due'" data-testid="d12-scope-due" title="進行中且法定期限 7 天內、已逾期或補正中">期限警示 {{ counts.due }}</button>
         <button type="button" :class="{on: scope === 'mine'}" @click="scope = 'mine'" data-testid="d12-scope-mine" :title="'承辦欄含「' + myName + '」的進行中案件'">我的 {{ counts.mine }}</button>
+        <button type="button" :class="{on: scope === 'unpaid'}" @click="scope = 'unpaid'" data-testid="d13-scope-unpaid" title="已設定應收（報價或手填）且代書費還沒收齊的案件，含已結案">未收款 {{ counts.unpaid }}</button>
         <button type="button" class="btn sm" style="margin-left:auto" @click="loadCases" :disabled="loading">{{ loading ? '載入中…' : '重新載入' }}</button>
       </div>
       <div v-if="loadError" class="alert">{{ loadError }}</div>
@@ -375,6 +389,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <div class="s">{{ c['地址'] || '' }}</div>
           <div class="s">簽約 {{ c['簽約日'] || '—' }}｜承辦 {{ c['承辦'] || '—' }}</div>
           <span v-if="rowTrack(c).badge" class="d12-badge" :class="rowTrack(c).badgeCls" data-testid="d12-list-badge">{{ rowTrack(c).badge }}</span>
+          <span v-if="rowFee(c).unpaid" class="d12-badge d13-badge" data-testid="d13-list-badge">未收 {{ money(rowFee(c).unpaid) }}</span>
         </li>
         <li v-if="!filtered.length" class="muted" style="cursor:default">{{ loading ? '載入中…' : '沒有符合的案件' }}</li>
       </ul>
@@ -502,6 +517,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <div><b>承辦</b>{{ sel.row['承辦'] || '—' }}</div>
             <div><b>受託業務</b>{{ w.ledgerService || '—' }}</div>
             <div><b>最後修改</b>{{ sel.row._updatedBy || '—' }} {{ sel.row._updatedAt || '' }}</div>
+            <div><b>未收代書費</b><a href="#" class="linkbtn" @click.prevent="openReceiptsTab" data-testid="d13-head-unpaid">{{ !caseFee.due ? '未設定應收' : caseFee.unpaid ? money(caseFee.unpaid) + ' 元' : '已收齊' }}</a></div>
           </div>
           <div class="d12-steps" data-testid="d12-steps">
             <div v-for="s in caseTrack.steps" :key="s.name" :class="s.cls"><i>{{ s.cls === 'done' ? '✓' : s.cls === 'warn' ? '!' : '' }}</i>{{ s.name }}<small>{{ s.label || ' ' }}</small></div>
@@ -517,7 +533,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <button type="button" :class="{on: tab === 'online'}" @click="tab = 'online'" data-testid="desk-tab-online">線上申報</button>
           <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記與稅務表單</button>
           <button type="button" :class="{on: tab === 'files'}" @click="openFilesTab" data-testid="desk-tab-files">文件</button>
-          <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收據</button>
+          <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收費與收據<span v-if="caseFee.unpaid" class="d13-dot" title="有未收代書費">●</span></button>
           <button type="button" :class="{on: tab === 'reply'}" @click="tab = 'reply'" data-testid="desk-tab-reply">客戶回覆</button>
           <button type="button" disabled title="下一步串接">報價（規劃中）</button>
         </div>
@@ -939,6 +955,25 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               <button type="button" class="btn sm" @click="saveCase" :disabled="saving" data-testid="desk-make-id">{{ saving ? '存檔中…' : '存檔並產生案件編號' }}</button></template>
           </div>
           <div v-if="rcpt.error" class="alert" style="margin-top:10px">{{ rcpt.error }}</div>
+          <section class="d13-fee" data-testid="d13-fee">
+            <h4>本案收費 <span class="muted">應收：{{ caseFee.source || '尚未設定' }}</span></h4>
+            <div class="tw"><table class="d13-table">
+              <thead><tr><th></th><th>買方</th><th>賣方</th><th>合計</th></tr></thead>
+              <tbody>
+                <tr><td>應收代書費</td><td>{{ caseFee.due ? money(caseFee.due.buyer) : '—' }}</td><td>{{ caseFee.due ? money(caseFee.due.seller) : '—' }}</td><td><b>{{ caseFee.due ? money(caseFee.dueAll) : '—' }}</b></td></tr>
+                <tr><td>已收代書費<span class="muted">（已定稿收據）</span></td><td>{{ money(caseFee.got.buyer) }}</td><td>{{ money(caseFee.got.seller) }}</td><td><b>{{ money(caseFee.paid) }}</b><span v-if="caseFee.got.other" class="muted">（含其他 {{ money(caseFee.got.other) }}）</span></td></tr>
+                <tr :class="caseFee.unpaid ? 'd13-unpaid' : ''" data-testid="d13-unpaid-row"><td>未收</td><td>{{ caseFee.due ? money(Math.max(0, caseFee.due.buyer - caseFee.got.buyer)) : '—' }}</td><td>{{ caseFee.due ? money(Math.max(0, caseFee.due.seller - caseFee.got.seller)) : '—' }}</td><td><b>{{ caseFee.due ? money(caseFee.unpaid) : '未設定應收' }}</b><span v-if="caseFee.over" class="muted">（溢收 {{ money(caseFee.over) }}）</span></td></tr>
+                <tr v-if="caseFee.collect" class="muted"><td>代收規費、稅費<span class="muted">（報價，不算營收）</span></td><td>{{ money(caseFee.collect.buyer) }}</td><td>{{ money(caseFee.collect.seller) }}</td><td>{{ money(caseFee.collect.buyer + caseFee.collect.seller) }}</td></tr>
+              </tbody>
+            </table></div>
+            <div class="d13-plan">
+              <span>手填應收代書費（沒有報價或要調整時填；填了以這裡為準）</span>
+              <label>買方<input v-model.trim="w.v50Reg.feePlan.buyer" inputmode="numeric" placeholder="例 18000" :disabled="!!sel.blocked" data-testid="d13-plan-buyer"></label>
+              <label>賣方<input v-model.trim="w.v50Reg.feePlan.seller" inputmode="numeric" placeholder="例 16000" :disabled="!!sel.blocked" data-testid="d13-plan-seller"></label>
+              <label class="wide">備註<input v-model="w.v50Reg.feePlan.note" placeholder="例：買方代書費含履保、賣方減收 2,000" :disabled="!!sel.blocked"></label>
+            </div>
+            <p class="note">應收：有手填用手填，否則用此案轉案的報價（背表「報價」裡的服務費，雙方各半時各算一半）。已收：此案已定稿、非測試收據的代辦費收款（不含代繳規費）。手填後請按上方「存檔」。<span v-if="feeData.error">{{ feeData.error }}</span></p>
+          </section>
           <template v-if="sel.caseId">
             <div class="kv" data-testid="desk-rcpt-sum">
               <div><b>已定稿收據</b>{{ rcptSum.finalCount }} 張</div>
@@ -1121,23 +1156,26 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         return { type, steps, deadlines, badge, badgeCls, alert: !!badge, urgency: fixing ? -9999 : worst ? worst.r : 9999 };
       };
       const d12Cache = new WeakMap();
-      const rowTrack = row => {
-        const hit = d12Cache.get(row); if (hit && hit.src === row._form_json) return hit.t;
+      const d12Entry = row => {
+        const hit = d12Cache.get(row); if (hit && hit.src === row._form_json) return hit;
         let f = null; try { f = row._form_json ? JSON.parse(row._form_json) : null; } catch (e) { f = null; }
-        const t = d12Track(f, row); d12Cache.set(row, { src: row._form_json, t }); return t;
+        const e = { src: row._form_json, f, t: d12Track(f, row) }; d12Cache.set(row, e); return e;
       };
+      const rowTrack = row => d12Entry(row).t;
+      const rowForm = row => d12Entry(row).f;
       const caseTrack = computed(() => w.value && sel.value ? d12Track(w.value, sel.value.row) : { steps: [], deadlines: [] });
       const myName = computed(() => { const n = trim(operator.value).replace(/[（(].*$/, ''); return n.length === 3 ? n.slice(1) : n; });
       const isMine = c => !!myName.value && myName.value !== '同仁' && String(c['承辦'] || '').includes(myName.value);
       const counts = computed(() => {
         const act = cases.value.filter(c => !trim(c['結案時間']));
-        return { active: act.length, closed: cases.value.length - act.length, due: act.filter(c => rowTrack(c).alert).length, mine: act.filter(isMine).length };
+        return { active: act.length, closed: cases.value.length - act.length, due: act.filter(c => rowTrack(c).alert).length, mine: act.filter(isMine).length, unpaid: cases.value.filter(c => rowFee(c).unpaid > 0).length };
       });
       const filtered = computed(() => {
         const kw = trim(q.value).toLowerCase(), s = scope.value;
-        const list = cases.value.filter(c => s === 'closed' ? !!trim(c['結案時間']) : !trim(c['結案時間']) && (s === 'active' || (s === 'due' ? rowTrack(c).alert : isMine(c))))
+        const list = cases.value.filter(c => s === 'unpaid' ? rowFee(c).unpaid > 0 : s === 'closed' ? !!trim(c['結案時間']) : !trim(c['結案時間']) && (s === 'active' || (s === 'due' ? rowTrack(c).alert : isMine(c))))
           .filter(c => !kw || [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['承辦'], c['銷售仲介'], c['開發仲介']].join(' ').toLowerCase().includes(kw));
         if (s === 'due') list.sort((a, b) => rowTrack(a).urgency - rowTrack(b).urgency);
+        if (s === 'unpaid') list.sort((a, b) => rowFee(b).unpaid - rowFee(a).unpaid);
         return list.slice(0, 200);
       });
 
@@ -1149,6 +1187,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           const num = s => { const m = String(s || '').match(/(\d+)$/); return m ? Number(m[1]) : 0; };
           list.sort((a, b) => (trim(a['結案時間']) ? 1 : 0) - (trim(b['結案時間']) ? 1 : 0) || num(b['編號']) - num(a['編號']));
           cases.value = list;
+          loadFeeData();
           loadedAt.value = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
           const a = window.hgCaseAccess || {}; operator.value = a.employee || a.account || a.empKey || '同仁';
         } catch (e) { loadError.value = '案件讀取失敗：' + e.message; }
@@ -1165,6 +1204,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         f = f || {};
         if (!Array.isArray(f.v50Props)) f.v50Props = [];
         f.v50Reg = { ...REG_DEFAULT, ...(f.v50Reg || {}) };
+        if (!f.v50Reg.feePlan || typeof f.v50Reg.feePlan !== 'object') f.v50Reg.feePlan = { buyer: '', seller: '', note: '' };
         HGDeskTax.init(f);
         HGOnlineDesk.init(f);
         if (!Array.isArray(f.sellers)) f.sellers = []; if (!Array.isArray(f.buyers)) f.buyers = [];
@@ -1407,6 +1447,48 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const openReceipt = id => openWin('/receipts/?receipt=' + encodeURIComponent(id));
       const openReceiptsTab = () => { tab.value = 'receipts'; loadReceipts(); };
       watch(() => sel.value && sel.value.caseId, () => { if (tab.value === 'receipts') loadReceipts(); else rcpt.value = { rows: [], loading: false, error: '', caseId: '' }; });
+      // D13 每案收費與未收款（Claude 2026-11-25）：應收＝作業台手填（v50Reg.feePlan）或轉案報價的服務費；已收＝已定稿、非測試收據的代辦費收款。只讀 case_quotes、case_receipts。
+      const feeData = ref({ loaded: false, error: '', receipts: new Map(), quotesById: new Map(), quotesByCase: new Map() });
+      const feeNum = v => { const n = Number(String(v ?? '').replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? n : 0; };
+      const sumReceipts = rows => { const m = { buyer: 0, seller: 0, other: 0 }; (rows || []).forEach(r => { if (!r || r.test || r.status !== 'final') return; m[r.side === 'buyer' || r.side === 'seller' ? r.side : 'other'] += feeNum(r.received); }); return m; };
+      const loadFeeData = async () => {
+        try {
+          const [rs, qs] = await Promise.all([
+            api(`${SUPABASE}/rest/v1/case_receipts?select=case_id,side,status,test,received&case_id=not.is.null`),
+            api(`${SUPABASE}/rest/v1/case_quotes?select=id,quote_no,case_id,status,items,deleted`)
+          ]);
+          const byCase = new Map();
+          (Array.isArray(rs) ? rs : []).forEach(r => { if (!r.case_id) return; if (!byCase.has(r.case_id)) byCase.set(r.case_id, []); byCase.get(r.case_id).push(r); });
+          const receipts = new Map([...byCase].map(([id, rows]) => [id, sumReceipts(rows)]));
+          const quotesById = new Map(), quotesByCase = new Map();
+          (Array.isArray(qs) ? qs : []).forEach(q => { if (!q || q.deleted) return; quotesById.set(q.id, q); if (q.case_id) quotesByCase.set(q.case_id, q); });
+          feeData.value = { loaded: true, error: '', receipts, quotesById, quotesByCase };
+        } catch (e) { feeData.value = { ...feeData.value, loaded: true, error: '收費資料讀取失敗：' + e.message }; }
+      };
+      watch(rcpt, v => { if (!v.caseId || v.loading || v.error) return; const m = new Map(feeData.value.receipts); m.set(v.caseId, sumReceipts(v.rows)); feeData.value = { ...feeData.value, receipts: m }; });
+      const quoteFee = q => {
+        const t = { buyer: 0, seller: 0, collectBuyer: 0, collectSeller: 0 };
+        (q && Array.isArray(q.items) ? q.items : []).forEach(it => {
+          const a = feeNum(it && it.amount); if (!a) return;
+          const svc = (it.cat || '其他') === '服務費', put = (side, v) => { if (svc) t[side] += v; else t[side === 'buyer' ? 'collectBuyer' : 'collectSeller'] += v; };
+          if (it.payer === '買方') put('buyer', a); else if (it.payer === '賣方') put('seller', a); else { put('buyer', a / 2); put('seller', a / 2); }
+        });
+        return t;
+      };
+      const feeOf = (row, f) => {
+        const fd = feeData.value, plan = (f && f.v50Reg && f.v50Reg.feePlan) || {};
+        const q = (row && row._quoteId && fd.quotesById.get(row._quoteId)) || (row && row._caseId && fd.quotesByCase.get(row._caseId)) || null;
+        const qt = q ? quoteFee(q) : null;
+        const manual = trim(plan.buyer) !== '' || trim(plan.seller) !== '';
+        const due = manual ? { buyer: feeNum(plan.buyer), seller: feeNum(plan.seller) } : qt && (qt.buyer || qt.seller) ? { buyer: qt.buyer, seller: qt.seller } : null;
+        const got = (row && row._caseId && fd.receipts.get(row._caseId)) || { buyer: 0, seller: 0, other: 0 };
+        const paid = got.buyer + got.seller + got.other, dueAll = due ? due.buyer + due.seller : 0;
+        const qno = q ? '報價 Q' + String(q.quote_no || '').padStart(4, '0') : '';
+        return { source: manual ? '作業台手填' + (qno ? '（另有' + qno + '）' : '') : due ? qno : qno ? qno + '（沒有服務費項目）' : '', due, got, paid, dueAll,
+          unpaid: due ? Math.max(0, dueAll - paid) : 0, over: due ? Math.max(0, paid - dueAll) : 0, collect: qt && (qt.collectBuyer || qt.collectSeller) ? { buyer: qt.collectBuyer, seller: qt.collectSeller } : null };
+      };
+      const rowFee = row => feeOf(row, rowForm(row));
+      const caseFee = computed(() => sel.value && w.value ? feeOf(sel.value.row, w.value) : feeOf(null, null));
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && tab.value === 'receipts' && sel.value && sel.value.caseId && !rcpt.value.loading) loadReceipts(); });
 
       // D3 謄本帶入（Claude 2026-11-17）：電子謄本 PDF 在瀏覽器內讀取文字層，逐筆人工核對後才帶入「標的明細」
@@ -2269,7 +2351,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D12';
+      const APP_VER = 'desk-D13';
       const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
       const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
       const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
@@ -2413,7 +2495,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
-        rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName,
+        rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName, feeData, caseFee, rowFee,
         blocks, tax, pdfPreview, pdfDialog, releasePreview, copyMailAddress, openNotePicker,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
