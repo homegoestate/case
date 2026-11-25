@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地政士作業台｜宏國x易丞地政</title>
+<!-- D9 2026-11-20 登記備註引用、臺南稅務申報書與 PDF 預覽 -->
 <!-- 地政士作業台 D8（Claude 2026-11-19：意見回報與回報紀錄、帶入速度與修正自動記錄、依同仁修正自動校正辨識錯字）；D7（Claude 2026-11-18：謄本帶入支援掃描檔與照片、電腦內辨識所有權人資料、共有部分、帶入賣方、新增買賣方）；D6（Claude 2026-11-17：合約辨識，電腦內辨識、核對後帶入背表欄位）；D5（Claude 2026-11-17：案件文件分頁，原始檔存私人檔案區、身分證件浮水印）；D4（Claude 2026-11-17：客戶名冊、異動即時通與同意狀態、回覆範本增補）；D3（Claude 2026-11-17：電子謄本 PDF 帶入、當事人 Email、客戶回覆建議）；D2（Claude 2026-11-17：加收據分頁，讀 case_receipts）；D1（Claude 2026-11-16）：與背表共用登入（hg-shared）與雲端案件（Supabase nexus_data）。只改選定的一件案件。 -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -151,6 +152,34 @@ table.props tr.common td.kind{color:#0369a1}
 .imp-view .bar{display:flex;gap:10px;align-items:center;padding:6px 10px;background:#f1f5f9;flex-wrap:wrap;font-size:13px}
 .imp-view .pg{max-height:75vh;overflow:auto}
 .imp-view img{width:100%;display:block}
+.d11-review{margin:12px 0;padding:10px 12px;background:white;border-left:3px solid #a65b17}
+.d11-review li{margin:5px 0}.d11-review ul{margin:6px 0;padding-left:18px}
+.d11-evidence{white-space:normal;margin:5px 0;max-width:750px}
+.d11-evidence summary{color:var(--navy);cursor:pointer}.d11-evidence div{padding:5px;border-left:2px solid var(--line)}
+.d11-evidence p{margin:3px 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.imp-view iframe{width:100%;height:65vh;border:0}.d11-edit:focus-within{outline:2px solid var(--navy);outline-offset:-2px}
+@media (max-width:700px){
+  .imp,.imp .row>*,.imp .own,.imp .mini,.imp .btn{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .imp .mini,.imp .btn{white-space:normal}
+  .imp .tw{overflow:visible;border:0;border-radius:0}
+  .imp table.props,.imp table.props tbody{display:block;width:100%;min-width:0}
+  .imp table.props thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .imp table.props .d11-edit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;
+    padding:10px;border:1px solid var(--line-2);border-radius:8px 8px 0 0;background:white}
+  .imp .own table.props .d11-edit{margin-bottom:8px;border-radius:8px}
+  .imp table.props .d11-edit td{display:block;min-width:0!important;padding:0;border:0;white-space:normal;background:transparent;overflow-wrap:anywhere}
+  .imp table.props .d11-edit td::before{content:attr(data-label);display:block;margin-bottom:3px;color:var(--navy);font-size:12px;font-weight:700}
+  .imp table.props .d11-edit td[data-wide]{grid-column:1/-1}
+  .imp table.props .d11-edit td.d11-omit{display:none}
+  .imp table.props input:not([type=checkbox]){width:100%;min-width:0;max-width:100%;padding:6px;font-size:16px}
+  .imp table.props input[type=checkbox]{width:20px;min-width:20px;height:20px;margin:2px 4px 2px 0;vertical-align:middle}
+  .imp .own .ev{max-width:100%;object-fit:contain;object-position:left}
+  .imp table.props tr.sub{display:block;margin:0 0 10px;border:1px solid var(--line-2);border-top:0;border-radius:0 0 8px 8px;background:#fbfdff}
+  .imp table.props tr.sub td:first-child{display:none}
+  .imp table.props tr.sub td[colspan]{display:block;max-width:100%;padding:8px;border:0;border-radius:inherit;overflow-wrap:anywhere}
+  .imp .d11-evidence,.imp .imp-view .bar>*{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .imp button:focus-visible,.imp input:focus-visible,.imp summary:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+}
 .party .ptop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12.5px}
 .padd{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
 .top .links{flex-wrap:wrap}
@@ -237,9 +266,80 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 })();
 </script>
 <script src="forms/vue.global.js"></script>
-<script src="forms/hg-forms.js"></script>
-<script src="forms/hg-transcript.js?v=d7"></script>
+<script src="forms/hg-forms-desk.js?v=d10"></script>
+<script src="forms/hg-reg-notes.js?v=d10"></script>
+<style>
+.reg-notes{margin:12px 0;padding:9px 12px;border:1px solid var(--line,#ced9dd);border-radius:6px}
+.reg-notes summary{cursor:pointer;font-weight:700;color:var(--navy)}
+.reg-notes[open] summary{margin-bottom:10px}
+.reg-notes p{margin:8px 0}.reg-notes a{display:inline-block;margin-right:10px;text-decoration:underline}
+.reg-notes-preview{border-left:3px solid var(--navy);padding:7px 10px;margin:8px 0;background:#f4f7f8;white-space:pre-wrap;overflow-wrap:anywhere}
+.reg-notes label.reg-notes-check{display:flex;align-items:baseline;gap:6px;margin:8px 0}
+.reg-notes label.reg-notes-check input{width:auto}
+</style>
+<script src="forms/hg-transcript.js?v=d11"></script>
+<script src="forms/hg-import-review.js?v=d11"></script>
 <script src="forms/hg-feedback.js?v=d8"></script>
+<script src="forms/hg-tax-pdf.js?v=d9"></script>
+<script src="forms/hg-land-tax.js?v=d9"></script>
+<script src="forms/hg-deed-tax.js?v=d9"></script>
+<script src="forms/hg-desk-tax.js?v=d9"></script>
+<script src="forms/hg-online-tax-format.js?v=d10"></script>
+<script src="forms/hg-online-tax.js?v=d10"></script>
+<script src="forms/hg-online-price.js?v=d10"></script>
+<script src="forms/hg-online-alerts.js?v=d10"></script>
+<script src="forms/hg-online-desk.js?v=d10"></script>
+<style>
+.online-desk fieldset{border:0;padding:0;margin:0;min-width:0}
+.online-title,.online-task,.online-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.online-title{justify-content:space-between}.online-title h2,.online-panel h3{margin:0 0 8px}.online-title p{margin:0;color:#42546a}
+.online-panel{border:1px solid var(--line);border-radius:8px;padding:14px;margin:14px 0;background:#fafcfd;min-width:0}
+.online-desk .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(225px,100%),1fr));gap:9px 14px}
+.online-desk .grid2 label,.online-task>label:first-child{display:grid;gap:4px;font-size:13px;color:#374b60}
+.online-desk input:not([type=checkbox]),.online-desk select,.online-desk textarea{background:#fff;color:#182f42;border:1px solid #bbcbd5;border-radius:5px;padding:6px 8px;min-width:0}
+.online-desk .online-price>fieldset,.online-desk .d10-tax-online,.online-desk .online-price{min-width:0}
+.online-desk details>summary{line-height:1.7}.online-desk section p,.online-desk .d10-tax-online p{line-height:1.65}
+.online-desk .online-price button:not(.mini){background:#f2f7fa;color:var(--navy);border:1px solid #bbcbd5;border-radius:5px;padding:7px 11px}
+.online-desk .online-price button:disabled{opacity:.52}
+.online-nav{margin:14px 0}.online-panel summary{cursor:pointer;font-weight:700;color:var(--navy)}.online-panel[open] summary{margin-bottom:12px}
+.online-task{margin:10px 0}.online-task .online-check{display:flex;align-items:center;gap:8px}.online-check input{width:auto}
+.online-desk input,.online-desk select{max-width:100%}.online-history li{margin:8px 0;overflow-wrap:anywhere}.online-desk a{color:#16527a}
+</style>
+<style>
+.d9-jump,.d9-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.d9-jump {padding:4px 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.d9-jump a{color:var(--navy);font-weight:650;text-underline-offset:3px}
+.d9-work{margin:12px 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:8px}
+.d9-work legend,.d9-work summary{font-weight:700;color:var(--navy)}
+.d9-work details,.d9-work .grid{margin:10px 0}
+.d9-work summary{cursor:pointer}.d9-work .grid{grid-template-columns:repeat(auto-fit,minmax(min(205px,100%),1fr))}
+.d9-work .inline{align-items:center}.d9-form-preview{width:min(980px,95vw);height:min(900px,92vh);padding:12px;border:0;border-radius:10px}
+.d9-form-preview::backdrop{background:#0f233ccc}.d9-form-preview iframe{width:100%;height:calc(100% - 64px);border:1px solid var(--line);margin-top:10px}
+.d9-form-preview .d9-actions{justify-content:space-between}.d9-subhead{font-size:14px;color:var(--navy);margin:12px 0 5px}.d9-work select{max-width:100%}
+</style>
+<style>
+/* D12：辦理進度、法定期限、期限警示 */
+.d12-steps{display:flex;margin:12px 0 2px;overflow-x:auto}
+.d12-steps>div{flex:1;min-width:74px;text-align:center;position:relative;padding-top:22px;font-size:12.5px;color:var(--muted)}
+.d12-steps>div:before{content:"";position:absolute;top:8px;left:0;right:0;height:3px;background:#e2e8f0}
+.d12-steps>div:first-child:before{left:50%}.d12-steps>div:last-child:before{right:50%}
+.d12-steps i{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid #cbd5e1;z-index:1;font-style:normal;font-size:10px;line-height:11px;color:#fff;font-weight:700}
+.d12-steps .done{color:#166534}.d12-steps .done:before{background:#16a34a}.d12-steps .done i{background:#16a34a;border-color:#16a34a}
+.d12-steps .cur{color:var(--navy);font-weight:700}.d12-steps .cur i{border-color:var(--navy);box-shadow:0 0 0 3px #dbeafe}
+.d12-steps .warn{color:#b91c1c;font-weight:700}.d12-steps .warn i{border-color:#dc2626;background:#dc2626}
+.d12-steps small{display:block;font-weight:400;font-size:11.5px}
+.d12-dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px}
+.d12-dl>div{border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12.5px;background:#fff}
+.d12-dl b{display:block;font-size:13px}
+.d12-dl .r{font-weight:700;margin-top:2px}
+.d12-dl .over{background:#fef2f2;border-color:#fecaca}.d12-dl .over .r{color:#b91c1c}
+.d12-dl .soon{background:#fff7ed;border-color:#fed7aa}.d12-dl .soon .r{color:#c2410c}
+.d12-dl .ok .r{color:#166534}.d12-dl .done{opacity:.6}.d12-dl .info .r{color:var(--muted)}
+.list li .d12-badge{display:inline-block;margin-top:3px;font-size:11.5px;padding:0 7px;border-radius:999px;background:#fff7ed;color:#c2410c}
+.list li .d12-badge.over{background:#fef2f2;color:#b91c1c}
+.d12-set{margin:6px 0 10px;font-size:12.5px;color:var(--muted)}
+@media (max-width:560px){.d12-steps>div{min-width:0;font-size:11.5px}.d12-steps small{font-size:10px;letter-spacing:-.2px}.d12-dl{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
 <div id="desk" v-cloak>
@@ -264,6 +364,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       <div class="chips">
         <button type="button" :class="{on: scope === 'active'}" @click="scope = 'active'">進行中 {{ counts.active }}</button>
         <button type="button" :class="{on: scope === 'closed'}" @click="scope = 'closed'">已結案 {{ counts.closed }}</button>
+        <button type="button" :class="{on: scope === 'due'}" @click="scope = 'due'" data-testid="d12-scope-due" title="進行中且法定期限 7 天內、已逾期或補正中">期限警示 {{ counts.due }}</button>
+        <button type="button" :class="{on: scope === 'mine'}" @click="scope = 'mine'" data-testid="d12-scope-mine" :title="'承辦欄含「' + myName + '」的進行中案件'">我的 {{ counts.mine }}</button>
         <button type="button" class="btn sm" style="margin-left:auto" @click="loadCases" :disabled="loading">{{ loading ? '載入中…' : '重新載入' }}</button>
       </div>
       <div v-if="loadError" class="alert">{{ loadError }}</div>
@@ -272,6 +374,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <div class="t">{{ c['編號'] }}　{{ c['案名'] || '（未填案名）' }}</div>
           <div class="s">{{ c['地址'] || '' }}</div>
           <div class="s">簽約 {{ c['簽約日'] || '—' }}｜承辦 {{ c['承辦'] || '—' }}</div>
+          <span v-if="rowTrack(c).badge" class="d12-badge" :class="rowTrack(c).badgeCls" data-testid="d12-list-badge">{{ rowTrack(c).badge }}</span>
         </li>
         <li v-if="!filtered.length" class="muted" style="cursor:default">{{ loading ? '載入中…' : '沒有符合的案件' }}</li>
       </ul>
@@ -293,7 +396,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         <div v-if="fbv.error" class="alert" style="margin-top:8px">{{ fbv.error }}</div>
         <div v-if="fbState.cloud === 'missing'" class="alert warn" style="margin-top:8px" data-testid="desk-fb-missing">雲端回報區還沒開通：回報與自動紀錄先存在這台電腦（目前 {{ fbState.queued }} 筆），開通後打開作業台會自動送出。開通方式：楊總在 Supabase 執行一次「10_同仁回報_新增.sql」。</div>
         <p v-else-if="fbState.queued" class="note">這台電腦還有 {{ fbState.queued }} 筆紀錄等待送出。<button type="button" class="linkbtn" @click="fbRetry">立即送出</button></p>
-        <p class="note">同仁按「意見回報」寫的問題與建議都在這裡；看過後請改「處理狀態」並回覆，回報的同仁打開作業台就會看到。系統也會自動記錄每次帶入的速度、同仁改了哪些欄位，並從修正學出常見的辨識錯字，之後帶入時自動校正。</p>
+        <p class="note">同仁的問題與建議會列在這裡。更新處理狀態並回覆後，回報人可回作業台查看。謄本帶入會記錄速度與修改過的欄位名稱，供同仁掌握哪些欄位需要仔細核對。</p>
 
         <h3>同仁回報 <span class="muted">（共 {{ fbReports.length }} 則，待處理 {{ fbOpenCount }} 則）</span></h3>
         <label class="muted"><input type="checkbox" v-model="fbv.openOnly"> 只看待處理／處理中</label>
@@ -331,11 +434,11 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <div v-if="fbStats.checkedAll" class="muted">共帶入 {{ fbStats.checkedAll }} 個欄位，只列出被修改過的。</div>
           </div>
           <div>
-            <b>學到的常見辨識錯字</b>
+            <b>歷史辨識錯字紀錄</b>
             <table class="mini"><thead><tr><th>欄位</th><th>讀成 → 改成</th><th>次數</th><th>案件</th><th>狀態</th></tr></thead>
-              <tbody><tr v-for="x in fbStats.rules" :key="x.f + '|' + x.a + '|' + x.b"><td>{{ x.f.replace('.', '・') }}</td><td>{{ x.a }} → {{ x.b }}</td><td>{{ x.n }}</td><td>{{ x.cases }}</td><td><span class="tag" :class="x.active ? 'ok' : ''">{{ x.active ? '自動校正中' : '觀察中' }}</span></td></tr>
+              <tbody><tr v-for="x in fbStats.rules" :key="x.f + '|' + x.a + '|' + x.b"><td>{{ x.f.replace('.', '・') }}</td><td>{{ x.a }} → {{ x.b }}</td><td>{{ x.n }}</td><td>{{ x.cases }}</td><td>供核對</td></tr>
                 <tr v-if="!fbStats.rules.length"><td colspan="5" class="muted">尚無</td></tr></tbody></table>
-            <div class="muted">同一個錯字在 2 件以上案件被改 3 次以上，之後就自動校正（只用在電腦辨識的文字欄；數字欄不自動改；統一編號要檢查碼由錯變對才改）。同仁改回原字，系統會自動停用。</div>
+            <div class="muted">匯入的姓名、編號、住址與各筆標示保留本次讀取結果，請依本案原件修正。</div>
           </div>
         </div>
       </div>
@@ -400,51 +503,97 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <div><b>受託業務</b>{{ w.ledgerService || '—' }}</div>
             <div><b>最後修改</b>{{ sel.row._updatedBy || '—' }} {{ sel.row._updatedAt || '' }}</div>
           </div>
+          <div class="d12-steps" data-testid="d12-steps">
+            <div v-for="s in caseTrack.steps" :key="s.name" :class="s.cls"><i>{{ s.cls === 'done' ? '✓' : s.cls === 'warn' ? '!' : '' }}</i>{{ s.name }}<small>{{ s.label || ' ' }}</small></div>
+          </div>
+          <div class="d12-dl" v-if="caseTrack.deadlines.length" data-testid="d12-deadlines">
+            <div v-for="d in caseTrack.deadlines" :key="d.name" :class="d.cls" :title="d.law"><b>{{ d.name }}</b><span class="muted">{{ d.dueLabel }}</span><div class="r">{{ d.text }}</div></div>
+          </div>
+          <p class="note" style="margin:6px 0 0">進度與期限依背表的簽約、用印、完稅日期及紀錄簿「送件明細」推算（期限採計入起算日的保守算法，滑鼠停在卡片上可看法條）；日期要改請到背表。正式期限以機關認定為準。</p>
           <div v-if="sel.blocked" class="alert warn" style="margin-top:10px">{{ sel.blocked }}</div>
         </div>
 
         <div class="tabs">
-          <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記表單</button>
+          <button type="button" :class="{on: tab === 'online'}" @click="tab = 'online'" data-testid="desk-tab-online">線上申報</button>
+          <button type="button" :class="{on: tab === 'forms'}" @click="tab = 'forms'" data-testid="desk-tab-forms">登記與稅務表單</button>
           <button type="button" :class="{on: tab === 'files'}" @click="openFilesTab" data-testid="desk-tab-files">文件</button>
           <button type="button" :class="{on: tab === 'receipts'}" @click="openReceiptsTab" data-testid="desk-tab-receipts">收據</button>
           <button type="button" :class="{on: tab === 'reply'}" @click="tab = 'reply'" data-testid="desk-tab-reply">客戶回覆</button>
           <button type="button" disabled title="下一步串接">報價（規劃中）</button>
         </div>
 
+        <div class="card" v-show="tab === 'online'" data-testid="desk-online">
+          <online-desk :key="sel.key" :work="w" :operator="operator" :locked="sel.blocked" @forms="tab = 'forms'"></online-desk>
+        </div>
         <div class="card" v-show="tab === 'forms'" data-testid="desk-forms">
+          <nav class="d9-jump" aria-label="登記表單區段"><a href="#d9-registration">登記資料與備註</a> · <a href="#d9-taxes">稅務資料</a> · <a href="#d9-outputs">預覽及下載表單</a></nav>
           <div class="imp" data-testid="desk-import">
             <div class="row">
               <b style="color:var(--navy)">從謄本帶入</b>
               <span class="btn filebtn" :class="{primary: !imp.docs.length}">{{ imp.busy ? '讀取中…' : '選擇謄本（電子謄本、掃描 PDF、照片）' }}<input type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple @change="onTranscriptFiles" :disabled="imp.busy || !!sel.blocked" data-testid="desk-import-file"></span>
-              <span class="muted">在這台電腦讀取與辨識，不送外部、不付費。地政事務所的電子謄本最準（約 5 秒）；照片請拍正、整頁入鏡、不反光（每頁約 15～40 秒）。也可在「文件」分頁的謄本按「帶入謄本」。</span>
+              <span class="muted">在這台電腦讀取文字或辨識影像。照片請拍正、整頁入鏡。已存入案件的謄本，可從「文件」分頁開啟。</span>
             </div>
             <div v-if="imp.busy" class="prog"><div :style="{ width: imp.pct + '%' }"></div></div>
-            <div v-if="imp.msg" class="status" data-testid="desk-import-msg">{{ imp.msg }}</div>
+            <div v-if="imp.msg" class="status" data-testid="desk-import-msg" aria-live="polite">{{ imp.msg }}</div>
+            <div v-if="imp.applied" class="row">
+              <button type="button" class="mini" @click="jumpEdit('desk-props')">標的明細</button>
+              <button type="button" class="mini" @click="jumpEdit(partyRows.length ? 'desk-party-0' : 'desk-add-seller')">當事人</button>
+              <button type="button" class="mini" @click="jumpEdit('desk-backform-landno')">更新背表地建號</button>
+              <button type="button" class="mini" @click="jumpEdit('desk-card-sale-contract')">查看公契草稿</button>
+              <button type="button" class="mini" @click="jumpEdit('trial-tax-details')">核對土增稅與契稅</button>
+            </div>
             <ul v-if="imp.warnings.length" class="warnlist"><li v-for="x in imp.warnings" :key="x">{{ x }}</li></ul>
+            <div v-if="imp.manualFiles.length || (!imp.busy && !imp.docs.length && imp.warnings.length)" class="d11-review" data-testid="desk-import-manual">
+              <b>需手動核對的原件</b>
+              <div v-for="file in imp.manualFiles" :key="file.sourceId">
+                {{ file.file }} <button type="button" class="mini" @click="viewSource(file)" data-testid="desk-import-manual-original">查看原件</button>
+              </div>
+              <div class="row"><button type="button" class="mini" @click="jumpEdit('desk-add-land')" data-testid="desk-import-manual-prop">前往手填標的</button>
+                <button type="button" class="mini" @click="jumpEdit('desk-add-seller')">前往手填當事人</button>
+                <button v-if="!imp.docs.length" type="button" class="mini" @click="clearImport" data-testid="desk-import-manual-clear">結束這次讀檔</button></div>
+            </div>
             <div v-if="!imp.busy && (imp.msg || imp.docs.length)" class="fbline"><button type="button" class="linkbtn" @click="openFeedback('謄本帶入')" data-testid="desk-import-report">讀錯了、太慢或不好用？按這裡回報</button></div>
-            <div v-if="imp.autoFix.length" class="fbauto" data-testid="desk-import-autofix">已依同仁過去的修正自動校正 {{ imp.autoFix.length }} 處：{{ imp.autoFix.map(x => x.where + ' ' + x.pairs.map(p => p[0] + '→' + p[1]).join('、')).join('；') }}。請核對，不對就直接改回（改回後系統會記住）。</div>
             <div v-if="imp.docs.length && impHot" class="fbhot" data-testid="desk-import-hot">依過去的修正紀錄，這些欄位最常需要修改，已標黃，請特別核對：{{ impHot }}</div>
             <template v-if="imp.docs.length">
+              <section v-if="reviewItems.length" class="d11-review" data-testid="desk-import-review">
+                <b>優先核對欄位</b>
+                <ul><li v-for="item in reviewItems" :key="item.target">
+                  <button type="button" class="mini" @click="jumpEdit(item.target,item.field)" data-testid="desk-import-jump">{{ item.label }}</button>
+                  {{ item.reasons.join('　') }}
+                </li></ul>
+              </section>
               <div class="tw" style="margin-top:8px">
                 <table class="props" data-testid="desk-import-table">
                   <thead><tr><th>帶入</th><th>種類</th><th>縣市</th><th>鄉鎮市區</th><th>段</th><th>小段</th><th>地號／建號</th><th>面積（㎡）</th><th>附屬建物（㎡）</th><th>建物門牌</th><th>移轉權利範圍</th></tr></thead>
                   <tbody>
                     <template v-for="(d, i) in imp.docs" :key="i">
-                      <tr :class="{common: d.common}" :data-testid="'desk-import-row-' + i">
-                        <td><input type="checkbox" v-model="d.pick" :aria-label="'帶入第' + (i + 1) + '筆'"></td>
-                        <td class="kind">{{ d.common ? '共有部分' : d.row.kind }}<span v-if="d.ocr" class="tag ocr">辨識</span></td>
-                        <td><input v-model="d.row.city" :class="hc(d, 'city')"></td><td><input v-model="d.row.district" :class="hc(d, 'district')"></td><td><input v-model="d.row.section" :class="hc(d, 'section')"></td><td><input v-model="d.row.subSection" :class="hc(d, 'subSection')"></td>
-                        <td><input v-model="d.row.number" :class="hc(d, 'number')"></td>
-                        <td><input v-if="d.row.kind === '土地'" v-model="d.row.area" inputmode="decimal" :class="hc(d, 'area')"><input v-else v-model="d.row.mainArea" inputmode="decimal" :class="hc(d, 'mainArea')"></td>
-                        <td><input v-if="d.row.kind === '建物' && !d.common" v-model="d.row.attachedArea" inputmode="decimal" :class="hc(d, 'attachedArea')"></td>
-                        <td><input v-if="d.row.kind === '建物'" v-model="d.row.address" class="wide" :class="hc(d, 'address')" :placeholder="d.common ? '（共有部分可留空）' : ''"></td>
-                        <td><input v-model="d.row.transferShare" :class="hc(d, 'transferShare')"></td>
+                      <tr class="d11-edit" :class="{common: d.common}" :data-testid="'desk-import-row-' + i">
+                        <td data-label="帶入這筆標的"><input type="checkbox" v-model="d.pick" :disabled="!!matchProp(d.row).issue" :aria-label="'帶入第' + (i + 1) + '筆'"></td>
+                        <td data-label="種類與來源" class="kind">{{ d.common ? '共有部分' : d.row.kind }}<span class="tag" :class="{ocr:d.ocr}">{{ modeName(d.mode) }}</span></td>
+                        <td data-label="縣市"><input v-model="d.row.city" aria-label="縣市" data-field="city" :class="hc(d, 'city')"></td><td data-label="鄉鎮市區"><input v-model="d.row.district" aria-label="鄉鎮市區" data-field="district" :class="hc(d, 'district')"></td><td data-label="段"><input v-model="d.row.section" aria-label="段" data-field="section" :class="hc(d, 'section')"></td><td data-label="小段"><input v-model="d.row.subSection" aria-label="小段" data-field="subSection" :class="hc(d, 'subSection')"></td>
+                        <td data-label="地號／建號"><input v-model="d.row.number" aria-label="地號／建號" data-field="number" :class="hc(d, 'number')"></td>
+                        <td data-label="面積（㎡）"><input v-if="d.row.kind === '土地'" v-model="d.row.area" aria-label="面積（㎡）" data-field="area" inputmode="decimal" :class="hc(d, 'area')"><input v-else v-model="d.row.mainArea" aria-label="面積（㎡）" data-field="mainArea" inputmode="decimal" :class="hc(d, 'mainArea')"></td>
+                        <td data-label="附屬建物（㎡）" :class="{'d11-omit': d.row.kind !== '建物' || d.common}"><input v-if="d.row.kind === '建物' && !d.common" v-model="d.row.attachedArea" aria-label="附屬建物（㎡）" data-field="attachedArea" inputmode="decimal" :class="hc(d, 'attachedArea')"></td>
+                        <td data-label="建物門牌" data-wide :class="{'d11-omit': d.row.kind !== '建物'}"><input v-if="d.row.kind === '建物'" v-model="d.row.address" aria-label="建物門牌" data-field="address" class="wide" :class="hc(d, 'address')" :placeholder="d.common ? '（共有部分可留空）' : ''"></td>
+                        <td data-label="移轉權利範圍"><input v-model="d.row.transferShare" aria-label="移轉權利範圍" data-field="transferShare" :class="hc(d, 'transferShare')"></td>
                       </tr>
                       <tr class="sub">
                         <td></td>
                         <td colspan="10">
-                          <div class="muted">來源：{{ d.file }}{{ d.landRefs.length ? '｜建物坐落：' + d.landRefs.join('、') : '' }}
-                            <button v-if="d.ocr && imp.thumbs.some(t => t.file === d.file)" type="button" class="mini" @click="viewThumb(d.file)" style="margin-left:6px">看原圖對照</button></div>
+                          <div class="muted">{{ d.file }} · {{ d.pageLabel }}{{ d.landRefs.length ? '｜建物坐落：' + d.landRefs.join('、') : '' }}
+                            <button type="button" class="mini" @click="viewSource(d.sources[0] || d)" :data-testid="'desk-import-original-' + i">看原件</button></div>
+                          <import-evidence :entries="d.sources" @open="viewSource"></import-evidence>
+                          <label v-if="d.row.transcriptTax && !d.common" class="muted">
+                            <input type="checkbox" v-model="d.useTaxSource" :disabled="!d.pick || !canKeepSource(d,'transcriptTax')" :data-testid="'import-tax-source-' + i">
+                            保留本筆謄本的稅務參考欄，供兩稅填報時核對
+                            <span v-if="!canKeepSource(d,'transcriptTax')">（標的有改動或來源重複，請另核對）</span>
+                          </label>
+                          <div v-if="d.row.transcriptBuilding && !d.common" class="muted">
+                            <label><input type="checkbox" v-model="d.useBuildingSource" :disabled="!d.pick || !canKeepSource(d,'transcriptBuilding')" :data-testid="'import-building-source-' + i"> 帶入已核對的公契建物明細</label>
+                            <div v-if="d.row.transcriptBuilding.landRefs">坐落基地：{{ d.landRefs.join('、') }}</div>
+                            <div v-if="d.row.transcriptBuilding.floorAreas">各層面積：{{ d.row.transcriptBuilding.floorAreas.map(x => x.label + ' ' + x.area + ' ㎡').join('、') }}</div>
+                            <div v-if="d.row.transcriptBuilding.accessories">附屬建物：{{ d.row.transcriptBuilding.accessories.map(x => x.label + ' ' + x.area + ' ㎡').join('、') }}</div>
+                          </div>
                           <div v-if="propExists(d.row)" class="okc" style="color:var(--warn)">作業台已有這筆標的：只會補上空白欄位，不會覆蓋已填的資料。</div>
                           <template v-if="d.common">
                             <div>屬於 {{ d.row.commonOf }} 建號的共有部分（公設）。面積是共有部分的總面積，移轉權利範圍是謄本記載的持分。<template v-if="d.note">其他登記事項：{{ d.note }}</template></div>
@@ -454,7 +603,10 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
                               <template v-if="d.owners.length"><span v-for="(o, k) in d.owners" :key="k">{{ k ? '；' : '' }}{{ o.name || '（未讀到姓名）' }}　權利範圍 {{ o.share || '未讀到' }}<span v-if="o.name" :class="ownerOk(o) ? 'okc' : 'badc'">　{{ ownerOk(o) ? '✓ 與本案賣方相符' : '✗ 不在本案賣方名單' }}</span></span></template>
                               <span v-else class="muted">未讀到（可能只申請部分謄本）</span>
                             </div>
-                            <div>他項權利：{{ d.rightsText }}</div>
+                            <div>他項權利：{{ d.rightsText }}
+                              <label v-if="usableRights(d)"><input type="checkbox" v-model="d.useRights" :disabled="!d.pick || !!matchProp(d.row).issue" :data-testid="'desk-import-rights-' + i"> 已核對此筆，將權利記載附到公契</label>
+                              <span v-else class="muted">（保留公契原欄位，需另核原件）</span>
+                            </div>
                           </template>
                           <ul v-if="d.issues.length" class="warnlist"><li v-for="x in d.issues" :key="x">{{ x }}</li></ul>
                         </td>
@@ -465,43 +617,48 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               </div>
               <div v-if="imp.owners.length" class="own" data-testid="desk-import-owners">
                 <b style="color:var(--navy)">謄本所有權人 → 義務人（賣方）</b>
-                <span class="muted">（可直接修改；截圖是謄本上的原字，請逐字核對。同名的賣方只補空白欄位，不會覆蓋已填的資料）</span>
+                <span class="muted">可直接修改。請用來源頁核對姓名、編號與各筆持分；勾選既有賣方時只補空白欄位。</span>
                 <div class="tw" style="margin-top:6px">
                   <table class="props">
                     <thead><tr><th>帶入賣方</th><th>姓名</th><th>統一編號</th><th>出生日期</th><th>住址</th><th>各筆權利範圍</th><th>本案賣方</th></tr></thead>
                     <tbody>
-                      <tr v-for="(o, i) in imp.owners" :key="i" :data-testid="'desk-owner-' + i">
-                        <td><input type="checkbox" v-model="o.pick" :disabled="!ownerCan(o)" :aria-label="'帶入賣方' + (i + 1)" :data-testid="'desk-owner-pick-' + i"></td>
-                        <td style="min-width:110px"><input v-model="o.name" :class="hco('name')"><img v-if="o.ev.name" :src="o.ev.name" class="ev" alt="謄本姓名原字"></td>
-                        <td style="min-width:130px"><input v-model="o.id" @input="o.id = o.id.toUpperCase()" :class="hco('id')"><div :class="idCls(o)">{{ idHint(o) }}</div><img v-if="o.ev.id" :src="o.ev.id" class="ev" alt="謄本統一編號原字"></td>
-                        <td><input type="date" v-model="o.birth" :class="hco('birth')"></td>
-                        <td style="min-width:260px"><input v-model="o.address" class="wide" :class="hco('address')"><img v-if="o.ev.addr" :src="o.ev.addr" class="ev" alt="謄本住址原字"></td>
-                        <td style="font-size:12px">{{ o.shares.map(s => s.label + '：' + (s.share || '未讀到')).join('；') }}</td>
-                        <td style="font-size:12px;white-space:nowrap" :class="ownerSeller(o) ? 'okc' : ''">{{ ownerSeller(o) ? '✓ 已在名單（補空白欄）' : o.masked ? '姓名有遮罩，請手動填' : '新增一位' }}</td>
+                      <tr v-for="(o, i) in imp.owners" :key="i" class="d11-edit" :data-testid="'desk-owner-' + i">
+                        <td data-label="帶入這位賣方"><input type="checkbox" v-model="o.pick" :disabled="!ownerCan(o)" :aria-label="'帶入賣方' + (i + 1)" :data-testid="'desk-owner-pick-' + i"></td>
+                        <td data-label="姓名" style="min-width:110px"><input v-model="o.name" aria-label="姓名" data-field="name" :class="hco('name')"><img v-if="o.ev.name" :src="o.ev.name" class="ev" alt="謄本姓名原字"></td>
+                        <td data-label="統一編號" style="min-width:130px"><input v-model="o.id" aria-label="統一編號" data-field="id" @input="o.id = o.id.toUpperCase()" :class="hco('id')"><div :class="idCls(o)">{{ idHint(o) }}</div><img v-if="o.ev.id" :src="o.ev.id" class="ev" alt="謄本統一編號原字"></td>
+                        <td data-label="出生日期"><input type="date" v-model="o.birth" aria-label="出生日期" data-field="birth" :class="hco('birth')"></td>
+                        <td data-label="住址" data-wide style="min-width:260px"><input v-model="o.address" aria-label="住址" data-field="address" class="wide" :class="hco('address')"><img v-if="o.ev.addr" :src="o.ev.addr" class="ev" alt="謄本住址原字"></td>
+                        <td data-label="各筆權利範圍" data-wide style="font-size:12px">{{ o.shares.map(s => s.label + '：' + (s.share || '未讀到')).join('；') }}
+                          <label>帶入賣方的持分<input v-model.trim="o.share" data-field="share" placeholder="未確認可留白"></label>
+                        </td>
+                        <td data-label="本案賣方與來源" data-wide style="font-size:12px;min-width:180px" :class="ownerSeller(o) ? 'okc' : ''">{{ matchSeller(o).issue || (matchSeller(o).nameOnly ? '同名，請核身後勾選' : ownerSeller(o) ? '✓ 已在名單（補空白欄）' : '新增一位') }}
+                          <import-evidence :entries="o.sources" @open="viewSource"></import-evidence>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
-              <div v-if="imp.view" class="imp-view" data-testid="desk-import-view">
-                <div class="bar"><b>原圖：{{ imp.view.file }}</b>
-                  <label>第 <select v-model.number="imp.view.idx" style="padding:2px 4px"><option v-for="(t, k) in imp.thumbs.filter(t => t.file === imp.view.file)" :key="k" :value="k">{{ t.page }}</option></select> 頁</label>
-                  <button type="button" class="btn sm" @click="imp.view = null">關閉</button></div>
-                <div class="pg"><img :src="(imp.thumbs.filter(t => t.file === imp.view.file)[imp.view.idx] || {}).src" alt="謄本原圖"></div>
-              </div>
               <div class="checks">
-                <label v-if="imp.docs.some(d => d.rightsState !== 'unknown' && d.rightsState !== 'n/a')"><input type="checkbox" v-model="imp.useRights"> 他項權利情形一併填入公契欄（目前{{ w.v50Reg.otherRights ? '已有內容，會接在後面' : '空白' }}）</label>
                 <label v-if="imp.files.length && sel.caseId"><input type="checkbox" v-model="imp.saveOrig" data-testid="desk-import-save"> 帶入時把謄本原檔存到「文件」分頁（{{ imp.files.length }} 份）</label>
                 <label><input type="checkbox" v-model="imp.reviewed" data-testid="desk-import-reviewed"> 我已對照謄本原件逐欄核對（所有權人不相符時，請先確認是否為繼承、贈與或代理）</label>
               </div>
               <div class="row">
-                <button type="button" class="btn primary" @click="applyTranscript" :disabled="!imp.reviewed || imp.busy || (!imp.docs.some(d => d.pick) && !imp.owners.some(o => o.pick))" data-testid="desk-import-apply">帶入勾選的標的與賣方</button>
+                <button type="button" class="btn primary" @click="applyTranscript" :disabled="!imp.reviewed || imp.busy || !canApply" data-testid="desk-import-apply">帶入勾選的標的與賣方</button>
                 <button type="button" class="btn" @click="clearImport">取消</button>
               </div>
             </template>
+            <div v-if="imp.view" class="imp-view" data-testid="desk-import-view">
+              <div class="bar"><b>{{ imp.view.file }}</b>
+                <label v-if="imp.view.pages.length">第 <select v-model.number="imp.view.page" style="padding:2px 4px"><option v-for="p in imp.view.pages" :key="p" :value="p">{{ p }}</option></select> 頁</label>
+                <span v-else>頁數待核對</span>
+                <a :href="viewUrl" target="_blank" rel="noopener noreferrer" data-testid="desk-import-open-original">另開原件</a>
+                <button type="button" class="btn sm" @click="closeSource">關閉原件</button></div>
+              <div class="pg"><img v-if="viewImage" :src="viewImage" alt="謄本原頁"><iframe v-else :key="viewUrl" :src="viewUrl" title="謄本原件"></iframe></div>
+            </div>
           </div>
 
-          <h3 style="margin-top:14px">1. 登記資料</h3>
+          <h3 id="d9-registration" style="margin-top:14px">1. 登記資料</h3>
           <div class="grid">
             <label>登記原因
               <select v-model="w.v50Reg.type"><option value="">依受託業務類別（目前：{{ autoType || '未選' }}）</option><option v-for="t in TYPES" :key="t" :value="t">{{ t }}</option></select>
@@ -509,7 +666,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <label>受理地政事務所（與背表紀錄簿「申請機關」同一欄）
               <select v-model="w.ledgerAuthority"><option value="">請選擇</option><option v-for="o in officeOptions" :key="o" :value="o">{{ o }}</option></select>
             </label>
-            <label>登記代理地政士（與背表紀錄簿同一欄）
+            <div v-if="w.v50Reg.online.agency.mode==='dual'"><b>登記代理地政士</b><div>買方　{{ w.v50Reg.online.agency.primary || '待填' }}<br>賣方　{{ w.v50Reg.online.agency.secondary || '待填' }}</div><button type="button" class="mini" @click="tab='online'">查看雙方委任與分工</button></div>
+            <label v-else>登記代理地政士（與背表紀錄簿同一欄）
               <select v-model="w.ledgerRegistrationAgent"><option value="">同受託地政士（{{ w.ledgerAgent || '未選' }}）</option><option v-for="o in scrivenerOptions" :key="o" :value="o">{{ o }}</option></select>
             </label>
             <label>公契立約日期<span class="inline"><input type="date" v-model="w.v50Reg.contractDate"><button type="button" class="mini" @click="w.v50Reg.contractDate = w.contractDate">同簽約日</button></span></label>
@@ -518,10 +676,12 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           </div>
           <div class="grid" style="margin-top:8px">
             <label>附繳證件（每行一項，最多 9 項）<span class="inline"><button type="button" class="mini" @click="fillAttachments">帶入買賣常用附件</button></span><textarea v-model="w.v50Reg.attachments" rows="3"></textarea></label>
-            <label>他項權利情形（公契）<textarea v-model="w.v50Reg.otherRights" rows="3" placeholder="例：無；或抵押權已設定、約定塗銷方式"></textarea></label>
-            <label>申請書備註<textarea v-model="w.v50Reg.applicationNotes" rows="3"></textarea></label>
+            <label>他項權利情形（公契）<textarea v-model="w.v50Reg.otherRights" data-testid="desk-reg-rights" rows="3" placeholder="核對原件後填寫"></textarea></label>
+            <div><label for="d9-notes-text">申請書備註</label><button type="button" class="mini" @click="openNotePicker" data-testid="d9-pick-note">引用常用註記或本案資料</button><textarea id="d9-notes-text" aria-label="申請書備註" v-model="w.v50Reg.applicationNotes" rows="3" data-testid="reg-notes-text" style="width:100%;margin-top:4px"></textarea></div>
             <label>公契其他約定事項<textarea v-model="w.v50Reg.remarks" rows="3"></textarea></label>
           </div>
+
+          <hg-reg-notes :key="sel.key" :form="w" :locked="!!sel.blocked" v-model="w.v50Reg.applicationNotes"></hg-reg-notes>
 
           <h3>2. 標的明細</h3>
           <div class="tw">
@@ -529,7 +689,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               <thead><tr><th>種類</th><th>縣市</th><th>鄉鎮市區</th><th>段</th><th>小段</th><th>地號／建號</th><th>面積（㎡）</th><th>附屬建物（㎡）</th><th>建物門牌</th><th>移轉權利範圍</th><th></th></tr></thead>
               <tbody>
                 <tr v-for="(p, i) in w.v50Props" :key="i" :class="{common: p.common}">
-                  <td class="kind">{{ p.common ? '共有部分' : p.kind }}</td>
+                  <td class="kind">{{ p.common ? '共有部分' : p.kind }}<label v-if="p.common">所屬主建號<input v-model.trim="p.commonOf" placeholder="主建物建號"></label></td>
                   <td><input v-model="p.city"></td><td><input v-model="p.district"></td><td><input v-model="p.section"></td><td><input v-model="p.subSection"></td>
                   <td><input v-model="p.number" :placeholder="p.kind === '土地' ? '地號' : '建號'"></td>
                   <td><input v-if="p.kind === '土地'" v-model="p.area" inputmode="decimal"><input v-else v-model="p.mainArea" inputmode="decimal" placeholder="面積合計"></td>
@@ -543,9 +703,9 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             </table>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-            <button type="button" class="btn" @click="addProp('土地')">＋土地</button>
+            <button type="button" class="btn" @click="addProp('土地')" data-testid="desk-add-land">＋土地</button>
             <button type="button" class="btn" @click="addProp('建物')">＋建物</button>
-            <button type="button" class="btn" @click="fillLandBuildNo">依明細更新背表「地建號」</button>
+            <button type="button" class="btn" @click="fillLandBuildNo" data-testid="desk-backform-landno">依明細更新背表「地建號」</button>
           </div>
 
           <h3>3. 權利人／義務人（與背表、履保表、紀錄簿共用）</h3>
@@ -557,6 +717,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               <label>出生日期<input type="date" v-model="row.person.ledgerBirth"></label>
               <label>住所（戶籍地址）<input v-model="row.person.ledgerHome"></label>
               <label>電話<input v-model="row.person.phone"></label>
+              <label>稅單送達／通訊地址（核對後填）<span class="inline"><input v-model="row.person.taxMailAddress"><button type="button" class="mini" :disabled="!row.person.ledgerHome" @click="copyMailAddress(row.person)">同戶籍地址</button></span></label>
               <label>Email<input v-model="row.person.email" type="email" inputmode="email" placeholder="可留空" :data-testid="'desk-email-' + i"></label>
               <label>地籍異動即時通<select :value="row.person.landAlert || ''" @change="row.person.landAlert = $event.target.value" :data-testid="'desk-land-' + i"><option value="">未確認</option><option v-for="o in ALERTS" :key="o">{{ o }}</option></select></label>
               <label>稅籍異動即時通<select :value="row.person.taxAlert || ''" @change="row.person.taxAlert = $event.target.value" :data-testid="'desk-tax-' + i"><option value="">未確認</option><option v-for="o in ALERTS" :key="o">{{ o }}</option></select></label>
@@ -568,17 +729,31 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <p v-if="!partyRows.length" class="note">此案尚未填寫買賣方。可按下方按鈕新增，或用上方「從謄本帶入」把所有權人帶入賣方。</p>
           <div class="padd"><button type="button" class="btn" @click="addPerson('賣方')" data-testid="desk-add-seller">＋新增義務人（賣方）</button><button type="button" class="btn" @click="addPerson('買方')" data-testid="desk-add-buyer">＋新增權利人（買方）</button></div>
 
-          <h3>4. 產生表單</h3>
+          <h3 id="d9-taxes">4. 稅務資料</h3>
+          <button type="button" class="btn" @click="tab = 'online'">開啟線上申報與回執追蹤</button>
+          <div data-testid="trial-tax-details"><desk-tax-inputs :key="sel.key" :work="w" :tax="tax" :files="fl" :case-id="sel.caseId" @load-files="loadFiles" @open-files="fl.kind = 'tax'; openFilesTab()"></desk-tax-inputs></div>
+          <h3 id="d9-outputs">5. 產生表單</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn primary" @click="generateAll" :disabled="!!genBusy || !readyForms.length" data-testid="d12-generate-all">{{ genAllBusy ? '依序下載中…' : !w.v50Props.length ? '請先填「2. 標的明細」' : '一次下載可產生的 ' + readyForms.length + ' 份草稿' }}</button>
+            <span class="muted" style="font-size:12.5px">只下載沒有「請先處理」的表單；瀏覽器第一次會詢問是否允許下載多個檔案，請按允許。</span>
+          </div>
+          <p class="d12-set" v-if="caseSetTodo.length" data-testid="d12-set-todo">「{{ caseTypeName }}」常用的其他書表，作業台尚未提供，仍需另行準備：{{ caseSetTodo.join('、') }}。</p>
           <div class="forms">
             <div v-for="t in FORM_LIST" :key="t.id" class="fcard" :data-testid="'desk-card-' + t.id">
               <b>{{ t.name }}</b>
+              <ul v-if="blocks[t.id]?.length" role="alert"><li v-for="x in blocks[t.id]" :key="x">請先處理：{{ x }}</li></ul>
               <ul v-if="checks[t.id].length"><li v-for="x in checks[t.id]" :key="x">{{ x }}</li></ul>
-              <p v-else class="ok">必要資料已齊；產出後仍須逐欄覆核。</p>
-              <button type="button" class="btn primary" @click="generate(t.id)" :disabled="!!genBusy">{{ genBusy === t.id ? '產生中…' : '下載 PDF 草稿' }}</button>
+              <p v-if="!checks[t.id].length && !blocks[t.id]?.length" class="ok">可產生草稿，請核對表內資料。</p>
+              <div class="d9-actions"><button type="button" class="btn" @click="generate(t.id, true)" :disabled="!!genBusy || !!blocks[t.id]?.length">預覽 PDF</button>
+              <button type="button" class="btn primary" @click="generate(t.id)" :disabled="!!genBusy || !!blocks[t.id]?.length">{{ genBusy === t.id ? '產生中…' : '下載 PDF 草稿' }}</button></div>
             </div>
           </div>
           <div class="status" role="status" data-testid="desk-gen-status">{{ genMsg }}</div>
-          <p class="note">產生表單用的是畫面上目前的資料；請記得按上方「存檔」，背表、履保表、紀錄簿才會看到。作業台存檔後，已開著的背表請重新整理再存檔。首次產生需載入約 8MB 字型與內政部原表（之後快取），原表會核對檔案指紋；PDF 手改不會回寫，最後一頁覆核單送件前請移除。</p>
+          <p class="note">表單採用畫面目前的資料。按上方「存檔」可保留本次修改，已開啟的背表請重新整理。PDF 經手改後，請另存檔案。登記申請書及公契的最後一頁為內部覆核單，送件前請移除。</p>
+          <dialog ref="pdfDialog" class="d9-form-preview" @close="releasePreview">
+            <div class="d9-actions"><b>{{ pdfPreview.name }}</b><span><a :href="pdfPreview.url" :download="pdfPreview.name">下載這份 PDF</a>　<button type="button" class="btn" @click="pdfDialog.close()">關閉</button></span></div>
+            <iframe v-if="pdfPreview.url" :src="pdfPreview.url" title="文件 PDF 預覽"></iframe>
+          </dialog>
         </div>
 
         <div class="card reply" v-show="tab === 'reply'" data-testid="desk-reply">
@@ -818,7 +993,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
   const KEY = 'sb_publishable_Ii9luYqjDErotcRxiBVEtw_StDtZc5w';
   const ENDPOINT = `${SUPABASE}/rest/v1/nexus_data?id=eq.1`;
   const TYPES = ['買賣', '贈與', '繼承', '抵押權設定', '抵押權塗銷'];
-  const FORM_LIST = [{ id: 'registration-application', name: '土地登記申請書' }, { id: 'sale-contract', name: '土地建築改良物所有權買賣移轉契約書（公契）' }];
+  const FORM_LIST = [{ id: 'registration-application', name: '土地登記申請書' }, { id: 'sale-contract', name: '土地建築改良物所有權買賣移轉契約書（公契）' }, ...HGDeskTax.forms];
   const OFFICES = ['臺南市臺南地政事務所', '臺南市東南地政事務所', '臺南市安南地政事務所', '臺南市永康地政事務所', '臺南市歸仁地政事務所', '臺南市新化地政事務所', '臺南市麻豆地政事務所', '臺南市佳里地政事務所', '臺南市鹽水地政事務所', '臺南市白河地政事務所', '臺南市玉井地政事務所'];
   const SCRIVENERS = ['楊翊晟', '楊明宗'];
   const REG_DEFAULT = { type: '', causeDate: '', contractDate: '', priceTotal: '', attachments: '', otherRights: '', applicationNotes: '', remarks: '' };
@@ -851,18 +1026,119 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
   }
 
   createApp({
+    components: { OnlineDesk: HGOnlineDesk.component, ImportEvidence: HGImportReview.evidenceComponent, 'hg-reg-notes': window.HGRegNotes?.component || { template: '<p class="muted">備註引用未載入，仍可直接編輯申請書備註。</p>' }, DeskTaxInputs: HGDeskTax.inputs },
     setup() {
       const cases = ref([]), loading = ref(false), loadError = ref(''), loadedAt = ref('');
       const q = ref(''), scope = ref('active');
       const sel = ref(null), w = ref(null), snap = ref('');
       const saving = ref(false), saveMsg = ref({ ok: true, msg: '' });
       const genBusy = ref(''), genMsg = ref('');
+      const tax = HGDeskTax.useTax(w);
+      const pdfDialog = ref(null), pdfPreview = ref({ name: '', url: '' });
+      function releasePreview() {
+        if (pdfPreview.value.url) URL.revokeObjectURL(pdfPreview.value.url);
+        pdfPreview.value = { name: '', url: '' };
+      }
+      watch(w, () => { if (pdfDialog.value?.open) pdfDialog.value.close(); releasePreview(); });
+      function copyMailAddress(person) {
+        if (person.taxMailAddress && person.taxMailAddress !== person.ledgerHome && !confirm('要將目前的通訊地址改成戶籍地址嗎？')) return;
+        person.taxMailAddress = person.ledgerHome;
+      }
+      function openNotePicker() {
+        const picker = document.querySelector('details.reg-notes');
+        if (picker) { picker.open = true; picker.querySelector('input[type="search"]')?.focus(); }
+      }
       const operator = ref('');
 
-      const counts = computed(() => ({ active: cases.value.filter(c => !trim(c['結案時間'])).length, closed: cases.value.filter(c => trim(c['結案時間'])).length }));
+      // D12：辦理進度與法定期限。只讀背表既有欄位（簽約、用印、完稅、送件明細、結案時間），不新增資料、不改存檔。
+      const D12_TAX_TYPES = ['買賣', '贈與', '交換', '共有物分割'];
+      const D12_LAW = {
+        tax: '土地稅法第49條、契稅條例第16條：訂約日起 30 日內申報（計入訂約日）',
+        reg: '土地法第72、73條、土地登記規則第33條：權利變更之日起 1 個月內申請；逾期每 1 個月罰登記費 1 倍，最高 20 倍',
+        fix: '土地登記規則第56條：接到補正通知之日起 15 日內補正',
+        real: '平均地權條例第47條：買賣案件於申請所有權移轉登記時一併申報',
+        house: '所得稅法第14條之5：完成移轉登記之次日起 30 日內申報（賣方個人，適用者）',
+        inherit: '土地法第73條：繼承開始之日起 6 個月內申請；遺產及贈與稅法第23條：死亡之日起 6 個月內申報遺產稅'
+      };
+      const d12Date = s => { const m = String(s || '').trim().match(/^(\d{2,4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})/); if (!m) return null; let y = +m[1]; if (y < 1911) y += 1911; const d = new Date(y, +m[2] - 1, +m[3]); return isNaN(d) || d.getMonth() !== +m[2] - 1 ? null : d; };
+      const d12Roc = d => d ? `${d.getFullYear() - 1911}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : '';
+      const d12Today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+      const d12AddDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+      const d12AddMonths = (d, n) => { const x = new Date(d.getFullYear(), d.getMonth() + n, d.getDate()); if (x.getDate() !== d.getDate()) x.setDate(0); return x; };
+      const d12TypeOf = f => { const t = trim(f && f.v50Reg && f.v50Reg.type); if (t) return t; const s = String(f && f.ledgerService || ''); return /買賣/.test(s) ? '買賣' : /贈與/.test(s) ? '贈與' : /繼承/.test(s) ? '繼承' : /抵押權設定/.test(s) ? '抵押權設定' : /塗銷/.test(s) ? '抵押權塗銷' : /分割/.test(s) ? '共有物分割' : /交換/.test(s) ? '交換' : ''; };
+      const d12Track = (f, row) => {
+        f = f || {}; const today = d12Today(), type = d12TypeOf(f), closedAt = d12Date(row && row['結案時間']);
+        const filings = (Array.isArray(f.v44Filings) ? f.v44Filings : []).filter(x => x && x.status && x.status !== '草稿' && x.status !== '已撤回');
+        const sentDates = filings.map(x => d12Date(x.filedDate)).filter(Boolean).sort((a, b) => a - b);
+        const sent = filings.length > 0, fixing = filings.some(x => x.status === '補正中');
+        const doneFiling = filings.filter(x => x.status === '已辦結'), doneDate = doneFiling.map(x => d12Date(x.completedDate)).filter(Boolean).sort((a, b) => b - a)[0] || null;
+        const finished = !!closedAt || (sent && doneFiling.length === filings.length);
+        const sign = d12Date(f.contractDate) || d12Date(row && row['簽約日']), seal = d12Date(f.sealDate), paid = d12Date(f.taxDate);
+        const hasTax = D12_TAX_TYPES.includes(type) || !!paid;
+        const raw = [['簽約', sign, !!sign && sign <= today]];
+        if (seal || type === '買賣') raw.push(['用印', seal, !!seal && seal <= today]);
+        if (hasTax) raw.push(['完稅', paid, !!paid && paid <= today]);
+        raw.push(['送件', sentDates[0] || null, sent]);
+        if (fixing) raw.push(['補正中', null, false, true]);
+        raw.push(['辦結', closedAt || doneDate, finished]);
+        let cur = false;
+        const steps = raw.map(([name, date, done, warn]) => {
+          let cls = done || finished ? 'done' : '';
+          if (warn && !finished) cls = 'warn';
+          else if (!cls && !cur) { cls = 'cur'; cur = true; }
+          if (cls === 'warn') cur = true;
+          return { name, cls, label: date ? (date > today && !done ? '預定 ' : '') + d12Roc(date) : '' };
+        });
+        const deadlines = [];
+        const add = (name, due, law, done, note) => {
+          const r = due ? Math.round((due - today) / 86400000) : null;
+          const cls = done ? 'done' : r === null ? 'info' : r < 0 ? 'over' : r <= 7 ? 'soon' : 'ok';
+          const text = done ? '✓ 已辦妥' : r === null ? (note || '') : r < 0 ? '逾期 ' + (-r) + ' 天' : r === 0 ? '今天到期' : '剩 ' + r + ' 天';
+          deadlines.push({ name, law, cls, text, r: done ? null : r, dueLabel: due ? '期限 ' + d12Roc(due) + (note ? '（' + note + '）' : '') : '' });
+        };
+        if (!finished) {
+          const contract = d12Date(f.v50Reg && f.v50Reg.contractDate) || sign;
+          const cause = d12Date(f.v50Reg && f.v50Reg.causeDate);
+          if (type === '繼承') add('繼承登記、遺產稅', null, D12_LAW.inherit, sent, '死亡日起 6 個月，請核對除戶謄本');
+          else {
+            if (D12_TAX_TYPES.includes(type)) {
+              if (contract) add('申報土增稅' + (type === '共有物分割' ? '' : '、契稅'), d12AddDays(contract, 29), D12_LAW.tax, sent || (!!paid && paid <= today));
+              else add('申報土增稅、契稅', null, D12_LAW.tax, false, '缺公契立約日，無法推算');
+            }
+            const base = cause || (D12_TAX_TYPES.includes(type) ? contract : null);
+            if (base) add('申請登記', d12AddDays(d12AddMonths(base, 1), -1), D12_LAW.reg, sent, cause ? '' : '以立約日推算');
+            else if (type) add('申請登記', null, D12_LAW.reg, sent, '缺原因發生日，無法推算');
+            if (type === '買賣') add('實價登錄', null, D12_LAW.real, sent, '隨登記一併送件');
+          }
+          if (fixing) { add('補正', null, D12_LAW.fix, false, '接到通知起 15 日內'); deadlines[deadlines.length - 1].cls = 'soon'; }
+        }
+        if (type === '買賣' && doneDate) { const due = d12AddDays(doneDate, 30); if (due >= d12AddDays(today, -30)) add('房地合一申報（賣方，適用者）', due, D12_LAW.house, false); }
+        const open = deadlines.filter(d => d.r !== null);
+        const worst = open.length ? open.reduce((a, b) => (b.r < a.r ? b : a)) : null;
+        let badge = '', badgeCls = '';
+        if (!finished && fixing) { badge = '補正中'; badgeCls = 'over'; }
+        else if (!finished && worst && worst.r <= 7) { badge = worst.name + ' ' + worst.text; badgeCls = worst.r < 0 ? 'over' : ''; }
+        return { type, steps, deadlines, badge, badgeCls, alert: !!badge, urgency: fixing ? -9999 : worst ? worst.r : 9999 };
+      };
+      const d12Cache = new WeakMap();
+      const rowTrack = row => {
+        const hit = d12Cache.get(row); if (hit && hit.src === row._form_json) return hit.t;
+        let f = null; try { f = row._form_json ? JSON.parse(row._form_json) : null; } catch (e) { f = null; }
+        const t = d12Track(f, row); d12Cache.set(row, { src: row._form_json, t }); return t;
+      };
+      const caseTrack = computed(() => w.value && sel.value ? d12Track(w.value, sel.value.row) : { steps: [], deadlines: [] });
+      const myName = computed(() => { const n = trim(operator.value).replace(/[（(].*$/, ''); return n.length === 3 ? n.slice(1) : n; });
+      const isMine = c => !!myName.value && myName.value !== '同仁' && String(c['承辦'] || '').includes(myName.value);
+      const counts = computed(() => {
+        const act = cases.value.filter(c => !trim(c['結案時間']));
+        return { active: act.length, closed: cases.value.length - act.length, due: act.filter(c => rowTrack(c).alert).length, mine: act.filter(isMine).length };
+      });
       const filtered = computed(() => {
-        const kw = trim(q.value).toLowerCase();
-        return cases.value.filter(c => (scope.value === 'active') === !trim(c['結案時間'])).filter(c => !kw || [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['承辦'], c['銷售仲介'], c['開發仲介']].join(' ').toLowerCase().includes(kw)).slice(0, 200);
+        const kw = trim(q.value).toLowerCase(), s = scope.value;
+        const list = cases.value.filter(c => s === 'closed' ? !!trim(c['結案時間']) : !trim(c['結案時間']) && (s === 'active' || (s === 'due' ? rowTrack(c).alert : isMine(c))))
+          .filter(c => !kw || [c['編號'], c['案名'], c['地址'], c['地建號'], c['客戶姓名(買/賣方)'], c['承辦'], c['銷售仲介'], c['開發仲介']].join(' ').toLowerCase().includes(kw));
+        if (s === 'due') list.sort((a, b) => rowTrack(a).urgency - rowTrack(b).urgency);
+        return list.slice(0, 200);
       });
 
       const loadCases = async () => {
@@ -889,21 +1165,24 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         f = f || {};
         if (!Array.isArray(f.v50Props)) f.v50Props = [];
         f.v50Reg = { ...REG_DEFAULT, ...(f.v50Reg || {}) };
+        HGDeskTax.init(f);
+        HGOnlineDesk.init(f);
         if (!Array.isArray(f.sellers)) f.sellers = []; if (!Array.isArray(f.buyers)) f.buyers = [];
         ['ledgerAuthority', 'ledgerRegistrationAgent', 'ledgerAgent', 'ledgerService', 'landBuildNo', 'totalPrice', 'contractDate', 'address', 'propertyName'].forEach(k => { if (f[k] == null) f[k] = ''; });
         return { f, blocked };
       };
       const openRow = row => {
+        clearImport();
         const { f, blocked } = buildForm(row);
         sel.value = { key: caseKey(row), caseId: row._caseId || '', row, base: stable(row), blocked };
         w.value = f; snap.value = stable(deskSubset(f));
         ckLoadRecord(row); fbTrack = [];
         saveMsg.value = { ok: true, msg: '' }; genMsg.value = '';
-        try { history.replaceState(null, '', row._caseId ? '?case=' + encodeURIComponent(row._caseId) : location.pathname); } catch (e) {}
+        syncCaseUrl(row._caseId);
       };
-      const openCase = c => { if (sel.value && sel.value.key === caseKey(c)) return; if (!confirmLeave()) return; openRow(c); };
+      const openCase = c => { if (saving.value) return; if (sel.value && sel.value.key === caseKey(c)) return; if (!confirmLeave()) return; openRow(c); };
       const reloadCase = async () => {
-        if (!sel.value || !confirmLeave()) return;
+        if (!sel.value || saving.value || !confirmLeave()) return;
         await loadCases();
         const found = findByKey(cases.value, sel.value.key), row = found.length === 1 ? found[0] : null;
         if (!row) { saveMsg.value = { ok: false, msg: '雲端找不到這件案件（可能已封存）。' }; return; }
@@ -939,8 +1218,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           const written = await api(`${ENDPOINT}&select=id`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ payload: out }) });
           if (!Array.isArray(written) || written.length !== 1) throw new Error('雲端沒有寫入（目前帳號可能沒有存檔權限），請聯絡楊翊晟。');
           const li = cases.value.indexOf(sel.value.row); if (li > -1) cases.value.splice(li, 1, next);
-          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(w.value)); ckAfterSave(); try { fbAfterSave(); } catch (e) {}
-          try { history.replaceState(null, '', '?case=' + encodeURIComponent(next._caseId)); } catch (e) {}
+          sel.value = { ...sel.value, key: caseKey(next), caseId: next._caseId, row: next, base: stable(next) }; snap.value = stable(deskSubset(f)); ckAfterSave(); try { fbAfterSave(); } catch (e) {}
+          syncCaseUrl(next._caseId);
           saveMsg.value = { ok: true, msg: `已存檔 ${time.slice(11, 16)}（變更 ${changed.length} 欄）` };
         } catch (e) { saveMsg.value = { ok: false, msg: '存檔失敗：' + e.message }; }
         finally { saving.value = false; }
@@ -973,16 +1252,32 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const officeOptions = computed(() => [...new Set([...OFFICES, ...(w.value && w.value.ledgerAuthority ? [w.value.ledgerAuthority] : [])])]);
       const scrivenerOptions = computed(() => [...new Set([...SCRIVENERS, ...(w.value && w.value.ledgerRegistrationAgent ? [w.value.ledgerRegistrationAgent] : [])])]);
       const caseRecord = () => {
-        const f = w.value, reg = f.v50Reg, rows = partyRows.value;
+        const f = w.value, reg = f.v50Reg, rows = partyRows.value, dual = HGOnlineDesk.registration(f);
         return {
           caseNumber: trim(sel.value.row['編號']) || '未編號', title: trim(f.propertyName || sel.value.row['案名']), type: trim(reg.type) || autoType.value,
           parties: rows.filter(r => r.person.role !== '代理人').map(r => ({ role: r.side, name: trim(r.person.name), birthDate: r.person.ledgerBirth || '', identityNo: trim(r.person.ledgerId), address: trim(r.person.ledgerHome), phone: trim(r.person.phone), share: trim(r.person.v50Share) })),
           properties: f.v50Props.map(p => ({ ...p, area: p.kind === '建物' ? (p.mainArea || p.area || '') : (p.area || '') })),
           agentsOmitted: rows.some(r => r.person.role === '代理人'),
-          registration: { priceTotal: trim(reg.priceTotal), contractDate: reg.contractDate || '', causeDate: reg.causeDate || '', office: trim(f.ledgerAuthority), attachments: reg.attachments || '', agentName: agentName.value, agentPhone: '', otherRights: reg.otherRights || '', remarks: reg.remarks || '', applicationNotes: reg.applicationNotes || '' }
+          registration: { priceTotal: trim(reg.priceTotal), contractDate: reg.contractDate || '', causeDate: reg.causeDate || '', office: trim(f.ledgerAuthority), attachments: reg.attachments || '', dual, agentName: dual ? '' : agentName.value, agentPhone: dual ? dual.phone : reg.online.agency.profiles.primary.phone || '', otherRights: reg.otherRights || '', remarks: reg.remarks || '', applicationNotes: reg.applicationNotes || '' }
         };
       };
-      const checks = computed(() => { const out = {}; const H = window.HGForms; const c = w.value ? caseRecord() : null; FORM_LIST.forEach(t => { out[t.id] = !c ? [] : H ? H.preflight(t.id, c) : ['表單程式載入失敗，請重新整理頁面。']; }); return out; });
+      const formReview = computed(() => {
+        const record = w.value ? caseRecord() : null;
+        return Object.fromEntries(FORM_LIST.map(t => {
+          if (!record) return [t.id, { warnings: [], blocking: [] }];
+          if (t.tax) return [t.id, tax.review(t.id)];
+          if (t.id === 'registration-application' && record.registration.dual && (record.type !== '買賣' || !record.registration.dual.note)) {
+            return [t.id,{warnings:[],blocking:['請在「線上申報 → 承辦與委任」填妥買賣雙方各自委任的兩位地政士，並確認本案登記原因為買賣。']}];
+          }
+          const warnings = window.HGForms?.preflight(t.id, record) || [];
+          if (t.id === 'sale-contract' && record.type && record.type !== '買賣') {
+            return [t.id, { warnings: [], blocking: ['本案登記原因為「' + record.type + '」，本表適用買賣。'] }];
+          }
+          return [t.id, { warnings, blocking: window.HGForms ? [] : ['登記表單程式尚未載入。'] }];
+        }));
+      });
+      const checks = computed(() => Object.fromEntries(Object.entries(formReview.value).map(([id, v]) => [id, v.warnings])));
+      const blocks = computed(() => Object.fromEntries(Object.entries(formReview.value).map(([id, v]) => [id, v.blocking])));
       const addProp = kind => {
         const list = w.value.v50Props, last = [...list].reverse().find(p => p.kind === kind) || list[list.length - 1] || {};
         const base = { kind, city: last.city || '臺南市', district: last.district || '', section: last.section || '', subSection: last.subSection || '', number: '', transferShare: '' };
@@ -999,7 +1294,20 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const fillPrice = () => { const n = Number(String(w.value.totalPrice || '').replace(/,/g, '')); if (!n) return alert('背表成交總價（萬）未填。'); w.value.v50Reg.priceTotal = Math.round(n * 10000).toLocaleString('en-US'); };
       const fillAttachments = () => { if (trim(w.value.v50Reg.attachments) && !confirm('附繳證件已有內容，要改成常用範本嗎？')) return; w.value.v50Reg.attachments = ['契約書正副本', '土地建物所有權狀', '身分證明文件', '印鑑證明', '土地增值稅繳（免）稅證明', '契稅繳（免）稅證明'].join('\n'); };
 
-      const loadScript = src => new Promise((resolve, reject) => { if (document.querySelector(`script[data-src="${src}"]`)) return resolve(); const s = document.createElement('script'); s.src = src; s.dataset.src = src; s.onload = () => resolve(); s.onerror = () => reject(new Error('無法載入 ' + src)); document.head.appendChild(s); });
+      const scriptLoads = new Map();
+      function loadScript(src) {
+        if (!scriptLoads.has(src)) {
+          const loading = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = () => { script.remove(); reject(new Error('無法載入 ' + src)); };
+            document.head.appendChild(script);
+          });
+          scriptLoads.set(src, loading.catch(error => { scriptLoads.delete(src); throw error; }));
+        }
+        return scriptLoads.get(src);
+      }
       const cache = {};
       const getBytes = async (url, sha) => {
         if (cache[url]) return cache[url];
@@ -1009,24 +1317,73 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         return (cache[url] = buf);
       };
       const download = (bytes, name) => { const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000); };
-      const generate = async id => {
-        if (genBusy.value) return; const H = window.HGForms; if (!H) return alert('表單程式未載入，請重新整理頁面。');
+      const generate = async (id, preview = false) => {
+        if (genBusy.value || !w.value || blocks.value[id]?.length) return;
+        const selected = w.value, H = window.HGForms, item = FORM_LIST.find(t => t.id === id);
+        const input = clone(item.tax ? tax.record(id) : caseRecord());
+        const number = trim(sel.value.row['編號']) || '未編號';
         genBusy.value = id; genMsg.value = '載入原表與字型中…（首次約需數秒）';
         try {
           if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
           if (!window.fontkit) await loadScript('forms/fontkit.umd.min.js');
-          const t = H.TEMPLATES[id];
-          const [templateBytes, fontBytes] = await Promise.all([getBytes('forms/' + t.file, t.sha256), getBytes('forms/NotoSansTC-Regular.ttf')]);
-          genMsg.value = '產生中…';
-          const r = await H.generate(id, caseRecord(), { PDFLib: window.PDFLib, fontkit: window.fontkit, templateBytes, fontBytes });
-          download(r.bytes, r.filename);
-          genMsg.value = `已下載「${r.filename}」。待覆核 ${r.warnings.length} 項，見 PDF 最後一頁覆核單。` + (dirty.value ? '\n提醒：畫面上的修改還沒存檔。' : '');
-        } catch (e) { genMsg.value = '產生失敗：' + (e && e.message ? e.message : e); }
+          let output;
+          if (item.tax) {
+            const bytes = await tax.engine(id).generate(input);
+            output = { bytes, filename: number + '_' + item.name + '_草稿.pdf' };
+          } else {
+            const template = H.TEMPLATES[id];
+            const [templateBytes, fontBytes] = await Promise.all([getBytes('forms/' + template.file, template.sha256), getBytes('forms/NotoSansTC-Regular.ttf')]);
+            output = await H.generate(id, input, { PDFLib: window.PDFLib, fontkit: window.fontkit, templateBytes, fontBytes });
+          }
+          if (w.value !== selected) return;
+          if (preview) {
+            releasePreview();
+            pdfPreview.value = { name: output.filename, url: URL.createObjectURL(new Blob([output.bytes], { type: 'application/pdf' })) };
+            await Vue.nextTick();
+            pdfDialog.value.showModal();
+          } else download(output.bytes, output.filename);
+          genMsg.value = (preview ? '已開啟預覽：' : '已下載：') + output.filename + (dirty.value ? '。本案尚有未存檔修改。' : '');
+        } catch (e) { if (w.value === selected) genMsg.value = '產生失敗：' + (e && e.message ? e.message : e); }
         finally { genBusy.value = ''; }
+      };
+      // D12：一次下載全部可產生的草稿；書表清單提示尚未提供的常用書表
+      const D12_SET_TODO = {
+        買賣: ['登記清冊', '地政士委任書', '房地合一申報書'],
+        贈與: ['贈與移轉契約書（公契）', '登記清冊', '贈與稅申報書'],
+        繼承: ['繼承系統表', '遺產分割協議書', '登記清冊', '遺產稅申報書'],
+        抵押權設定: ['抵押權設定契約書', '登記清冊'],
+        抵押權塗銷: ['清償證明或塗銷同意書（銀行出具，核對即可）'],
+        共有物分割: ['共有物分割契約書（公契）', '登記清冊']
+      };
+      const caseTypeName = computed(() => w.value ? d12TypeOf(w.value) : '');
+      const caseSetTodo = computed(() => D12_SET_TODO[caseTypeName.value] || []);
+      const readyForms = computed(() => w.value && w.value.v50Props.length ? FORM_LIST.filter(t => !(blocks.value[t.id] && blocks.value[t.id].length)) : []);
+      const genAllBusy = ref(false);
+      const generateAll = async () => {
+        if (genBusy.value || genAllBusy.value || !w.value) return;
+        const selected = w.value, list = readyForms.value.slice(); let ok = 0;
+        genAllBusy.value = true;
+        try {
+          for (const t of list) {
+            if (w.value !== selected) return;
+            await generate(t.id);
+            if (/^產生失敗/.test(genMsg.value)) break;
+            ok++;
+            await new Promise(r => setTimeout(r, 400));
+          }
+          if (w.value === selected && ok === list.length) genMsg.value = '已依序下載 ' + ok + ' 份草稿：' + list.map(t => t.name).join('、') + (dirty.value ? '。本案尚有未存檔修改。' : '');
+        } finally { genAllBusy.value = false; }
       };
 
       // D2 收據分頁（Claude 2026-11-17）：只讀雲端 case_receipts；開收據到收據系統新分頁
       const tab = ref('forms');
+      function syncCaseUrl(id) {
+        const params = new URLSearchParams();
+        if (id) params.set('case', id);
+        if (tab.value === 'online') params.set('tab', 'online');
+        try { history.replaceState(null, '', location.pathname + (params.size ? '?' + params : '')); } catch (e) {}
+      }
+      watch(tab, () => { if (sel.value) syncCaseUrl(sel.value.caseId); });
       const rcpt = ref({ rows: [], loading: false, error: '', caseId: '' });
       const RSIDE = { buyer: '買方', seller: '賣方', other: '其他' }, RSTATUS = { draft: '草稿', final: '已定稿', void: '已作廢' }, RFIRM = { hongguo: '宏國', yicheng: '易丞' };
       const money = n => (n === null || n === undefined || n === '') ? '—' : Number(n).toLocaleString('en-US');
@@ -1056,93 +1413,199 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
       let pdfjsP = null;
       const loadPdfjs = () => pdfjsP || (pdfjsP = import(PDFJS + 'build/pdf.min.mjs').then(m => { m.GlobalWorkerOptions.workerSrc = PDFJS + 'build/pdf.worker.min.mjs'; return m; }).catch(() => { pdfjsP = null; throw new Error('PDF 讀取元件載入失敗，請確認網路後再試一次。'); }));
-      const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], thumbs: [], files: [], view: null, reviewed: false, useRights: false, saveOrig: true, autoFix: [], log: null });
+      const R = window.HGImportReview;
+      const { modeName, usableRights } = R;
+      const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], files: [], manualFiles: [], view: null, reviewed: false, saveOrig: false, log: null, applied: false });
       const imp = ref(IMP0());
-      const clearImport = () => { imp.value = IMP0(); };
-      const numKey = v => window.HGTranscript.number(trim(v).replace(/之/g, '-').replace(/[地建]?號$/, ''));
-      const propExists = row => !!w.value && w.value.v50Props.some(p => p.kind === row.kind && numKey(p.number) === numKey(row.number) && !!trim(row.number) &&
-        (!trim(p.section) || !trim(row.section) || window.HGTranscript.sameSection(p.section, row.section)));
-      const ownerOk = o => !!w.value && w.value.sellers.some(p => window.HGTranscript.nameMatch(o.name, p.name));
-      // D7 所有權人：統一編號檢查碼、是否已在賣方名單
-      const idState = o => window.HGTranscript.idCheck(trim(o.id));
-      const idHint = o => { if (!trim(o.id)) return '未讀到'; const s = idState(o); return s === true ? '✓ 檢查碼正確' : s === false ? '✗ 檢查碼不符，請對照原件修正' : '格式無法檢查，請對照原件'; };
-      const idCls = o => { const s = idState(o); return s === true ? 'idok' : s === false ? 'idbad' : 'idna'; };
-      const ownerSeller = o => !!w.value && w.value.sellers.find(p => (trim(o.name) && window.HGTranscript.nameMatch(o.name, p.name)) || (trim(o.id) && trim(p.ledgerId).toUpperCase() === trim(o.id).toUpperCase()));
-      const ownerCan = o => !!trim(o.name) && !o.masked && !/[○●◯〇＊*□]/.test(o.name) && idState(o) !== false;
-      const viewThumb = file => { imp.value.view = { file, idx: 0 }; };
-      const strip = s => String(s || '').replace(/\s/g, '');
-      const ownerEvidence = (o, ev) => {
-        const pick = (label, val) => { const v = strip(val).slice(0, 6); if (!v) return ''; const hit = ev.find(e => label.test(strip(e.text)) && strip(e.text).includes(v)) || ev.find(e => strip(e.text).includes(v)); return hit ? hit.crop : ''; };
-        return { name: pick(/所有權人/, o.name), id: pick(/統一編號/, o.id), addr: pick(/址/, o.address) };
+      let importGeneration = 0, originals = new Map(), sourceTrigger = null;
+      const clearImport = () => {
+        importGeneration++;
+        for (const entry of originals.values()) if (entry.url) URL.revokeObjectURL(entry.url);
+        originals = new Map();
+        sourceTrigger = null;
+        imp.value = IMP0();
       };
+      const numKey = v => window.HGTranscript.number(trim(v).replace(/之/g, '-').replace(/[地建]?號$/, ''));
+      const matchProp = row => R.propMatch(row, w.value ? w.value.v50Props : [], numKey);
+      function canKeepSource(doc, key) {
+        const source = doc.row[key]?.sourceProperty;
+        return !!source && !doc.common && !doc.duplicateRights && !matchProp(doc.row).issue &&
+          ['kind','city','district','section','subSection','number'].every(key => trim(doc.row[key]) === trim(source[key]));
+      }
+      const propExists = row => !!matchProp(row).person;
+      const maskedId = value => /[○●◯〇Ｏ＊*□＿_?？×✕]/u.test(trim(value)) || /[xXＸｘ]/u.test(trim(value).slice(1));
+      const matchSeller = o => maskedId(o.id) ? { issue: '編號有遮蔽，請核對完整原件後填寫。' } : R.sellerMatch(o, w.value ? w.value.sellers : []);
+      const ownerSeller = o => matchSeller(o).person;
+      const ownerOk = o => !!ownerSeller(o);
+      const idState = o => window.HGTranscript.idCheck(trim(o.id));
+      const idHint = o => { if (!trim(o.id)) return '未讀到統一編號'; if (maskedId(o.id)) return '編號有遮蔽'; const s = idState(o); return s === true ? '✓ 統一編號檢查碼正確' : s === false ? '✗ 統一編號檢查碼不符，請對照原件修正' : '統一編號格式無法檢查，請對照原件'; };
+      const idCls = o => { const s = idState(o); return s === true ? 'idok' : s === false ? 'idbad' : 'idna'; };
+      const ownerCan = o => !matchSeller(o).issue && idState(o) !== false;
+      const canApply = computed(() => imp.value.docs.some(d => d.pick && !matchProp(d.row).issue) || imp.value.owners.some(o => o.pick && ownerCan(o)));
+      const reviewItems = computed(() => {
+        const items = [];
+        imp.value.docs.forEach((d, i) => {
+          const r = d.row, area = r.kind === '土地' ? r.area : r.mainArea;
+          const reasons = [...new Set([matchProp(r).issue, d.shareIssue, !area && '面積待核對。',
+            !r.transferShare && '移轉權利範圍待確認。', !d.common && !usableRights(d) && '他項權利記載待核對，公契保留原內容。',
+            ...(d.reviewReasons || []), ...(d.issues || [])].filter(Boolean))];
+          if (reasons.length) items.push({ target: 'desk-import-row-' + i, field: !r.section ? 'section' : !r.number ? 'number' : !area ? (r.kind === '土地' ? 'area' : 'mainArea') : !r.transferShare ? 'transferShare' : 'number', label: '編輯標的 ' + (R.propLabel(r) || i + 1), reasons });
+        });
+        imp.value.owners.forEach((o, i) => {
+          const reasons = [...new Set([matchSeller(o).issue, !o.share && '各筆持分不齊或不同，賣方持分留白。', idState(o) !== true && idHint(o), ...(!o.birth ? ['出生日期待核對。'] : []), !o.address && '住址待核對。', ...(o.reviewReasons || [])].filter(Boolean))];
+          if (reasons.length) items.push({ target: 'desk-owner-' + i, field: !o.name || matchSeller(o).issue ? 'name' : idState(o) !== true ? 'id' : !o.share ? 'share' : !o.birth ? 'birth' : 'address', label: '編輯所有權人 ' + (o.name || i + 1), reasons });
+        });
+        return items;
+      });
+      const jumpEdit = (id, field) => {
+        const row = document.querySelector('[data-testid="' + id + '"]');
+        if (!row) return;
+        const input = (field && row.querySelector('[data-field="' + field + '"]')) || (row.matches('button,input') && row) || row.querySelector('input:not([type=checkbox]), button');
+        (input || row).scrollIntoView({ block: 'center', inline: 'nearest' });
+        if (input) input.focus({ preventScroll: true });
+      };
+      const viewSource = async s => {
+        const entry = originals.get(s.sourceId);
+        if (!entry) return;
+        if (!entry.url) {
+          const f = entry.file;
+          const type = isPdfFile(f) ? 'application/pdf' : (/\.png$/i.test(f.name) || f.type === 'image/png') ? 'image/png' : (/\.webp$/i.test(f.name) || f.type === 'image/webp') ? 'image/webp' : 'image/jpeg';
+          entry.url = URL.createObjectURL(f.slice(0, f.size, type));
+        }
+        sourceTrigger = document.activeElement;
+        imp.value.view = { sourceId: s.sourceId, file: entry.file.name, page: s.page || (entry.pages.length ? 1 : null), pages: entry.pages.map(p => p.page), url: entry.url, image: !isPdfFile(entry.file) && isImgFile(entry.file) };
+        await Vue.nextTick();
+        const pane = document.querySelector('[data-testid="desk-import-view"]');
+        if (pane) { pane.scrollIntoView({ block: 'start' }); pane.querySelector('select,a')?.focus({ preventScroll: true }); }
+      };
+      const viewImage = computed(() => {
+        const v = imp.value.view;
+        return v && (originals.get(v.sourceId)?.thumbs[v.page] || (v.image ? v.url : ''));
+      });
+      const viewUrl = computed(() => { const v = imp.value.view; return v ? v.url + (v.image || !v.page ? '' : '#page=' + v.page) : ''; });
+      const closeSource = () => { imp.value.view = null; sourceTrigger?.focus(); sourceTrigger = null; };
       const isPdfFile = f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || '');
       const isImgFile = f => /^image\/(jpeg|png|webp)$/.test(f.type || '') || /\.(jpe?g|png|webp)$/i.test(f.name || '');
       const runImport = async (list, src) => {
-        if (imp.value.busy || !sel.value) return;
+        if (imp.value.busy || !sel.value || sel.value.blocked) return;
         const H = window.HGTranscript;
-        if (!H || !H.ownersOf) return alert('謄本讀取程式是舊版，請按 Ctrl+F5 重新整理頁面後再試一次。');
-        const token = sel.value.key, mine = () => !!sel.value && sel.value.key === token;
-        imp.value = { ...IMP0(), busy: true, msg: '讀取中…（在這台電腦處理，不會上傳）' };
-        const t0 = Date.now(), logFiles = [];   // D8 自動紀錄：每份檔案的種類、頁數、秒數（不記檔名）
+        if (!H || !H.ownersOf) return alert('謄本讀取程式尚未完整載入，請重新整理。');
+        clearImport();
+        const generation = importGeneration, token = sel.value.key, work = w.value;
+        const mine = () => generation === importGeneration && w.value === work && sel.value?.key === token;
+        imp.value = { ...IMP0(), busy: true, msg: '在這台電腦讀取謄本…' };
+        const startTime = Date.now(), logFiles = [];
+        const fileMap = new Map();
+        list.forEach(({file}, n) => {
+          if (isPdfFile(file) || isImgFile(file)) fileMap.set('import-' + n, { file, pages: [], thumbs: {}, evidence: [], url: '', found: false });
+        });
+        originals = fileMap;
+        const manualFiles = () => Array.from(fileMap, ([sourceId, entry]) => ({ sourceId, file: entry.file.name, found: entry.found })).filter(s => !s.found);
         try {
-          const pdfjs = await loadPdfjs();
-          await loadScript('forms/hg-transcript-ocr.js?v=d8');
+          const pdfjs = list.some(it => isPdfFile(it.file)) ? await loadPdfjs() : null;
+          await loadScript('forms/hg-transcript-ocr.js?v=d11');
           const ensureOcr = async () => {
-            if (window.HGOcr && window.HGOcr.ready) return;
-            if (mine()) imp.value.msg = '載入辨識程式…（第一次使用約 21 MB，之後會記住）';
+            if (window.HGOcr?.ready) return;
+            if (mine()) imp.value.msg = '載入掃描與照片辨識程式…';
             await loadScript('forms/hg-ocr.js');
             const got = {};
-            await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => { got[l] = [g, t]; const v = Object.values(got); if (mine()) imp.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100); } });
+            await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => {
+              got[l] = [g, t];
+              const v = Object.values(got);
+              if (mine()) imp.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100);
+            } });
           };
-          const docs = [], warnings = [], evidence = [], thumbs = [], used = [];
+          const docs = [], warnings = [], used = [];
           for (const [n, it] of list.entries()) {
-            const f = it.file, tag = list.length > 1 ? `（第 ${n + 1}/${list.length} 份）` : '';
-            if (!isPdfFile(f) && !isImgFile(f)) { warnings.push(`「${f.name}」不是 PDF 或照片（JPG／PNG），未讀取。iPhone 的 HEIC 照片請先改存成 JPG。`); continue; }
-            if (f.size > 30 * 1024 * 1024) { warnings.push(`「${f.name}」超過 30MB，未讀取。`); continue; }
+            if (!mine()) return;
+            const f = it.file, tag = list.length > 1 ? '（第 ' + (n + 1) + '/' + list.length + ' 份）' : '';
+            if (!isPdfFile(f) && !isImgFile(f)) { warnings.push('「' + f.name + '」格式無法讀取。請選 PDF、JPG、PNG 或 WebP。'); continue; }
+            if (f.size > 30 * 1024 * 1024) { warnings.push('「' + f.name + '」超過 30 MB，請分檔後讀取。'); continue; }
+            const sourceId = 'import-' + n, tf = Date.now();
             const opt = { pdfjs, pdfOpts: { cMapUrl: PDFJS + 'cmaps/', standardFontDataUrl: PDFJS + 'standard_fonts/' }, ensureOcr,
               onStatus: t => { if (mine()) imp.value.msg = t + tag; }, onProgress: (d, t) => { if (mine()) imp.value.pct = Math.round(d / Math.max(1, t) * 100); }, cancelled: () => !mine() };
-            let r, d; const tf = Date.now();
+            let r, parsed;
+            const parse = result => H.toDesk(result.text, { file: f.name, sourceId, pageSources: result.pageSources });
             try {
-              r = await window.HGTranscriptOcr.readFile(f, opt); d = H.toDesk(r.text);
-              // 有文字層但讀不到謄本（例如掃描器附的文字層品質差）：改用整頁辨識再試一次
-              if (!d.docs.length && r.mode === 'text' && isPdfFile(f) && r.pages <= 12) { r = await window.HGTranscriptOcr.readFile(f, { ...opt, forceOcr: true }); d = H.toDesk(r.text); }
-            } catch (e) { warnings.push(`「${f.name}」無法讀取：${e && e.name === 'PasswordException' ? '檔案有密碼保護' : (e && e.message || e)}`); logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', fail: 1, ms: Date.now() - tf, err: (HF() ? HF().scrub(e && e.name === 'PasswordException' ? '密碼保護' : (e && e.message || e)) : '').slice(0, 120) }); continue; }
-            if (!mine()) return;
-            const ocr = r.mode !== 'text';
-            logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', m: r.mode, p: r.pages || 1, o: r.ocrPages || 0, ms: Date.now() - tf, sc: r.score ? Math.round(r.score * 100) / 100 : 0, docs: d.docs.length, ev: (r.evidence || []).length });
-            // D8：照片常漏掉門牌裡的「一」「八」，規則讀不出門牌時，改帶辨識原文並提醒核對
-            if (ocr) {
-              const nb = d.docs.filter(x => x.row.kind === '建物' && !x.common && !trim(x.row.address)), doors = r.text.match(/建物門牌[：:]\s*[^\n]{3,60}/g) || [];
-              if (nb.length === 1 && doors.length === 1 && d.docs.filter(x => x.row.kind === '建物' && !x.common).length === 1) {
-                nb[0].row.address = doors[0].replace(/^建物門牌[：:]\s*/, '').trim();
-                nb[0].issues.push('建物門牌是照片辨識的原文，可能漏字（常漏「一」「八」），請對照原件修正。');
+              r = await window.HGTranscriptOcr.readFile(f, opt);
+              if (!mine()) return;
+              parsed = parse(r);
+              if (!parsed.docs.length && r.mode === 'text' && isPdfFile(f) && r.pages <= 12) {
+                const retry = await window.HGTranscriptOcr.readFile(f, { ...opt, forceOcr: true });
+                if (!mine()) return;
+                const reread = parse(retry);
+                if (reread.docs.length) { r = retry; parsed = reread; }
               }
+            } catch (e) {
+              if (!mine()) return;
+              warnings.push('「' + f.name + '」無法讀取：' + (e?.name === 'PasswordException' ? '檔案有密碼保護' : (e?.message || e)));
+              logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', fail: 1, ms: Date.now() - tf }); continue;
             }
-            d.warnings.forEach(x => warnings.push(`「${f.name}」：${x}`));
-            d.docs.forEach(x => { x.file = f.name; x.pick = !!x.row.number; x.ocr = ocr; docs.push(x); });
-            Object.keys(r.thumbs || {}).forEach(p => thumbs.push({ file: f.name, page: Number(p), src: r.thumbs[p] }));
-            r.evidence.forEach(e => evidence.push(e));
-            if (d.docs.length) used.push(it);
-            if (r.mode === 'ocr' && r.score && r.score < 0.85) warnings.push(`「${f.name}」照片／掃描不夠清楚（清晰度 ${Math.round(r.score * 100)} 分），請特別仔細核對，或重拍一張更清楚的。`);
+            const pages = r.pageSources || [];
+            const unreadPages = pages.filter(p => p.source !== 'text' && !trim(p.rawText));
+            if (unreadPages.length) warnings.push('「' + f.name + '」第 ' + unreadPages.map(p => p.page).join('、') + ' 頁沒有讀出文字，請查看原件。');
+            const entry = { file: f, pages, thumbs: r.thumbs || {}, evidence: r.evidence || [], url: '', found: parsed.docs.length > 0 };
+            fileMap.set(sourceId, entry);
+            logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', m: r.mode, p: r.pages, o: r.ocrPages || 0, ms: Date.now() - tf, docs: parsed.docs.length });
+            parsed.warnings.forEach(x => warnings.push('「' + f.name + '」' + x));
+            parsed.docs.forEach(d => {
+              d.file = f.name; d.sourceId = sourceId;
+              const hints = d.sources?.length ? d.sources : [{ page: pages.length === 1 ? 1 : null, excerpt: '' }];
+              d.sources = R.sourceRows(hints.map(s => ({ ...s, sourceId })), fileMap);
+              const pageNumbers = [...new Set(d.sources.map(s => s.page).filter(Boolean))];
+              const modes = [...new Set(d.sources.map(s => s.mode).filter(Boolean))];
+              d.mode = modes.length === 1 ? modes[0] : modes.length > 1 ? 'mixed' : r.mode;
+              d.ocr = d.mode !== 'text';
+              const uncertainPages = pages.filter(p => (!pageNumbers.length || pageNumbers.includes(p.page)) && p.reviewLines?.length);
+              d.pageUncertain = uncertainPages.length > 0 || unreadPages.length > 0;
+              if (d.pageUncertain) {
+                d.reviewReasons = [...(d.reviewReasons || []), ...uncertainPages.map(p => '第 ' + p.page + ' 頁有 ' + p.reviewLines.length + ' 行辨識不確定，請核對原件。')];
+              }
+              d.pageLabel = pageNumbers.length ? '第 ' + pageNumbers.join('、') + ' 頁' : '請在原件定位';
+              d.pick = !!d.row.number && !matchProp(d.row).issue; d.useRights = false;
+              d.useTaxSource = !!d.row.transcriptTax && !d.pageUncertain;
+              d.useBuildingSource = !!d.row.transcriptBuilding && !d.pageUncertain;
+              docs.push(d);
+            });
+            if (parsed.docs.length) used.push(it);
+            if (r.mode !== 'text' && r.score && r.score < 0.85) warnings.push('「' + f.name + '」辨識清晰度偏低，請逐欄對照原件。');
           }
-          const owners = H.ownersOf(docs).map(o => ({ ...o, pick: false, ev: ownerEvidence(o, evidence) }));
-          const autoFix = fbAutoFix(docs, owners);   // D8：依同仁過去的修正自動校正（只改電腦辨識的文字欄），並記下讀到的原值
-          const named = w.value.sellers.filter(p => trim(p.name)).length;
-          owners.forEach(o => { o.pick = ownerCan(o) && (!!ownerSeller(o) || !named); });
-          const nOcr = docs.filter(x => x.ocr).length, nCommon = docs.filter(x => x.common).length;
-          imp.value = { ...IMP0(), docs, warnings, owners, thumbs, files: src && src.local ? used : [], saveOrig: !!(src && src.local),
-            useRights: docs.some(x => x.rightsState !== 'unknown' && x.rightsState !== 'n/a') && !trim(w.value.v50Reg.otherRights),
-            msg: docs.length ? `讀到 ${docs.length - nCommon} 筆標的${nCommon ? `、${nCommon} 筆共有部分` : ''}${owners.length ? `、${owners.length} 位所有權人` : ''}。${nOcr ? '標「辨識」的是電腦辨識結果，' : ''}請對照謄本原件逐欄核對（可直接修改），勾選要帶入的項目。` : '沒有讀到可帶入的標的。' };
-          imp.value.autoFix = autoFix;
-          imp.value.log = { files: logFiles, ms: Date.now() - t0, docs: docs.length - nCommon, commons: nCommon, owners: owners.length, warnings: warnings.slice(0, 10).map(x => HF() ? HF().scrub(x) : ''), src: src && src.local ? 'local' : 'case', autoFix: autoFix.length, fail: docs.length ? 0 : 1 };
-          fbLastImport = { caseKey: token, log: imp.value.log }; fbLastFixed = [];
-          fbRecord('import', '謄本帶入', '', imp.value.log);
+          if (!mine()) return;
+          R.checkShares(docs, numKey);
+          const owners = H.ownersOf(docs).map(o => {
+            const sources = R.sourceRows(o.sources || [], fileMap);
+            const crop = (field, value) => {
+              const norm = v => String(v || '').replace(/\s/g, '');
+              if (!norm(value)) return '';
+              for (const s of sources) {
+                if (!norm(s.excerpt).includes(norm(value))) continue;
+                const fieldRe = { name: /姓名|所有權人|name/i, id: /統一編號|^id$/i, address: /住址|地址|address/i }[field];
+                if (!fieldRe.test(s.field || '') && !fieldRe.test(s.excerpt || '')) continue;
+                const hits = (fileMap.get(s.sourceId)?.evidence || []).filter(e => e.page === s.page && norm(e.text).includes(norm(value)));
+                if (hits.length === 1) return hits[0].crop || '';
+              }
+              return '';
+            };
+            const uncertain = sources.some(s => fileMap.get(s.sourceId)?.pages.find(p => p.page === s.page)?.reviewLines?.length);
+            const reviewReasons = [...(o.reviewReasons || []), ...(uncertain ? ['所有權資料所在頁有低信心辨識，請核對整頁歸屬後勾選。'] : [])];
+            return { ...o, sources, uncertain, reviewReasons, src: sources.some(s => s.mode === 'ocr' || s.mode === 'mixed') ? 'ocr' : 'text',
+              ev: { name: crop('name', o.name), id: crop('id', o.id), addr: crop('address', o.address) }, pick: false };
+          });
+          const named = w.value.sellers.some(p => trim(p.name));
+          owners.forEach(o => { const match = matchSeller(o); o.pick = !o.uncertain && ownerCan(o) && ((!match.nameOnly && !!match.person) || !named); });
+          docs.forEach(d => { d.orig = { ...d.row }; });
+          owners.forEach(o => { o.orig = { name: o.name, id: o.id, birth: o.birth, address: o.address }; });
+          const commons = docs.filter(d => d.common).length;
+          const log = { files: logFiles, ms: Date.now() - startTime, docs: docs.length - commons, commons, owners: owners.length, warningCount: warnings.length, src: src.local ? 'local' : 'case', fail: docs.length ? 0 : 1 };
+          imp.value = { ...IMP0(), docs, warnings, owners, files: src.local ? used : [], manualFiles: manualFiles(), log,
+            msg: docs.length ? '讀到 ' + (docs.length - commons) + ' 筆標的、' + commons + ' 筆共有部分、' + owners.length + ' 位所有權人。請對照原件，修改並勾選要帶入的資料。' : '沒有讀到可帶入的標的。' };
+          fbLastImport = { caseKey: token, log }; fbLastFixed = [];
+          fbRecord('import', '謄本帶入', '', log);
         } catch (e) {
-          if (mine()) {
-            imp.value = { ...IMP0(), msg: '讀取失敗：' + (e && e.message || e) + '。請確認網路後再試一次。' };
-            const log = { files: logFiles, ms: Date.now() - t0, fail: 1, err: (HF() ? HF().scrub(e && e.message || e) : '').slice(0, 200) };
-            fbLastImport = { caseKey: token, log }; fbLastFixed = []; fbRecord('import', '謄本帶入', '', log);
-          }
+          if (!mine()) return;
+          imp.value = { ...IMP0(), manualFiles: manualFiles(), msg: '讀取失敗：' + (e?.message || e) };
+          const log = { files: logFiles, ms: Date.now() - startTime, fail: 1 };
+          fbLastImport = { caseKey: token, log }; fbLastFixed = []; fbRecord('import', '謄本帶入', '', log);
         }
       };
       const onTranscriptFiles = async ev => {
@@ -1152,10 +1615,12 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       };
       const canTranscript = r => !r.void && r.kind === 'transcript' && (r.mime === 'application/pdf' || /^image\//.test(r.mime || ''));
       const importFromCaseFile = async r => {
-        if (imp.value.busy || !sel.value) return;
+        if (imp.value.busy || !sel.value || sel.value.blocked) return;
+        clearImport();
         tab.value = 'forms';
-        setTimeout(() => { const el = document.querySelector('[data-testid="desk-import"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
-        const token = sel.value.key;
+        const generation = importGeneration, work = w.value;
+        const mine = () => generation === importGeneration && work === w.value;
+        setTimeout(() => { const el = document.querySelector('[data-testid="desk-import"]'); if (mine() && el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
         imp.value = { ...IMP0(), busy: true, msg: `讀取「${r.name}」…` };
         let file;
         try {
@@ -1163,65 +1628,79 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           if (!res.ok) throw new Error('檔案讀取失敗（HTTP ' + res.status + '）');
           const blob = await res.blob();
           file = new File([blob], r.name, { type: r.mime || blob.type });
-        } catch (e) { if (sel.value && sel.value.key === token) imp.value = { ...IMP0(), msg: '讀取失敗：' + e.message }; return; }
-        if (!sel.value || sel.value.key !== token) return;
+        } catch (e) { if (mine()) imp.value = { ...IMP0(), msg: '讀取失敗：' + e.message }; return; }
+        if (!mine()) return;
         imp.value.busy = false;
         await runImport([{ file }], { local: false });
       };
       const applyTranscript = async () => {
-        const H = window.HGTranscript, picked = imp.value.docs.filter(d => d.pick), owners = imp.value.owners.filter(o => o.pick && ownerCan(o));
-        if (!imp.value.reviewed || (!picked.length && !owners.length) || !w.value || imp.value.busy) return;
-        let added = 0, filled = 0, commons = 0;
-        // D8 修正紀錄：checked＝帶入的欄位數，fixes＝同仁在面板上改過的欄位（只留改動的字）
-        const F = HF(), fixes = [], checked = {}, autoN = (imp.value.autoFix || []).length;
-        const cnt = (f, s) => { const k = f + '|' + s; checked[k] = (checked[k] || 0) + 1; };
-        if (F) {
-          picked.forEach(d => {
-            const s = d.ocr ? 'ocr' : 'text', o = d.orig || {};
-            cnt(F.docGroup(d) + '.整筆刪除', s);
-            Object.keys(F.DOC_KEYS).forEach(k => { if (!trim(o[k]) && !trim(d.row[k])) return; const f = F.docField(d, k); cnt(f, s); const x = F.fix(f, s, o[k], d.row[k]); if (x) fixes.push(x); });
-          });
-          owners.forEach(o => {
-            const s = o.src || 'ocr', g = o.orig || {};
-            cnt('所有權人.整筆刪除', s);
-            Object.keys(F.OWNER_KEYS).forEach(k => { if (!trim(g[k]) && !trim(o[k])) return; const f = F.ownerField(k); cnt(f, s); const x = F.fix(f, s, g[k], o[k]); if (x) fixes.push(x); });
-          });
-        }
-        const trackD = (obj, k, val, d) => { if (F && F.DOC_KEYS[k]) fbTrackAdd(obj, k, val, F.docField(d, k), d.ocr ? 'ocr' : 'text', 'v50Props', '謄本帶入'); };
-        const trackP = (p, k, val, o) => { if (F) fbTrackAdd(p, k, val, F.ownerField(k), o.src || 'ocr', 'sellers', '謄本帶入'); };
+        const picked = imp.value.docs.filter(d => d.pick && !matchProp(d.row).issue).map(d => ({ ...d, row: { ...d.row } }));
+        const owners = imp.value.owners.filter(o => o.pick && ownerCan(o));
+        if (!imp.value.reviewed || (!picked.length && !owners.length) || !w.value || sel.value?.blocked || imp.value.busy) return;
+        const generation = importGeneration, work = w.value;
+        const mine = () => generation === importGeneration && w.value === work;
+        R.checkShares(picked, numKey);
+        let added = 0, filled = 0, pAdded = 0, pFilled = 0;
+        const diffs = [], rightsLines = new Set(), checked = {}, fixes = [];
+        const countFields = (record, before, keyMap, fieldName, mode) => Object.keys(keyMap || {}).forEach(k => {
+          const oldValue = trim(before[k]), value = trim(record[k]);
+          if (!oldValue && !value) return;
+          const label = fieldName(k) + '|' + mode;
+          checked[label] = (checked[label] || 0) + 1;
+          if (oldValue !== value) fixes.push({ f: fieldName(k), s: mode });
+        });
+        const F = HF();
         picked.forEach(d => {
-          const row = {}; Object.keys(d.row).forEach(k => { row[k] = trim(d.row[k]); });
+          const match = matchProp(d.row);
+          if (match.issue) return;
+          const row = {};
+          for (const k of ['kind','city','district','section','subSection','number','transferShare','area','address','mainArea','attachedArea','common','commonOf']) {
+            if (d.row[k] != null) row[k] = trim(d.row[k]);
+          }
           if (!row.common) { delete row.common; delete row.commonOf; }
-          const ex = w.value.v50Props.find(p => propExists(row) && p.kind === row.kind && numKey(p.number) === numKey(row.number) && (!trim(p.section) || !trim(row.section) || H.sameSection(p.section, row.section)));
-          if (ex) Object.keys(row).forEach(k => { if (row[k] && !trim(ex[k])) { ex[k] = row[k]; filled++; trackD(ex, k, row[k], d); } });
-          else {
-            const base = { kind: row.kind, city: '', district: '', section: '', subSection: '', number: '', transferShare: '' };
-            w.value.v50Props.push(row.kind === '土地' ? { ...base, area: '', ...row } : { ...base, address: '', mainArea: '', attachedArea: '', ...row }); added++;
-            const nr = w.value.v50Props[w.value.v50Props.length - 1]; Object.keys(row).forEach(k => trackD(nr, k, row[k], d));
-            if (row.common) commons++;
+          if (F) countFields(row, d.orig || {}, F.DOC_KEYS, k => F.docField(d,k), d.ocr ? 'ocr' : 'text');
+          if (match.person) {
+            const existing = match.person;
+            for (const k of Object.keys(row)) if (row[k] && !trim(existing[k])) { existing[k] = row[k]; filled++; }
+            if (row.transferShare && trim(existing.transferShare) !== row.transferShare) diffs.push(R.propLabel(row) + '的移轉權利範圍');
+          } else {
+            work.v50Props.push(row);
+            added++;
+          }
+          if (d.useRights && usableRights(d)) rightsLines.add(R.propLabel(row) + '：' + trim(d.rightsText));
+          for (const [enabled, key, label] of [[d.useTaxSource,'transcriptTax','謄本稅務參考資料'],[d.useBuildingSource,'transcriptBuilding','公契建物明細']]) {
+            if (!enabled || !canKeepSource(d,key)) continue;
+            const target = match.person || row;
+            const source = d.row[key];
+            if (!target[key]) { target[key] = clone(source); filled++; }
+            else if (JSON.stringify(target[key]) !== JSON.stringify(source)) diffs.push(R.propLabel(row) + '的' + label);
           }
         });
-        if (imp.value.useRights) {
-          // 同一個權利（例如共同擔保的抵押權）只寫一行，前面列出所有相關地建號
-          const groups = new Map();
-          picked.filter(d => d.rightsState !== 'unknown' && d.rightsState !== 'n/a').forEach(d => { const k = d.rightsState === 'none' ? '無他項權利登記' : d.rightsText; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(`${d.row.section}${d.row.subSection}${d.row.number}${d.row.kind === '建物' ? '建號' : '地號'}`); });
-          const text = [...groups].map(([k, ids]) => ids.join('、') + '：' + k).join('\n');
-          if (text) w.value.v50Reg.otherRights = trim(w.value.v50Reg.otherRights) ? trim(w.value.v50Reg.otherRights) + '\n' + text : text;
-        }
-        // 所有權人 → 義務人（賣方）：同名或同統一編號的只補空白欄；空白的賣方列先用；都沒有才新增
-        let pAdded = 0, pFilled = 0; const diffs = [];
+        const existingRights = String(work.v50Reg.otherRights || '');
+        const existingLines = existingRights.split(/\r?\n/).map(trim);
+        const newRights = [...rightsLines].filter(line => !existingLines.includes(line));
+        if (newRights.length) work.v50Reg.otherRights = existingRights + (existingRights && !existingRights.endsWith('\n') ? '\n' : '') + newRights.join('\n');
         owners.forEach(o => {
-          const v = { name: trim(o.name), id: trim(o.id).toUpperCase(), birth: o.birth || '', address: trim(o.address), share: trim(o.share) };
-          let p = w.value.sellers.find(s => H.nameMatch(v.name, s.name) || (v.id && trim(s.ledgerId).toUpperCase() === v.id));
-          if (!p) { p = w.value.sellers.find(s => !trim(s.name) && !trim(s.ledgerId)); if (p) { p.name = v.name; pAdded++; trackP(p, 'name', v.name, o); } }
-          if (!p) { w.value.sellers.push({ name: v.name, phone: '', role: '本人' }); p = w.value.sellers[w.value.sellers.length - 1]; pAdded++; trackP(p, 'name', v.name, o); }
-          [['ledgerId', v.id, '統一編號'], ['ledgerBirth', v.birth, '出生日期'], ['ledgerHome', v.address, '住址'], ['v50Share', v.share, '持分']].forEach(([k, val, label]) => {
-            if (!val) return;
-            if (!trim(p[k])) { p[k] = val; pFilled++; trackP(p, k, val, o); }
-            else if (trim(p[k]).toUpperCase() !== String(val).toUpperCase()) diffs.push(`${v.name} 的${label}`);
-          });
+          const match = matchSeller(o);
+          if (match.issue) return;
+          if (F) countFields(o, o.orig || {}, F.OWNER_KEYS, k => F.ownerField(k), o.src);
+          let p = match.person;
+          if (!p) {
+            p = work.sellers.find(s => Object.entries(s).every(([k,v]) => k === 'role' ? (!trim(v) || v === '本人') : !trim(v)));
+            if (p) p.name = trim(o.name);
+            else { work.sellers.push({ name: trim(o.name), role: '本人', phone: '' }); p = work.sellers[work.sellers.length - 1]; }
+            pAdded++;
+          } else if (!trim(p.name)) { p.name = trim(o.name); pFilled++; }
+          for (const [k, val, label] of [['ledgerId',trim(o.id).toUpperCase(),'統一編號'], ['ledgerBirth',o.birth,'出生日期'], ['ledgerHome',trim(o.address),'住址'], ['v50Share',trim(o.share),'持分']]) {
+            if (!val) continue;
+            if (!trim(p[k])) { p[k] = val; pFilled++; }
+            else if (trim(p[k]).toUpperCase() !== String(val).toUpperCase()) diffs.push(o.name + '的' + label);
+          }
         });
-        if (F) { fbLastFixed = [...new Set(fixes.map(x => x.f))]; fbRecord('fix', '謄本帶入', '', { stage: 'panel', fixes: fixes.slice(0, 80), checked, autoFix: autoN }); }
+        if (F) {
+          fbLastFixed = [...new Set(fixes.map(item => item.f))];
+          fbRecord('fix', '謄本帶入', '', { stage: 'panel', checked, fixes });
+        }
         // 原檔存到「文件」分頁（沿用 D5 上傳流程，分類＝謄本）
         let saved = '';
         const files = imp.value.saveOrig ? imp.value.files : [];
@@ -1236,14 +1715,17 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             const job = onCaseFiles({ target: { files: files.map(x => x.file), value: '' } });
             fl.value.kind = keep.kind; fl.value.note = keep.note;
             try { await job; } catch (e) {}
+            if (!mine()) return;
             saved = fl.value.msg ? '文件分頁：' + fl.value.msg : '';
           }
         }
         const parts = [];
-        if (added || filled) parts.push(`標的新增 ${added} 筆${commons ? `（含共有部分 ${commons} 筆）` : ''}${filled ? `、補上 ${filled} 個空白欄位` : ''}`);
-        if (pAdded || pFilled) parts.push(`賣方新增 ${pAdded} 位、補上 ${pFilled} 個欄位`);
-        imp.value = { ...IMP0(), msg: (parts.length ? '已帶入：' + parts.join('；') + '。請檢查下方「標的明細」與「權利人／義務人」，再按「依明細更新背表地建號」與上方「存檔」。' : '勾選的項目作業台都已填寫，沒有變更。')
-          + (diffs.length ? `\n已有資料與謄本不同、沒有覆蓋：${diffs.join('、')}，請人工確認。` : '') + (saved ? '\n' + saved : '') };
+        if (added || filled) parts.push('標的新增 ' + added + ' 筆，補上 ' + filled + ' 欄');
+        if (pAdded || pFilled) parts.push('賣方新增 ' + pAdded + ' 位，補上 ' + pFilled + ' 欄');
+        if (newRights.length) parts.push('公契附上 ' + newRights.length + ' 筆他項記載');
+        clearImport();
+        imp.value = { ...IMP0(), applied: true, msg: (parts.length ? '已帶入本案草稿。' + parts.join('；') + '。請檢查標的與當事人，再更新背表地建號並存檔。' : '勾選的資料已在本案中。')
+          + (diffs.length ? '\n已有不同資料的欄位保留原值，請核對：' + [...new Set(diffs)].join('、') : '') + (saved ? '\n' + saved : '') };
       };
 
       // D3 客戶回覆建議（Claude 2026-11-17）：只產生文字，不自動寄出。範本集中在 REPLY_STAGES，之後依楊總調整。
@@ -1311,7 +1793,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         if (!trim(rp.value.extra.items) || rp.value.extra.items === rp.value.autoItems) { rp.value.extra.items = def; rp.value.autoItems = def; }
       }, { immediate: true });
       watch(() => rp.value.firm, f => { try { localStorage.setItem('hgDeskFirm', f); } catch (e) {} });
-      watch(() => sel.value && sel.value.key, () => { const firm = rp.value.firm; rp.value = { ...RP0(), firm }; clearImport(); });
+      watch(() => sel.value && sel.value.key, () => { const firm = rp.value.firm; rp.value = { ...RP0(), firm }; });
       const replyTodo = computed(() => (rp.value.text.match(/【請填：/g) || []).length + (rp.value.channel === 'email' ? (rp.value.subject.match(/【請填：/g) || []).length : 0));
       const mailtoHref = computed(() => 'mailto:' + encodeURIComponent(replyTarget.value.email || '') + '?subject=' + encodeURIComponent(rp.value.subject) + '&body=' + encodeURIComponent(rp.value.text));
       const smsHref = computed(() => 'sms:' + String(replyTarget.value.phone || '').replace(/[^\d+]/g, '') + '?&body=' + encodeURIComponent(rp.value.text));
@@ -1322,7 +1804,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D4 客戶名冊（Claude 2026-11-17）：從所有已載入案件（不含封存）彙整買賣方／仲介的聯絡資料；只讀，要修改請開該案件。
       const OFFICIAL_LINE = 'https://line.me/R/ti/p/%40604gpqef';
-      const ALERTS = ['已申請', '本所協助申請', '客戶不需要'];
+      const ALERTS = ['已申請', '本所協助申請', '客戶不需要', '已終止'];
       const view = ref('case');
       const toggleRoster = () => { view.value = view.value === 'roster' ? 'case' : 'roster'; };
       const openFromRoster = c => { view.value = 'case'; openCase(c); };
@@ -1496,7 +1978,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         const files = [...(ev.target.files || [])]; ev.target.value = '';
         if (!files.length || fl.value.busy || !sel.value || !sel.value.caseId) return;
         const id = sel.value.caseId, row = sel.value.row, kind = fl.value.kind, note = trim(fl.value.note).slice(0, 200), who = staffName(), wm = kind === 'id' ? wmText() : '';
-        const done = [], failed = [], setMsg = t => { if (fl.value.caseId === id) fl.value.msg = t; };
+        const fileState = fl.value;
+        const done = [], failed = [], setMsg = t => { if (fl.value === fileState) fileState.msg = t; };
         fl.value.busy = true; fl.value.msg = '';
         try {
           const dir = await caseDir(id);
@@ -1508,7 +1991,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               let blob = file, mime = isPdf ? 'application/pdf' : file.type;
               if (isPdf) {
                 let bytes = new Uint8Array(await file.arrayBuffer());
-                if (fl.value.compress && bytes.length > SCAN_COMPRESS_FROM) {
+                if (fileState.compress && bytes.length > SCAN_COMPRESS_FROM) {
                   setMsg('檢查掃描檔' + tag);
                   if (!window.PDFLib) await loadScript('forms/pdf-lib.min.js');
                   const { doc, hasText } = await pdfInfo(await loadPdfjs(), bytes);
@@ -1538,9 +2021,9 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           }
         } catch (e) { failed.push(e && e.message ? e.message : String(e)); }
         finally {
-          fl.value.busy = false;
+          fileState.busy = false;
           setMsg([done.length ? `已上傳 ${done.length} 份：${done.join('、')}` : '', failed.length ? `未上傳 ${failed.length} 份：${failed.join('；')}` : ''].filter(Boolean).join('\n'));
-          if (fl.value.caseId === id) { if (!failed.length) fl.value.note = ''; loadFiles(); }
+          if (fl.value === fileState) { if (!failed.length) fl.value.note = ''; loadFiles(); }
         }
       };
       const viewFile = async r => {
@@ -1786,7 +2269,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D8';
+      const APP_VER = 'desk-D12';
       const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
       const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
       const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
@@ -1912,27 +2395,6 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         fbTrack = fbTrack.filter(t => !gone.has(t.obj));
         Object.keys(by).forEach(topic => { fbLastFixed = [...new Set([...fbLastFixed, ...by[topic].map(x => x.f)])]; fbRecord('fix', topic, '', { stage: 'after', fixes: by[topic].slice(0, 80) }); });
       };
-      // 帶入前：依學到的規則自動校正電腦辨識的文字欄，並記下同仁看到的原值（之後比對修改用）
-      const fbAutoFix = (docs, owners) => {
-        const F = HF(), m = fbModel.value, out = [], on = !!(F && m && m.rules.some(r => r.active));
-        const anyOcr = docs.some(d => d.ocr);
-        docs.forEach((d, i) => {
-          if (on && d.ocr) ['city', 'district', 'section', 'subSection', 'address'].forEach(k => {
-            const r = F.applyRules(d.row[k], F.docField(d, k), m);
-            if (r.applied.length) { d.row[k] = r.value; out.push({ where: `第 ${i + 1} 筆${F.DOC_KEYS[k]}`, pairs: r.applied }); }
-          });
-          d.orig = { ...d.row };
-        });
-        owners.forEach((o, i) => {
-          o.src = (o.ev && (o.ev.name || o.ev.id || o.ev.addr)) || anyOcr ? 'ocr' : 'text';
-          if (on && o.src === 'ocr') ['name', 'id', 'address'].forEach(k => {
-            const r = F.applyRules(o[k], F.ownerField(k), m, { idCheck: window.HGTranscript.idCheck });
-            if (r.applied.length) { o[k] = r.value; out.push({ where: `所有權人第 ${i + 1} 位${F.OWNER_KEYS[k]}`, pairs: r.applied }); }
-          });
-          o.orig = { name: o.name, id: o.id, birth: o.birth, address: o.address };
-        });
-        return out;
-      };
       const impHot = computed(() => { const F = HF(); if (!F || !fbModel.value) return ''; return F.hotList(fbModel.value, ['土地', '建物', '共有部分', '所有權人']).filter(x => !/整筆刪除$/.test(x.f)).slice(0, 6).map(x => x.f.replace('.', '的') + '（' + Math.round(x.rate * 100) + '%）').join('、'); });
       const hc = (d, k) => { const F = HF(); return { hot: !!(F && fbModel.value && F.hot(fbModel.value, F.docField(d, k))) }; };
       const hco = k => { const F = HF(); return { hot: !!(F && fbModel.value && F.hot(fbModel.value, F.ownerField(k))) }; };
@@ -1947,14 +2409,18 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         if (wantTab === 'receipts' && sel.value) openReceiptsTab();
         if (wantTab === 'reply' && sel.value) tab.value = 'reply';
         if (wantTab === 'files' && sel.value) openFilesTab();
+        if (wantTab === 'online') tab.value = 'online';
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
+        rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName,
+        blocks, tax, pdfPreview, pdfDialog, releasePreview, copyMailAddress, openNotePicker,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
         tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab,
-        imp, clearImport, onTranscriptFiles, applyTranscript, propExists, ownerOk,
-        addPerson, removePerson, idHint, idCls, ownerSeller, ownerCan, viewThumb, canTranscript, importFromCaseFile,
+        imp, clearImport, onTranscriptFiles, applyTranscript, canKeepSource, propExists, ownerOk,
+        addPerson, removePerson, idHint, idCls, ownerSeller, ownerCan, viewSource, closeSource, viewUrl, viewImage, canTranscript, importFromCaseFile,
+        matchSeller, matchProp, canApply, modeName, usableRights, reviewItems, jumpEdit,
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
         FILE_KINDS, KIND_NAME, fl, filesShown, filesSum, wmPreview, fsz, loadFiles, openFilesTab, onCaseFiles, viewFile, closeView, setFileKind, voidFile,
         ck, cc, ccDirty, canOcr, canReview, ckSum, ckGreenCount, ckOkCount, moneyHint, ckCur, ckSame, ckTouch, hlStyle, openContractOcr, closeContractOcr, ckReadRest, pickRegion, showPickPage, pickStart, pickMove, pickEnd, okAllGreen, applyContract, reviewContract,
