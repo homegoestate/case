@@ -351,6 +351,15 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 .d13-plan label{display:flex;flex-direction:column;font-size:12px}.d13-plan input{width:120px}.d13-plan label.wide input{width:280px;max-width:70vw}
 .list li .d13-badge{background:#fef2f2;color:#b91c1c;margin-left:4px}
 .tabs .d13-dot{color:#dc2626;font-size:10px;margin-left:3px;vertical-align:top}
+/* D14：快速登錄 */
+.d14-quick{margin-top:10px;border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;background:#f8fafc}
+.d14-quick summary{cursor:pointer;font-size:13.5px;color:var(--navy)}
+.d14-need{margin-left:8px;font-size:12px;background:#fef2f2;color:#b91c1c;border-radius:999px;padding:0 8px}.d14-need.soft{background:#fff7ed;color:#c2410c}
+.d14-row,.d14-filing{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:end;margin-top:8px;font-size:12.5px}
+.d14-filing{border-top:1px dashed #e2e8f0;padding-top:8px}
+.d14-row label,.d14-filing label{display:flex;flex-direction:column;font-size:12px}
+.d14-filing input[type=date]{width:140px}.d14-filing input:not([type]){width:170px}
+.d14-miss{color:#c2410c;font-size:12px}
 @media (max-width:560px){.d12-steps>div{min-width:0;font-size:11.5px}.d12-steps small{font-size:10px;letter-spacing:-.2px}.d12-dl{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -525,7 +534,24 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           <div class="d12-dl" v-if="caseTrack.deadlines.length" data-testid="d12-deadlines">
             <div v-for="d in caseTrack.deadlines" :key="d.name" :class="d.cls" :title="d.law"><b>{{ d.name }}</b><span class="muted">{{ d.dueLabel }}</span><div class="r">{{ d.text }}</div></div>
           </div>
-          <p class="note" style="margin:6px 0 0">進度與期限依背表的簽約、用印、完稅日期及紀錄簿「送件明細」推算（期限採計入起算日的保守算法，滑鼠停在卡片上可看法條）；日期要改請到背表。正式期限以機關認定為準。</p>
+          <p class="note" style="margin:6px 0 0">進度與期限依背表的簽約、用印、完稅日期及紀錄簿「送件明細」推算（期限採計入起算日的保守算法，滑鼠停在卡片上可看法條）。正式期限以機關認定為準。</p>
+          <details class="d14-quick" :open="quickOpen" @toggle="quickOpen = $event.target.open" data-testid="d14-quick">
+            <summary><b>快速登錄</b><span class="muted">　登記原因、送件、收件字號、補正、辦結</span><span v-if="!caseTypeName" class="d14-need">請先選登記原因</span><span v-else-if="!quickFilings.length" class="d14-need soft">尚未記送件</span></summary>
+            <div class="d14-row">
+              <label>登記原因<select v-model="w.v50Reg.type" :disabled="!!sel.blocked" data-testid="d14-type"><option value="">{{ autoType ? '依受託業務（' + autoType + '）' : '請選擇' }}</option><option v-for="t in TYPES" :key="t" :value="t">{{ t }}</option></select></label>
+              <button type="button" class="btn" @click="quickAddFiling" :disabled="!!sel.blocked" data-testid="d14-add">＋記送件（今天）</button>
+            </div>
+            <div v-for="(f, i) in quickFilings" :key="f.id || i" class="d14-filing" :data-testid="'d14-filing-' + i">
+              <label>類別<select v-model="f.kind" :disabled="!!sel.blocked"><option value="">請選擇</option><option v-for="k in FILING_KINDS" :key="k" :value="k">{{ k }}</option><option v-if="f.kind && !FILING_KINDS.includes(f.kind)" :value="f.kind">{{ f.kind }}</option></select></label>
+              <label>送件日<input type="date" v-model="f.filedDate" :disabled="!!sel.blocked"></label>
+              <label>收件字號<input v-model.trim="f.receipt" placeholder="例 南登字第 01234 號" :disabled="!!sel.blocked" :data-testid="'d14-receipt-' + i"></label>
+              <label>辦理進度<select :value="f.status" @change="quickSetStatus(f, $event.target.value)" :disabled="!!sel.blocked" :data-testid="'d14-status-' + i"><option v-for="s in FILING_STATUS" :key="s" :value="s">{{ s }}</option></select></label>
+              <label v-if="f.status === '已辦結'">辦結日<input type="date" v-model="f.completedDate" :disabled="!!sel.blocked"></label>
+              <span v-if="quickMissing(f).length" class="d14-miss">背表年度統計還缺：{{ quickMissing(f).join('、') }}</span>
+              <span v-else class="muted">{{ f.verified === '已覆核' ? '背表已覆核' : '待背表收件覆核' }}</span>
+            </div>
+            <p class="note" style="margin:6px 0 0">送件明細與背表「業務紀錄簿 → 送件明細」是同一份，按上方「存檔」後兩邊都看得到。地政機關、登記代理人沿用本案設定（目前：{{ w.ledgerAuthority || '未選' }}／{{ w.ledgerRegistrationAgent || w.ledgerAgent || '未選' }}）；收件覆核、受託紀錄連結與結案仍在背表。</p>
+          </details>
           <div v-if="sel.blocked" class="alert warn" style="margin-top:10px">{{ sel.blocked }}</div>
         </div>
 
@@ -1042,7 +1068,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
   const caseKey = c => c._caseId ? 'id:' + c._caseId : 'sig:' + caseSig(c);
   const findByKey = (list, key) => key.startsWith('id:') ? list.filter(c => c && c._caseId === key.slice(3)) : list.filter(c => c && !c._caseId && caseSig(c) === key.slice(4));
   // 作業台會改到的欄位（用來判斷有無未存檔修改）
-  const deskSubset = f => ({ v50Props: f.v50Props, v50Reg: f.v50Reg, ledgerAuthority: f.ledgerAuthority, ledgerRegistrationAgent: f.ledgerRegistrationAgent, landBuildNo: f.landBuildNo, sellers: f.sellers, buyers: f.buyers,
+  const deskSubset = f => ({ v50Props: f.v50Props, v50Reg: f.v50Reg, v44Filings: f.v44Filings, ledgerAuthority: f.ledgerAuthority, ledgerRegistrationAgent: f.ledgerRegistrationAgent, landBuildNo: f.landBuildNo, sellers: f.sellers, buyers: f.buyers,
     totalPrice: f.totalPrice, paymentContract: f.paymentContract, paymentSeal: f.paymentSeal, paymentTax: f.paymentTax, paymentBalance: f.paymentBalance, contractDate: f.contractDate, escrowBank: f.escrowBank, escrowName: f.escrowName, escrowIdPrefix: f.escrowIdPrefix, escrowIdSuffix: f.escrowIdSuffix });
 
   async function api(url, opt = {}) {
@@ -1116,6 +1142,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         raw.push(['送件', sentDates[0] || null, sent]);
         if (fixing) raw.push(['補正中', null, false, true]);
         raw.push(['辦結', closedAt || doneDate, finished]);
+        const lastDone = raw.reduce((k, x, i) => (x[2] ? i : k), -1);
+        raw.forEach((x, i) => { if (i < lastDone && !x[3]) x[2] = true; });
         let cur = false;
         const steps = raw.map(([name, date, done, warn]) => {
           let cls = done || finished ? 'done' : '';
@@ -1205,6 +1233,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         if (!Array.isArray(f.v50Props)) f.v50Props = [];
         f.v50Reg = { ...REG_DEFAULT, ...(f.v50Reg || {}) };
         if (!f.v50Reg.feePlan || typeof f.v50Reg.feePlan !== 'object') f.v50Reg.feePlan = { buyer: '', seller: '', note: '' };
+        if (!Array.isArray(f.v44Filings)) f.v44Filings = [];
         HGDeskTax.init(f);
         HGOnlineDesk.init(f);
         if (!Array.isArray(f.sellers)) f.sellers = []; if (!Array.isArray(f.buyers)) f.buyers = [];
@@ -1488,6 +1517,25 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           unpaid: due ? Math.max(0, dueAll - paid) : 0, over: due ? Math.max(0, paid - dueAll) : 0, collect: qt && (qt.collectBuyer || qt.collectSeller) ? { buyer: qt.collectBuyer, seller: qt.collectSeller } : null };
       };
       const rowFee = row => feeOf(row, rowForm(row));
+      // D14 快速登錄（Claude 2026-11-25）：登記原因寫 v50Reg.type；送件寫背表既有 v44Filings（欄位與背表 v44NewFiling 相同），覆核、受託紀錄與結案仍在背表。
+      const FILING_KINDS = ['買賣移轉', '抵押權設定', '抵押權塗銷', '贈與移轉', '繼承登記', '分割繼承', '建物第一次登記', '共有物分割', '信託登記', '信託塗銷'];
+      const FILING_STATUS = ['草稿', '已送件', '補正中', '已辦結', '已撤回'];
+      const KIND_OF_TYPE = { 買賣: '買賣移轉', 贈與: '贈與移轉', 繼承: '繼承登記', 抵押權設定: '抵押權設定', 抵押權塗銷: '抵押權塗銷', 共有物分割: '共有物分割' };
+      const quickOpen = ref(false);
+      const quickFilings = computed(() => w.value && Array.isArray(w.value.v44Filings) ? w.value.v44Filings.filter(x => x && typeof x === 'object') : []);
+      const isoToday = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+      const quickAddFiling = () => {
+        if (!w.value || (sel.value && sel.value.blocked)) return;
+        const f = w.value, props = Array.isArray(f.v50Props) ? f.v50Props : [];
+        const lands = props.filter(p => p.kind === '土地').length, builds = props.filter(p => p.kind === '建物' && !p.common).length;
+        f.v44Filings.push({ id: crypto.randomUUID ? crypto.randomUUID() : 'v44-' + Date.now() + '-' + Math.random().toString(36).slice(2), kind: KIND_OF_TYPE[d12TypeOf(f)] || '', customKind: '', filedDate: isoToday(),
+          agency: trim(f.ledgerAuthority), customAgency: '', receipt: '', registrar: trim(f.ledgerRegistrationAgent) || trim(f.ledgerAgent), customRegistrar: '', mandateId: '', deliverer: '',
+          status: '已送件', completedDate: '', landCount: lands ? String(lands) : '', buildingCount: builds ? String(builds) : '', notes: '', verified: '待核對', reviewedFingerprint: '', reviewedBy: '', reviewedAt: '' });
+        quickOpen.value = true;
+      };
+      const quickSetStatus = (f, v) => { f.status = v; if (v === '已辦結' && !f.completedDate) f.completedDate = isoToday(); };
+      const quickMissing = f => { const m = []; if (!f.filedDate) m.push('送件日'); if (!trim(f.agency === '其他機關' ? f.customAgency : f.agency)) m.push('地政機關'); if (!trim(f.receipt)) m.push('收件字號'); if (!trim(f.registrar === '其他' ? f.customRegistrar : f.registrar)) m.push('登記代理人'); if (!trim(f.kind === '其他' ? f.customKind : f.kind)) m.push('類別'); return m; };
+      watch(() => sel.value && sel.value.key, () => { quickOpen.value = !!(w.value && (!d12TypeOf(w.value) || !quickFilings.value.length)); });
       const caseFee = computed(() => sel.value && w.value ? feeOf(sel.value.row, w.value) : feeOf(null, null));
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && tab.value === 'receipts' && sel.value && sel.value.caseId && !rcpt.value.loading) loadReceipts(); });
 
@@ -2351,7 +2399,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D13';
+      const APP_VER = 'desk-D14';
       const FB_URL = `${SUPABASE}/rest/v1/desk_feedback`;
       const FB_TOPICS = ['謄本帶入', '合約辨識', '登記表單與產生表單', '文件與收據', '客戶名冊與回覆', '建議新功能', '其他'];
       const FB_ST = { new: '待處理', doing: '處理中', done: '已改善', skip: '暫不處理' };
@@ -2495,7 +2543,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       });
 
       return { cases, loading, loadError, loadedAt, q, scope, counts, filtered, sel, w, saving, saveMsg, dirty, genBusy, genMsg, operator,
-        rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName, feeData, caseFee, rowFee,
+        rowTrack, caseTrack, myName, readyForms, generateAll, genAllBusy, caseSetTodo, caseTypeName, feeData, caseFee, rowFee, FILING_KINDS, FILING_STATUS, quickOpen, quickFilings, quickAddFiling, quickSetStatus, quickMissing,
         blocks, tax, pdfPreview, pdfDialog, releasePreview, copyMailAddress, openNotePicker,
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
