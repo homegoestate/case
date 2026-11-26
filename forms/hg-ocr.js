@@ -1,6 +1,11 @@
-/* hg-ocr.js — 電腦內文字辨識（PaddleOCR PP-OCRv5 開源模型＋ONNX Runtime Web）
+/* hg-ocr.js — 電腦內文字辨識（PaddleOCR 開源模型＋ONNX Runtime Web）
  * 全部在使用者的瀏覽器執行，影像不送到任何辨識服務。
- * 模型：forms/ocr/det-mobile.onnx（找字的位置）、rec-mobile.onnx（認字）、dict.json（字典）
+ * 模型組（forms/ocr/）：
+ *   fast     PP-OCRv5 mobile：det-mobile.onnx（找字的位置）、rec-mobile.onnx（認字）、dict.json（字典）
+ *   accurate 高精度（D17 起）：det-mobile.onnx 找字＋rec-v6s.onnx（PP-OCRv6 small）認字、dict-v6.json；
+ *            v6 信心低於 0.95 的文字段再用 rec-mobile.onnx 認一次，取信心較高者。
+ *            2026-11-26 以 11/22 去識別謄本 8 頁比較：字元錯誤率 乾淨 2.44%→1.29%、掃描 3.44%→1.34%、拍照 4.49%→2.58%，欄位數三種影像都不少於快速模式。
+ * init({ base, model:'fast'|'accurate' }) 或 init({ base, det, rec, dict, detParams }) 指定檔名；換模型組時自動重新載入。
  * 授權：PaddleOCR 模型 Apache-2.0；ONNX Runtime MIT。
  * 認字用多個背景工作程序同時處理（每個核心一個），找字在主程式。
  */
@@ -8,7 +13,13 @@
   'use strict';
   const ORT_VER = '1.22.0';
   const ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@' + ORT_VER + '/dist/';
-  let state = null, initP = null, detQueue = Promise.resolve();
+  const V5_DET = { thresh: 0.3, boxThresh: 0.6, unclip: 1.5 };
+  const PRESETS = {
+    fast: { det: 'det-mobile.onnx', rec: 'rec-mobile.onnx', dict: 'dict.json', detParams: V5_DET, label: 'PP-OCRv5 mobile' },
+    accurate: { det: 'det-mobile.onnx', rec: 'rec-v6s.onnx', dict: 'dict-v6.json', detParams: V5_DET, label: 'PP-OCRv6 small＋v5 mobile 互補',
+      alt: { rec: 'rec-mobile.onnx', dict: 'dict.json', min: 0.95 } }
+  };
+  let state = null, initP = null, initKey = '', detQueue = Promise.resolve();
 
   const loadScript = src => new Promise((res, rej) => {
     if (window.ort) return res();
@@ -80,48 +91,84 @@
     };
   }
 
+  // 依 opt 決定模型檔：model 預設組，或 det／rec／dict 直接給檔名（舊寫法 rec:'server' 仍可用）
+  function specOf(opt) {
+    const p = PRESETS[opt.model] || PRESETS.fast;
+    const rec = opt.rec === 'server' ? 'rec-server.onnx' : (opt.rec || p.rec);
+    const alt = opt.alt !== undefined ? opt.alt : (opt.det || opt.rec || opt.dict ? null : p.alt || null);
+    return { model: PRESETS[opt.model] ? opt.model : (opt.det || opt.rec || opt.dict ? 'custom' : 'fast'),
+      det: opt.det || p.det, rec, dict: opt.dict || p.dict, alt, detParams: { ...V5_DET, ...(p.detParams || {}), ...(opt.detParams || {}) }, label: opt.label || p.label || '' };
+  }
+  // 換模型組前先停掉背景工作程序、釋放模型
+  function reset() {
+    const s = state;
+    state = null; initP = null; initKey = '';
+    if (!s) return;
+    for (const m of [s.main, s.alt]) { try { if (m && m.pool) m.pool.stop(); } catch (e) {} }
+    for (const x of [s.det, s.main && s.main.rec, s.alt && s.alt.rec]) { try { if (x && x.release) x.release(); } catch (e) {} }
+  }
+
   async function init(opt) {
+    // detect／recognize 內部呼叫 init() 不帶參數：沿用目前已載入的模型組
+    const explicit = !!opt && ['model', 'det', 'rec', 'dict'].some(k => opt[k]);
     opt = opt || {};
-    if (state) return state;
-    if (initP) return initP;
-    initP = (async () => {
+    if (!explicit) { if (state) return state; if (initP) return initP; }
+    const spec = specOf(opt), base = opt.base || 'forms/ocr/';
+    const key = [base, spec.det, spec.rec, spec.dict, spec.alt ? spec.alt.rec + '+' + spec.alt.dict : ''].join('|');
+    if (state && state.key === key) return state;
+    if (initP && initKey === key) return initP;
+    if (initP) { try { await initP; } catch (e) {} if (state && state.key === key) return state; }
+    reset();
+    initKey = key;
+    const job = initP = (async () => {
       await loadScript(ORT_BASE + 'ort.wasm.min.js');
       const ort = window.ort; if (!ort) throw new Error('辨識程式載入失敗。');
       ort.env.wasm.wasmPaths = ORT_BASE;
       ort.env.wasm.numThreads = 1;
       ort.env.logLevel = 'error';   // 模型轉檔留下的無用參數警告不顯示
-      const base = opt.base || 'forms/ocr/';
-      const recName = opt.rec === 'server' ? 'rec-server.onnx' : 'rec-mobile.onnx';
-      const [detB, recB, dict] = await Promise.all([
-        fetchBuf(base + 'det-mobile.onnx', 'det', opt.onProgress),
+      const recName = spec.rec;
+      const dictOf = name => fetch(base + name).then(r => { if (!r.ok) throw new Error('辨識字典下載失敗（' + r.status + '）'); return r.json(); });
+      const [detB, recB, dict, altB, altDict] = await Promise.all([
+        fetchBuf(base + spec.det, 'det', opt.onProgress),
         fetchBuf(base + recName, 'rec', opt.onProgress),
-        fetch(base + 'dict.json').then(r => { if (!r.ok) throw new Error('辨識字典下載失敗（' + r.status + '）'); return r.json(); })
+        dictOf(spec.dict),
+        spec.alt ? fetchBuf(base + spec.alt.rec, 'alt', opt.onProgress) : null,
+        spec.alt ? dictOf(spec.alt.dict) : null
       ]);
       const so = { executionProviders: ['wasm'], graphOptimizationLevel: 'all', logSeverityLevel: 3 };
       const det = await ort.InferenceSession.create(detB, so);
       // 背景工作程序：核心數 − 1，最多 4 個；失敗就退回主程式單線處理
       const nW = opt.workers != null ? opt.workers : Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1));
-      let pool = null, rec = null;
-      if (nW > 0 && typeof Worker !== 'undefined') {
-        try { pool = makePool(nW, recB); await pool.start(); } catch (e) { if (pool) pool.stop(); pool = null; }
-      }
-      if (!pool) rec = await ort.InferenceSession.create(recB, so);
-      let recQueue = Promise.resolve();
-      const runRec = pool ? (data, dims) => pool.run(data, dims) : (data, dims) => {
-        const p = recQueue.then(async () => { const out = await rec.run({ [rec.inputNames[0]]: new ort.Tensor('float32', data, dims) }); const t = out[rec.outputNames[0]]; return { data: t.data, dims: t.dims }; });
-        recQueue = p.catch(() => {}); return p;
+      const makeRec = async (buf, words, n) => {
+        let pool = null, rec = null;
+        if (n > 0 && typeof Worker !== 'undefined') {
+          try { pool = makePool(n, buf); await pool.start(); } catch (e) { if (pool) pool.stop(); pool = null; }
+        }
+        if (!pool) rec = await ort.InferenceSession.create(buf, so);
+        let recQueue = Promise.resolve();
+        const runRec = pool ? (data, dims) => pool.run(data, dims) : (data, dims) => {
+          const p = recQueue.then(async () => { const out = await rec.run({ [rec.inputNames[0]]: new ort.Tensor('float32', data, dims) }); const t = out[rec.outputNames[0]]; return { data: t.data, dims: t.dims }; });
+          recQueue = p.catch(() => {}); return p;
+        };
+        const index = new Map(); words.forEach((ch, i) => { if (!index.has(ch)) index.set(ch, i + 1); });
+        return { pool, rec, runRec, dict: words, index };
       };
-      const index = new Map(); dict.forEach((ch, i) => { if (!index.has(ch)) index.set(ch, i + 1); });
-      state = { ort, det, runRec, dict, index, recName, workers: pool ? pool.size : 0 };
+      const main = await makeRec(recB, dict, nW);
+      // 互補模型：主模型信心不足的方框再認一次，取信心較高者（工作程序數減半）
+      const alt = spec.alt ? await makeRec(altB, altDict, Math.max(1, Math.ceil(nW / 2))) : null;
+      const s = { ort, det, rec: main.rec, pool: main.pool, runRec: main.runRec, dict, index: main.index, main, alt, altMin: (spec.alt && spec.alt.min) || 0.95, altMargin: (spec.alt && spec.alt.margin) || 0,
+        recName, key, model: spec.model, label: spec.label, detParams: spec.detParams, workers: main.pool ? main.pool.size : 0 };
+      if (initP !== job) { try { if (main.pool) main.pool.stop(); if (alt && alt.pool) alt.pool.stop(); } catch (e) {} throw new Error('辨識模型已切換，請重試。'); }
+      state = s;
       return state;
     })();
-    try { return await initP; } catch (e) { initP = null; throw e; }
+    try { return await job; } catch (e) { if (initP === job) { initP = null; initKey = ''; } throw e; }
   }
 
   /* 找出影像中的文字行。回傳原圖座標的方框 [{x,y,w,h,score}] */
   async function detect(src, opt) {
     opt = opt || {};
-    const { ort, det } = await init();
+    const { ort, det, detParams } = await init();
     const job = async () => {
       const sw = src.width, sh = src.height;
       const maxSide = opt.maxSide || 1600, minSide = opt.minSide || 0;
@@ -140,7 +187,8 @@
       }
       const out = await det.run({ [det.inputNames[0]]: new ort.Tensor('float32', data, [1, 3, H, W]) });
       const map = out[det.outputNames[0]].data;
-      const thresh = opt.thresh != null ? opt.thresh : 0.3, boxThresh = opt.boxThresh != null ? opt.boxThresh : 0.6, unclip = opt.unclip || 1.5;
+      const dp = detParams || V5_DET;
+      const thresh = opt.thresh != null ? opt.thresh : dp.thresh, boxThresh = opt.boxThresh != null ? opt.boxThresh : dp.boxThresh, unclip = opt.unclip || dp.unclip;
       const seen = new Uint8Array(n), stack = new Int32Array(n), boxes = [];
       const fx = sw / W, fy = sh / H;
       for (let i = 0; i < n; i++) {
@@ -174,7 +222,15 @@
    * 回傳 {text, score, chars:[{c,p,x}], probs, box}；chars.x 是每個字在原圖的大約橫向位置 */
   async function recognize(src, box, opt) {
     opt = opt || {};
-    const { runRec, dict, index } = await init();
+    const s = await init();
+    const r1 = await recognizeWith(s.main || s, src, box, opt);
+    // 互補模型：只限一般認字（不含限定字元），主模型信心低於門檻才再認一次
+    if (!s.alt || opt.allow || r1.score >= s.altMin) return r1;
+    const r2 = await recognizeWith(s.alt, src, box, opt);
+    return r2.score > r1.score + s.altMargin && r2.text ? { ...r2, alt: true } : r1;
+  }
+  async function recognizeWith(m, src, box, opt) {
+    const { runRec, dict, index } = m;
     const bx = Math.max(0, Math.floor(box.x)), by = Math.max(0, Math.floor(box.y));
     let bw = Math.max(1, Math.min(src.width - bx, Math.ceil(box.w)));
     const bh = Math.max(1, Math.min(src.height - by, Math.ceil(box.h)));
@@ -212,13 +268,13 @@
       if (mi !== 0 && mi !== last) { const ch = charOf(mi); text += ch; chars.push({ c: ch, p: mv, x: bx + (s + 0.5) * stepPx }); sum += mv; cnt++; }
       last = mi;
     }
-    return { text: text.trim(), score: cnt ? sum / cnt : 0, chars, probs: { data: p, T: Tuse, C }, box: { x: bx, y: by, w: bw, h: bh } };
+    return { text: text.trim(), score: cnt ? sum / cnt : 0, chars, probs: { data: p, T: Tuse, C, index }, box: { x: bx, y: by, w: bw, h: bh } };
   }
 
   /* 已知候選字串（例如背表上的姓名）時，算每個候選字串的可能性，挑最像的。回傳 [{text, logp, perChar}] 由高到低 */
   function scoreCandidates(r, candidates) {
     if (!state || !r || !r.probs) return [];
-    const { data, T, C } = r.probs, { index } = state;
+    const { data, T, C } = r.probs, index = r.probs.index || state.index;
     const out = [];
     for (const cand of candidates) {
       const s = String(cand || '').replace(/\s+/g, ''); if (!s) continue;
@@ -246,5 +302,5 @@
     return out.sort((x, y) => y.logp - x.logp);
   }
 
-  window.HGOcr = { init, detect, recognize, scoreCandidates, get ready() { return !!state; }, get workers() { return state ? state.workers : 0; }, ORT_VER };
+  window.HGOcr = { init, reset, detect, recognize, scoreCandidates, PRESETS, get ready() { return !!state; }, get model() { return state ? state.model : ''; }, get label() { return state ? state.label : ''; }, get workers() { return state ? state.workers : 0; }, ORT_VER };
 })();

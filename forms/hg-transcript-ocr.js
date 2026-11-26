@@ -42,14 +42,29 @@
   const title = new RegExp('^([ \t　]*)(土地|建物)[ \t　]*' + labelPattern('登記第') + '[ \t　]*([^ \t　類类]?)[ \t　]*' + labelPattern('類謄本'));
   const sections = ['標示部', '所有權部', '他項權利部'].map(name => ({
     name,
-    pattern: new RegExp('^[＊*※\\s]*(土地|建物)[ \\t　]*' + labelPattern(name) + '[＊*※\\s]*$')
+    pattern: new RegExp('^[＊*※\\s]*(土地|建物)[ \\t　]*' + labelPattern(name) + '[＊*※\\s]*$'),
+    loose: new RegExp('[＊*※][^：:0-9０-９]{0,4}[ \\t　]*(土地|建物)[ \\t　]*' + labelPattern(name) + '[ \\t　]*[^：:0-9０-９]{0,4}[＊*※]')
   }));
+  // 星號裝飾的區段標題：辨識有時把星號認成「水」「米」。只有還原後整列是「土地／建物＋部別」或全是星號時才採用。
+  function starFix(raw) {
+    if (!/[水米氺冰]/.test(raw) || !/[＊*※]{3,}/.test(raw)) return raw;
+    const t = raw.replace(/[水米氺冰]+/g, (m, off, s) => /[＊*※]/.test(s[off - 1] || '') || /[＊*※]/.test(s[off + m.length] || '') ? '*'.repeat(m.length) : m);
+    const core = t.replace(/[＊*※\s　]/g, '');
+    return core === '' || (/^(土地|建物)/.test(core) && core.length <= 9) ? t : raw;
+  }
   function fixLine(value) {
-    const raw = String(value == null ? '' : value);
+    const raw = starFix(String(value == null ? '' : value));
     if (title.test(raw)) return raw.replace(title, (_, spaces, kind, category) => spaces + kind + '登記第' + category + '類謄本');
     for (const section of sections) {
       const match = section.pattern.exec(raw);
       if (match) return match[1] + section.name;
+    }
+    // 兩側星號很多、中間是區段標題，星號被認成其他字時仍取標題
+    if ((raw.match(/[＊*※]/g) || []).length >= 6) {
+      for (const section of sections) {
+        const match = section.loose.exec(raw);
+        if (match) return match[1] + section.name;
+      }
     }
     // 僅在有星號裝飾、地建類型清楚且整列符合已知標題錯字時校字。
     if (/^\s*[＊*※]{3,}/.test(raw)) {
@@ -109,6 +124,7 @@
     return Math.abs(best) < 0.2 ? 0 : best;
   }
 
+  const isDecoration = t => { const s = String(t || '').replace(/[\s　]/g, ''); return s.length >= 3 && /[＊*※]/.test(s) && /^[＊*※水米氺冰]+$/.test(s); };
   // 辨識結果的方框排回一行一行（同一行：垂直中心相近；行內由左到右，有明顯空隙補空白）
   function groupLines(boxes) {
     const lines = [];
@@ -124,7 +140,8 @@
       l.boxes.forEach(b => { if (end !== null && b.x - end > l.h * 0.4) text += ' '; text += b.text; end = b.x + b.w; });
       const x0 = Math.min(...l.boxes.map(b => b.x)), y0 = Math.min(...l.boxes.map(b => b.y));
       const x1 = Math.max(...l.boxes.map(b => b.x + b.w)), y1 = Math.max(...l.boxes.map(b => b.y + b.h));
-      const needsReview = l.boxes.some(b => b.needsReview);
+      // 標題兩側的星號裝飾（可能被認成「水」「米」）可信度常偏低，不因此把整列標題清空
+      const needsReview = l.boxes.some(b => b.needsReview && !isDecoration(b.text));
       return { rawText: text, text: needsReview ? '' : fixLine(text), needsReview, x: x0, y: y0, w: x1 - x0, h: y1 - y0, score: l.boxes.reduce((s, b) => s + b.score, 0) / l.boxes.length, boxes: l.boxes };
     });
   }
@@ -311,5 +328,5 @@
     } finally { try { await doc.destroy(); } catch (e) {} }
   }
 
-  window.HGTranscriptOcr = { version: 'D11-2026-11-21', readFile, readCanvas, groupLines, skewAngle, rotate, imageRows, fixLine, fixLines };
+  window.HGTranscriptOcr = { version: 'D17-2026-11-26', readFile, readCanvas, groupLines, skewAngle, rotate, imageRows, fixLine, fixLines };
 })();

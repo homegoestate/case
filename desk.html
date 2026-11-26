@@ -356,6 +356,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 .d16-newver{background:#1d4ed8;color:#fff;padding:8px 16px;font-size:13.5px}.d16-newver .btn{margin-left:6px}
 .d16-whatsnew{margin:10px 14px 0;padding:10px 14px;border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;font-size:13px}
 .d16-whatsnew ul{margin:6px 0 8px;padding-left:20px}.d16-whatsnew li{margin:2px 0}
+.d17-ocr{font-size:13px;white-space:nowrap}.d17-ocr select{margin-left:4px;font-size:13px;padding:2px 4px}
 .d16-heirs input,.d16-heirs select{width:100%;min-width:70px}
 /* D14：快速登錄 */
 .d14-quick{margin-top:10px;border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;background:#f8fafc}
@@ -386,8 +387,9 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
   <div v-if="newVer" class="d16-newver" data-testid="d16-newver">作業台已有新版本（{{ newVer.replace('desk-', '') }}）。<button type="button" class="btn sm primary" @click="reloadPage">按這裡更新</button>　未存檔的修改請先存檔。</div>
   <div v-if="whatsNew" class="d16-whatsnew" data-testid="d16-whatsnew">
-    <b>作業台本次更新（11/25）</b>　先在左側點一件案件，就會看到：
+    <b>作業台本次更新（11/25～11/26）</b>　先在左側點一件案件，就會看到：
     <ul>
+      <li><b>11/26 謄本辨識改用高精度模型</b>：「登記與稅務表單 → 從謄本帶入」旁可選「高精度／快速」。掃描檔、照片的錯字約少一半，掃描謄本的區段標題也不再被清空；第一次使用多下載約 21 MB。</li>
       <li><b>案件上方</b>：辦理進度（簽約→用印→完稅→送件→補正→辦結）、法定期限提醒、<b>快速登錄</b>（登記原因、記送件、收件字號）</li>
       <li><b>左側清單</b>：期限警示、我的、未收款 三個篩選</li>
       <li><b>登記與稅務表單</b>：依登記原因自動列出適用書表（買賣公契／<b>贈與公契</b>、申請書含分割繼承），一次下載、申請書備註可引用切結用語</li>
@@ -592,6 +594,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             <div class="row">
               <b style="color:var(--navy)">從謄本帶入</b>
               <span class="btn filebtn" :class="{primary: !imp.docs.length}">{{ imp.busy ? '讀取中…' : '選擇謄本（電子謄本、掃描 PDF、照片）' }}<input type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple @change="onTranscriptFiles" :disabled="imp.busy || !!sel.blocked" data-testid="desk-import-file"></span>
+              <label class="d17-ocr" title="高精度：PP-OCRv6 開源模型與原模型互補，掃描檔、照片的錯字約少一半，第一次多下載約 21 MB。快速：原本的模型。兩者都只在這台電腦執行，不上傳。">辨識 <select v-model="ocrModel" :disabled="imp.busy" data-testid="desk-ocr-model"><option value="accurate">高精度（建議）</option><option value="fast">快速（舊版）</option></select></label>
               <span class="muted">在這台電腦讀取文字或辨識影像。照片請拍正、整頁入鏡。已存入案件的謄本，可從「文件」分頁開啟。</span>
             </div>
             <div v-if="imp.busy" class="prog"><div :style="{ width: imp.pct + '%' }"></div></div>
@@ -1789,6 +1792,10 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const { modeName, usableRights } = R;
       const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], files: [], manualFiles: [], view: null, reviewed: false, saveOrig: false, log: null, applied: false });
       const imp = ref(IMP0());
+      // D17 辨識模式（Claude 2026-11-26）：高精度＝PP-OCRv6（依事務所去識別謄本比較選定）；快速＝原 PP-OCRv5 mobile。同仁的選擇記在這台電腦。
+      const HG_OCR_JS = 'forms/hg-ocr.js?v=d17', OCR_MB = { accurate: 43, fast: 21 };
+      const ocrModel = ref((() => { try { return localStorage.getItem('hg_desk_ocr_model') === 'fast' ? 'fast' : 'accurate'; } catch (e) { return 'accurate'; } })());
+      watch(ocrModel, v => { try { localStorage.setItem('hg_desk_ocr_model', v); } catch (e) {} });
       let importGeneration = 0, originals = new Map(), sourceTrigger = null;
       const clearImport = () => {
         importGeneration++;
@@ -1875,17 +1882,24 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         const manualFiles = () => Array.from(fileMap, ([sourceId, entry]) => ({ sourceId, file: entry.file.name, found: entry.found })).filter(s => !s.found);
         try {
           const pdfjs = list.some(it => isPdfFile(it.file)) ? await loadPdfjs() : null;
-          await loadScript('forms/hg-transcript-ocr.js?v=d11');
+          await loadScript('forms/hg-transcript-ocr.js?v=d17');
           const ensureOcr = async () => {
-            if (window.HGOcr?.ready) return;
-            if (mine()) imp.value.msg = '載入掃描與照片辨識程式…';
-            await loadScript('forms/hg-ocr.js');
-            const got = {};
-            await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => {
+            const want = ocrModel.value === 'fast' ? 'fast' : 'accurate';
+            if (window.HGOcr?.ready && window.HGOcr.model === want) return;
+            if (mine()) imp.value.msg = want === 'accurate' ? '載入高精度辨識模型…（第一次約 ' + OCR_MB.accurate + ' MB，之後會記住）' : '載入掃描與照片辨識程式…';
+            await loadScript(HG_OCR_JS);
+            const load = model => { const got = {}; return window.HGOcr.init({ base: 'forms/ocr/', model, onProgress: (l, g, t) => {
               got[l] = [g, t];
               const v = Object.values(got);
               if (mine()) imp.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100);
-            } });
+            } }); };
+            try { await load(want); }
+            catch (e) {
+              if (want !== 'accurate') throw e;
+              // 高精度模型載入失敗（網路或記憶體不足）時，改用快速模式繼續
+              warnings.push('高精度辨識模型載入失敗（' + (e?.message || e) + '），這次改用快速模式辨識。');
+              await load('fast');
+            }
           };
           const docs = [], warnings = [], used = [];
           for (const [n, it] of list.entries()) {
@@ -1918,7 +1932,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
             if (unreadPages.length) warnings.push('「' + f.name + '」第 ' + unreadPages.map(p => p.page).join('、') + ' 頁沒有讀出文字，請查看原件。');
             const entry = { file: f, pages, thumbs: r.thumbs || {}, evidence: r.evidence || [], url: '', found: parsed.docs.length > 0 };
             fileMap.set(sourceId, entry);
-            logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', m: r.mode, p: r.pages, o: r.ocrPages || 0, ms: Date.now() - tf, docs: parsed.docs.length });
+            logFiles.push({ t: isPdfFile(f) ? 'pdf' : 'img', m: r.mode, p: r.pages, o: r.ocrPages || 0, ms: Date.now() - tf, docs: parsed.docs.length, ...(r.mode !== 'text' && window.HGOcr?.model ? { ocr: window.HGOcr.model } : {}) });
             parsed.warnings.forEach(x => warnings.push('「' + f.name + '」' + x));
             parsed.docs.forEach(d => {
               d.file = f.name; d.sourceId = sourceId;
@@ -2540,9 +2554,10 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
           const blob = await res.blob();
           if (!mine()) return;
           ck.value.status = '載入辨識程式…（第一次使用約 21 MB，之後會記住）';
-          await loadScript('forms/hg-ocr.js'); await loadScript('forms/hg-contract.js');
+          await loadScript(HG_OCR_JS); await loadScript('forms/hg-contract.js');
           const got = {};
-          await window.HGOcr.init({ base: 'forms/ocr/', onProgress: (l, g, t) => { got[l] = [g, t]; const v = Object.values(got); if (mine()) ck.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100); } });
+          // 合約核對的門檻是依快速模型調的，D17 仍固定用快速模型
+          await window.HGOcr.init({ base: 'forms/ocr/', model: 'fast', onProgress: (l, g, t) => { got[l] = [g, t]; const v = Object.values(got); if (mine()) ck.value.pct = Math.round(v.reduce((s, x) => s + x[0], 0) / Math.max(1, v.reduce((s, x) => s + x[1], 0)) * 100); } });
           if (!mine()) return;
           if (r.mime === 'application/pdf') {
             const lib = await loadPdfjs();
@@ -2641,7 +2656,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D16';
+      const APP_VER = 'desk-D17';
       // D16：新版提示與本次更新說明（ERP 視窗長時間開著時，作業台不會自己重新載入）
       const newVer = ref(''), whatsNew = ref(false);
       try { whatsNew.value = localStorage.getItem('hg_desk_seen_ver') !== APP_VER; } catch (e) {}
@@ -2800,7 +2815,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         TYPES, FORM_LIST, autoType, agentName, partyRows, officeOptions, scrivenerOptions, checks,
         loadCases, openCase, reloadCase, saveCase, addProp, fillLandBuildNo, fillPrice, fillAttachments, generate, signOut,
         tab, rcpt, rcptSum, RSIDE, RSTATUS, RFIRM, money, shortTime, loadReceipts, newReceipt, openReceipt, openReceiptsTab,
-        imp, clearImport, onTranscriptFiles, applyTranscript, canKeepSource, propExists, ownerOk,
+        imp, ocrModel, clearImport, onTranscriptFiles, applyTranscript, canKeepSource, propExists, ownerOk,
         addPerson, removePerson, idHint, idCls, ownerSeller, ownerCan, viewSource, closeSource, viewUrl, viewImage, canTranscript, importFromCaseFile,
         matchSeller, matchProp, canApply, modeName, usableRights, reviewItems, jumpEdit,
         view, toggleRoster, openFromRoster, ALERTS, setConsent, alertCls, ros, rosterView, consentEmails, bccHref, exportContacts, copyConsentEmails,
