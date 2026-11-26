@@ -389,6 +389,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
   <div v-if="whatsNew" class="d16-whatsnew" data-testid="d16-whatsnew">
     <b>作業台本次更新（11/25～11/26）</b>　先在左側點一件案件，就會看到：
     <ul>
+      <li><b>11/26 掃描謄本的層次面積表</b>：表格列很密時也讀得出一層、二層…與各層面積（層數、總面積驗算相符才補，補上的列仍請對照原件）。</li>
       <li><b>11/26 謄本辨識改用高精度模型</b>：「登記與稅務表單 → 從謄本帶入」旁可選「高精度／快速」。掃描檔、照片的錯字約少一半，掃描謄本的區段標題也不再被清空；第一次使用多下載約 21 MB。</li>
       <li><b>案件上方</b>：辦理進度（簽約→用印→完稅→送件→補正→辦結）、法定期限提醒、<b>快速登錄</b>（登記原因、記送件、收件字號）</li>
       <li><b>左側清單</b>：期限警示、我的、未收款 三個篩選</li>
@@ -1793,7 +1794,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
       const IMP0 = () => ({ busy: false, pct: 0, msg: '', docs: [], warnings: [], owners: [], files: [], manualFiles: [], view: null, reviewed: false, saveOrig: false, log: null, applied: false });
       const imp = ref(IMP0());
       // D17 辨識模式（Claude 2026-11-26）：高精度＝PP-OCRv6（依事務所去識別謄本比較選定）；快速＝原 PP-OCRv5 mobile。同仁的選擇記在這台電腦。
-      const HG_OCR_JS = 'forms/hg-ocr.js?v=d17', OCR_MB = { accurate: 43, fast: 21 };
+      const HG_OCR_JS = 'forms/hg-ocr.js?v=d18', OCR_MB = { accurate: 43, fast: 21 };
       const ocrModel = ref((() => { try { return localStorage.getItem('hg_desk_ocr_model') === 'fast' ? 'fast' : 'accurate'; } catch (e) { return 'accurate'; } })());
       watch(ocrModel, v => { try { localStorage.setItem('hg_desk_ocr_model', v); } catch (e) {} });
       let importGeneration = 0, originals = new Map(), sourceTrigger = null;
@@ -1882,7 +1883,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
         const manualFiles = () => Array.from(fileMap, ([sourceId, entry]) => ({ sourceId, file: entry.file.name, found: entry.found })).filter(s => !s.found);
         try {
           const pdfjs = list.some(it => isPdfFile(it.file)) ? await loadPdfjs() : null;
-          await loadScript('forms/hg-transcript-ocr.js?v=d17');
+          await loadScript('forms/hg-transcript-ocr.js?v=d18');
           const ensureOcr = async () => {
             const want = ocrModel.value === 'fast' ? 'fast' : 'accurate';
             if (window.HGOcr?.ready && window.HGOcr.model === want) return;
@@ -1945,7 +1946,8 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
               const uncertainPages = pages.filter(p => (!pageNumbers.length || pageNumbers.includes(p.page)) && p.reviewLines?.length);
               d.pageUncertain = uncertainPages.length > 0 || unreadPages.length > 0;
               if (d.pageUncertain) {
-                d.reviewReasons = [...(d.reviewReasons || []), ...uncertainPages.map(p => '第 ' + p.page + ' 頁有 ' + p.reviewLines.length + ' 行辨識不確定，請核對原件。')];
+                d.reviewReasons = [...(d.reviewReasons || []), ...uncertainPages.map(p => '第 ' + p.page + ' 頁有 ' + p.reviewLines.length + ' 行辨識不確定，請核對原件。'),
+                  ...uncertainPages.flatMap(p => (p.notes || []).map(n => '第 ' + p.page + ' 頁：' + n))];
               }
               d.pageLabel = pageNumbers.length ? '第 ' + pageNumbers.join('、') + ' 頁' : '請在原件定位';
               d.pick = !!d.row.number && !matchProp(d.row).issue; d.useRights = false;
@@ -2656,7 +2658,7 @@ table.props input.hot{background:#fffbeb;border-color:#f59e0b}
 
       // D8 意見回報與自動紀錄（Claude 2026-11-19）：同仁回報、帶入速度、修正紀錄存 Supabase desk_feedback；
       // 雲端表還沒開通或網路不穩時先存這台電腦，下次打開作業台自動補送。從修正紀錄學出常見辨識錯字，之後帶入時自動校正並標示。
-      const APP_VER = 'desk-D17';
+      const APP_VER = 'desk-D18';
       // D16：新版提示與本次更新說明（ERP 視窗長時間開著時，作業台不會自己重新載入）
       const newVer = ref(''), whatsNew = ref(false);
       try { whatsNew.value = localStorage.getItem('hg_desk_seen_ver') !== APP_VER; } catch (e) {}

@@ -625,6 +625,8 @@ function hgExcerpt(line, field) {
     source.rawExcerpt = line.original.trim().slice(0, 220);
     if (!line.corrected) source.formatOnly = true;
   }
+  // D18：辨識端依層數與總面積驗算後推得的層次面積列（該頁仍列為需核對，由核對者勾選帶入）
+  if (line.inferred) source.inferred = true;
   return source;
 }
 // 混合 PDF 會把本來已正確的「層 數：」排成「層數：」，星號裝飾也會移除。
@@ -646,10 +648,12 @@ function hgPrepare(text, pageSources) {
     var sourceLines = source && typeof source.rawText === 'string' ? source.rawText.replace(/\r\n?/g, '\n').split('\n') : null;
     var rows = pageText.replace(/\r\n?/g, '\n').split('\n');
     var aligned = sourceLines && sourceLines.length === rows.length && source.text === pageText;
+    var inferredRows = aligned && Array.isArray(source.inferred) ? source.inferred : null;
     rows.forEach(function (raw, rowIndex) {
       var original = aligned ? sourceLines[rowIndex] : raw;
       var line = {raw:raw, original:original, corrected:original !== raw && hgComparedLayout(original) !== hgComparedLayout(raw),
         text:hgStrip(hgNormalize(raw)), page:index + 1};
+      if (inferredRows && inferredRows.indexOf(rowIndex + 1) >= 0 && /平方公尺|層數|層次/.test(raw)) line.inferred = true;
       if (hgTitleRe.test(line.text) && chunk.some(function (l) { return l.text; })) { chunks.push(chunk); chunk = []; }
       chunk.push(line);
     });
@@ -1093,7 +1097,7 @@ function hgTranscriptToDesk(text, opt) {
         row.attachedArea = acc && !unresolvedAccessory ? String(Math.round(acc * 1e6) / 1e6) : '';
         if (matched) {
           var buildingFacts = {};
-          function unchanged(field) { return !evidence.some(function (s) { return s.field === field && s.rawExcerpt !== undefined && !s.formatOnly; }); }
+          function unchanged(field) { return !evidence.some(function (s) { return s.field === field && s.rawExcerpt !== undefined && !s.formatOnly && !s.inferred; }); }
           if (d.landRefs.length && unchanged('landRefs')) {
             buildingFacts.landRefs = d.landRefs.map(function (ref) {
               var place = hgSplitSection(ref.section);

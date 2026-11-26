@@ -130,7 +130,13 @@
     const lines = [];
     boxes.slice().sort((a, b) => (a.y + a.h / 2) - (b.y + b.h / 2)).forEach(b => {
       const cy = b.y + b.h / 2;
-      const L = lines.find(l => Math.abs(l.cy - cy) < Math.min(l.h, b.h) * 0.5 && !l.boxes.some(o => b.x < o.x + o.w - 2 && o.x < b.x + b.w - 2));
+      // 從黏住的多列切出的方框，外擴後會和同列緊鄰的字左右重疊；只有這種情形改用外擴前範圍（cx、cw）判斷
+      const clash = o => {
+        const core = (o.split || b.split) && o.cw && b.cw;
+        const ox = core ? o.cx : o.x, ow = core ? o.cw : o.w, bx = core ? b.cx : b.x, bw = core ? b.cw : b.w;
+        return bx < ox + ow - 2 && ox < bx + bw - 2;
+      };
+      const L = lines.find(l => Math.abs(l.cy - cy) < Math.min(l.h, b.h) * 0.5 && !l.boxes.some(clash));
       if (L) { L.boxes.push(b); L.cy = (L.cy * (L.boxes.length - 1) + cy) / L.boxes.length; L.h = Math.max(L.h, b.h); }
       else lines.push({ cy, h: b.h, boxes: [b] });
     });
@@ -145,6 +151,57 @@
       return { rawText: text, text: needsReview ? '' : fixLine(text), needsReview, x: x0, y: y0, w: x1 - x0, h: y1 - y0, score: l.boxes.reduce((s, b) => s + b.score, 0) / l.boxes.length, boxes: l.boxes };
     });
   }
+  /* D17 層次面積表補救（整頁辨識用）：表格列很密時，右邊的面積數字多半讀得準，左邊的「一層、二層」常缺字或錯字。
+   * 只有全部條件成立才依順序補上樓層名稱：①「層數：00N層」與「總面積」那兩格讀得清楚 ②第一列有「層次面積」
+   * ③每列面積都讀得清楚、列數為 N～N+4 ④面積加總等於總面積 ⑤沒有「地下」 ⑥第 N 列之後的列讀得出「屋頂突出物／夾層／騎樓」。
+   * 回傳 { out: Map(行序→改寫後文字), flag: Set(名稱是推得的行序，仍列為需核對) } */
+  const ZH = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  const zhNum = n => n < 10 ? ZH[n] : (n >= 20 ? ZH[Math.floor(n / 10)] : '') + '十' + ZH[n % 10];
+  const AREA_BOX = /^(?:層次面積[：:])?[＊*]*([0-9][0-9,]*(?:\.[0-9]+)?)平方公尺$/;
+  function floorFix(lines) {
+    const out = new Map(), flag = new Set(), none = { out: new Map(), flag: new Set() };
+    const nz = s => String(s == null ? '' : s).normalize('NFKC').replace(/\s/g, '');
+    const hi = lines.findIndex(l => /層數[：:]?0*\d+層/.test(nz(fixLine(l.rawText))) && /總面積/.test(nz(fixLine(l.rawText))));
+    if (hi < 0) return none;
+    const head = nz(fixLine(lines[hi].rawText));
+    const nm = head.match(/層數[：:]?0*(\d+)層/), tm = head.match(/總面積[：:]?[＊*]*([0-9][0-9,]*(?:\.[0-9]+)?)平方公尺/);
+    if (!nm || !tm) return none;
+    const N = +nm[1], T = +tm[1].replace(/,/g, '');
+    if (!(N >= 1 && N <= 99) || !(T > 0)) return none;
+    const hb = lines[hi].boxes || [];
+    if (!hb.some(b => /總面積/.test(nz(b.text)) && b.score >= 0.9) || !hb.some(b => /\d+層/.test(nz(b.text)) && b.score >= 0.9)) return none;
+    const rows = [];
+    for (let i = hi + 1; i < lines.length && i <= hi + N + 16; i++) {
+      const t = nz(fixLine(lines[i].rawText));
+      if (/附屬建物|其他登記事項|所有權部|他項權利部|權利範圍/.test(t)) break;
+      const boxes = (lines[i].boxes || []).slice().sort((a, b) => a.x - b.x);
+      const ai = boxes.findIndex(b => AREA_BOX.test(nz(b.text)));
+      if (ai < 0) { if (/平方公尺/.test(t)) return none; continue; }   // 面積格讀不清楚就不補
+      if (boxes[ai].score < 0.9) return none;
+      const value = nz(boxes[ai].text).match(AREA_BOX)[1].replace(/,/g, '');
+      const cell = nz(boxes[ai].text).replace(/^層次面積[：:]?/, '');   // 保留原有星號
+      const left = nz(boxes.slice(0, ai).map(b => b.text).join(''));
+      const label = left.replace(/層次面積[：:]?$/, '').replace(/^層?次[：:]?/, '');
+      rows.push({ i, value, cell, label, review: !!lines[i].needsReview, first: /層次面積/.test(nz(boxes[ai].text)) || /層次面積[：:]?$/.test(left) });
+    }
+    if (rows.length < N || rows.length > N + 4 || !rows[0].first || rows.slice(1).some(r => r.first)) return none;
+    const sum = Math.round(rows.reduce((s, r) => s + Number(r.value), 0) * 100) / 100;
+    if (Math.abs(sum - T) > 0.005 || rows.some(r => /地下/.test(r.label))) return none;
+    const names = [];
+    for (let k = 0; k < rows.length; k++) {
+      if (k < N) { names.push(zhNum(k + 1) + '層'); continue; }
+      const m = rows[k].label.match(/屋頂突出物|夾層|騎樓/);
+      if (!m) return none;
+      names.push(m[0]);
+    }
+    // 整張表都讀對、也沒有低分行時不介入（維持原本可直接帶入的狀態）
+    if (!lines[hi].needsReview && rows.every((r, k) => !r.review && r.label === names[k])) return none;
+    // 層數、總面積已由加總驗證；連同各列一起改寫，並全部列為需核對（核對者確認後才勾選帶入）
+    out.set(hi, '層數：' + nm[0].match(/0*\d+層/)[0] + ' 總面積：' + head.match(/總面積[：:]?([＊*]*[0-9][0-9,.]*平方公尺)/)[1]);
+    rows.forEach((r, k) => out.set(r.i, (k === 0 ? '層次：' + names[k] + ' 層次面積：' : names[k] + ' ') + r.cell));
+    for (const i of out.keys()) flag.add(i);
+    return { out, flag };
+  }
   const useful = b => b.score >= 0.85 || (b.score >= 0.55 && /[㐀-鿿0-9０-９A-Za-z]/.test(b.text) && b.text.trim().length >= 3);
 
   const overlap = (a, b) => {
@@ -156,7 +213,7 @@
     // 偵測對縮放很敏感（同一行在某個尺寸會整行漏掉），整頁辨識時用兩種尺寸偵測，再把沒重疊的方框補進來
     let boxes = [];
     for (const side of opt.sides || [opt.maxSide || 2000]) {
-      const got = await O.detect(src, { maxSide: side });
+      const got = await O.detect(src, { maxSide: side, splitRows: !!opt.splitRows });
       if (!boxes.length) boxes = got;
       else got.forEach(b => { if (!boxes.some(a => overlap(a, b) > 0.3)) boxes.push(b); });
     }
@@ -164,7 +221,7 @@
     const out = await Promise.all(boxes.map(async b => {
       const r = await O.recognize(src, b);
       done++; if (opt.onBox) opt.onBox(done, boxes.length);
-      const box = { x: b.x, y: b.y, w: b.w, h: b.h, text: String(r.text || ''), score: r.score };
+      const box = { x: b.x, y: b.y, w: b.w, h: b.h, ...(b.cw ? { cx: b.cx, cw: b.cw } : {}), ...(b.split ? { split: true } : {}), text: String(r.text || ''), score: r.score };
       return { ...box, needsReview: !useful(box) };
     }));
     return out.filter(b => b.text.trim());
@@ -197,7 +254,8 @@
     return { canvas: cv, angle, lines, score: mean(boxes) };
   }
   const mean = bs => bs.length ? bs.reduce((s, b) => s + b.score, 0) / bs.length : 0;
-  const O_boxes = (cv, opt) => ocrBoxes(cv, { sides: [PAGE_SIDE, 1800], onBox: opt.onBox });
+  // 整頁辨識：黏在一起的表格列切回單列（層次面積表等）
+  const O_boxes = (cv, opt) => ocrBoxes(cv, { sides: [PAGE_SIDE, 1800], onBox: opt.onBox, splitRows: true });
 
   // 電子謄本：找出頁面上「一行高、很寬」的圖片（所有權人、統一編號、住址等），回傳頁面座標（左上為原點，單位 pt）
   async function imageRows(page, pdfjs) {
@@ -232,10 +290,13 @@
     const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
     const res = { text: '', mode: 'text', pages: 0, pageSources: [], evidence: [], thumbs: {}, ocrPages: 0, score: 0 };
     const scores = [];
-    const addPage = (page, source, lines, reviewLines = []) => {
+    const addPage = (page, source, lines, reviewLines = [], fixes) => {
       const rawText = lines.join('\n');
-      const text = source === 'text' ? rawText : lines.map((line, i) => reviewLines.includes(i + 1) ? '' : fixLine(line)).join('\n');
-      res.pageSources.push({ page, source, rawText, text, reviewLines });
+      // fixes：層次面積表依層數與總面積驗算後補上的列（仍列在 reviewLines，請核對者確認）
+      const text = source === 'text' ? rawText : lines.map((line, i) => fixes && fixes.has(i) ? fixes.get(i) : reviewLines.includes(i + 1) ? '' : fixLine(line)).join('\n');
+      const entry = { page, source, rawText, text, reviewLines };
+      if (fixes && fixes.size) { entry.inferred = [...fixes.keys()].map(i => i + 1); entry.notes = ['層次面積表的樓層名稱依層數與總面積推得，請核對原件。']; }
+      res.pageSources.push(entry);
     };
     const finish = () => {
       res.pages = res.pageSources.length;
@@ -247,7 +308,8 @@
       return res;
     };
     const addLines = (no, cv, lines) => {
-      addPage(no, 'ocr', lines.map(l => l.rawText), lines.flatMap((l, i) => l.needsReview ? [i + 1] : []));
+      const ff = floorFix(lines);
+      addPage(no, 'ocr', lines.map(l => l.rawText), lines.flatMap((l, i) => l.needsReview || ff.flag.has(i) ? [i + 1] : []), ff.out);
       lines.forEach(l => { if (l.needsReview || KEY_LINE.test(l.text.replace(/\s/g, ''))) res.evidence.push({ page: no, source: 'ocr', rawText: l.rawText, text: l.text, needsReview: l.needsReview, score: l.score, crop: crop(cv, { x: l.x - 6, y: l.y - 4, w: l.w + 12, h: l.h + 8 }, 44) }); });
       lines.forEach(l => scores.push(l.score));
     };
@@ -328,5 +390,5 @@
     } finally { try { await doc.destroy(); } catch (e) {} }
   }
 
-  window.HGTranscriptOcr = { version: 'D17-2026-11-26', readFile, readCanvas, groupLines, skewAngle, rotate, imageRows, fixLine, fixLines };
+  window.HGTranscriptOcr = { version: 'D18-2026-11-26', readFile, readCanvas, groupLines, floorFix, skewAngle, rotate, imageRows, fixLine, fixLines };
 })();

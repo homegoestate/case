@@ -165,7 +165,79 @@
     try { return await job; } catch (e) { if (initP === job) { initP = null; initKey = ''; } throw e; }
   }
 
-  /* 找出影像中的文字行。回傳原圖座標的方框 [{x,y,w,h,score}] */
+  // D17 列切分：表格列距很近時（如謄本層次面積表），上下列的同一個字會在找字圖上黏成一個高方框。
+  // 只在橫向頁面（多數方框是橫的）時，把高度超過一般文字行 ROW_SPLIT 倍的方框依上下空隙切回一列一列。
+  const ROW_SPLIT = 1.6;
+  function rowLimit(comps, boxThresh) {
+    const ok = comps.filter(c => c.ccnt >= 12 && c.csum / c.ccnt >= boxThresh && Math.min(c.x1 - c.x0, c.y1 - c.y0) >= 2);
+    if (ok.length < 8) return 0;
+    let wide = 0, tall = 0; const hs = [];
+    for (const c of ok) {
+      const bw = c.x1 - c.x0 + 1, bh = c.y1 - c.y0 + 1;
+      if (bw >= bh * 1.2) wide += bw * bh; else if (bh >= bw * 1.2) tall += bw * bh;
+      if (bw >= bh) hs.push(bh);
+    }
+    if (wide < tall * 2 || hs.length < 5) return 0;   // 直的或轉向的頁面不切，留給轉正判斷
+    hs.sort((a, b) => a - b);
+    const typ = hs[Math.floor(hs.length / 2)];
+    return typ >= 4 ? typ * ROW_SPLIT : 0;
+  }
+  // 同頁其他（未黏住）方框佔用的列：表格同一列右邊通常有切得很乾淨的方框，可當切線
+  function rowBands(comps, H, limit, boxThresh) {
+    const band = new Uint16Array(H);
+    for (const c of comps) {
+      const bh = c.y1 - c.y0 + 1;
+      if (bh > limit || c.ccnt < 12 || c.csum / c.ccnt < boxThresh || c.x1 - c.x0 < 2) continue;
+      for (let y = c.y0; y <= c.y1; y++) band[y]++;
+    }
+    return band;
+  }
+  function splitRows(c, map, lab, W, typ, band) {
+    const n = c.y1 - c.y0 + 1, prof = new Float64Array(n);
+    for (let y = c.y0; y <= c.y1; y++) { let s = 0; const o = y * W; for (let x = c.x0; x <= c.x1; x++) if (lab[o + x] === c.id) s += map[o + x]; prof[y - c.y0] = s; }
+    const sm = prof.map((v, i) => (i > 0 ? prof[i - 1] : v) / 4 + v / 2 + (i < n - 1 ? prof[i + 1] : v) / 4);
+    let mx = 0; for (let i = 0; i < n; i++) mx = Math.max(mx, sm[i]);
+    const runsOf = (a, b, on) => { const runs = []; let st = -1; for (let i = a; i <= b + 1; i++) { const v = i <= b && on(i); if (v && st < 0) st = i; else if (!v && st >= 0) { runs.push([st, i - 1]); st = -1; } } return runs; };
+    // 兩個條件都成立才切：①同頁其他方框在這裡有上下空隙（表格的列界）②黏住的方框本身在附近確實變細
+    const cuts = [];
+    if (band) {
+      const real = runsOf(0, n - 1, i => band[c.y0 + i] > 0).filter(r => r[1] - r[0] + 1 >= typ * 0.45);
+      const win = Math.max(2, Math.round(typ * 0.3));
+      for (let k = 1; k < real.length; k++) {
+        const mid = Math.round((real[k - 1][1] + real[k][0]) / 2);
+        let mi = -1, mv = Infinity;
+        for (let i = Math.max(1, mid - win); i <= Math.min(n - 2, mid + win); i++) if (sm[i] < mv) { mv = sm[i]; mi = i; }
+        if (mi > 0 && mv < mx * 0.7) cuts.push(mi);
+      }
+    }
+    const segs = []; let a0 = 0;
+    for (const i of cuts) { if (i - 1 >= a0) segs.push([a0, i - 1]); a0 = i + 1; }
+    segs.push([a0, n - 1]);
+    // 仍然太高的段：自身有明顯空白列才再切
+    const parts = [];
+    const cut = (a, b, depth) => {
+      if (b - a + 1 <= typ * ROW_SPLIT || depth > 6) { parts.push([a, b]); return; }
+      let m = 0; for (let i = a; i <= b; i++) m = Math.max(m, sm[i]);
+      const runs = runsOf(a, b, i => sm[i] >= m * 0.35);
+      if (runs.length > 1) runs.forEach(r => cut(r[0], r[1], depth + 1)); else parts.push([a, b]);
+    };
+    segs.forEach(([a, b]) => cut(a, b, 0));
+    // 切下來太薄的殘片（相鄰列的筆畫邊緣）不當成文字行
+    const kept = parts.filter(([a, b]) => b - a + 1 >= typ * 0.45);
+    if (kept.length < 2) return [c];
+    return pieces(c, map, lab, W, kept.map(([a, b]) => [c.y0 + a, c.y0 + b]));
+  }
+  // 依列範圍（絕對列號）取出元件在各段的實際左右範圍與可信度；上下也縮到實際有字的列
+  function pieces(c, map, lab, W, ranges) {
+    return ranges.map(([a, b]) => {
+      let x0 = W, x1 = -1, y0 = -1, y1 = -1, csum = 0, ccnt = 0;
+      for (let y = a; y <= b; y++) { const o = y * W; for (let x = c.x0; x <= c.x1; x++) if (lab[o + x] === c.id) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y0 < 0) y0 = y; y1 = y; csum += map[o + x]; ccnt++; } }
+      return { id: c.id, x0, x1, y0, y1, csum, ccnt, split: true };
+    }).filter(p => p.ccnt > 0 && p.x1 >= p.x0);
+  }
+
+  /* 找出影像中的文字行。回傳原圖座標的方框 [{x,y,w,h,score}]
+   * opt.splitRows：橫向頁面上黏在一起的多列方框切回單列（整頁謄本辨識用） */
   async function detect(src, opt) {
     opt = opt || {};
     const { ort, det, detParams } = await init();
@@ -189,27 +261,38 @@
       const map = out[det.outputNames[0]].data;
       const dp = detParams || V5_DET;
       const thresh = opt.thresh != null ? opt.thresh : dp.thresh, boxThresh = opt.boxThresh != null ? opt.boxThresh : dp.boxThresh, unclip = opt.unclip || dp.unclip;
-      const seen = new Uint8Array(n), stack = new Int32Array(n), boxes = [];
+      const lab = new Int32Array(n), stack = new Int32Array(n), boxes = [], comps = [];
       const fx = sw / W, fy = sh / H;
       for (let i = 0; i < n; i++) {
-        if (seen[i] || map[i] <= thresh) continue;
-        let sp = 0; stack[sp++] = i; seen[i] = 1; let x0 = W, y0 = H, x1 = -1, y1 = -1, csum = 0, ccnt = 0;
+        if (lab[i] || map[i] <= thresh) continue;
+        const id = comps.length + 1;
+        let sp = 0; stack[sp++] = i; lab[i] = id; let x0 = W, y0 = H, x1 = -1, y1 = -1, csum = 0, ccnt = 0;
         while (sp) {
           const k = stack[--sp], x = k % W, y = (k - x) / W; csum += map[k]; ccnt++;
           if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
-          if (x > 0 && !seen[k - 1] && map[k - 1] > thresh) { seen[k - 1] = 1; stack[sp++] = k - 1; }
-          if (x < W - 1 && !seen[k + 1] && map[k + 1] > thresh) { seen[k + 1] = 1; stack[sp++] = k + 1; }
-          if (y > 0 && !seen[k - W] && map[k - W] > thresh) { seen[k - W] = 1; stack[sp++] = k - W; }
-          if (y < H - 1 && !seen[k + W] && map[k + W] > thresh) { seen[k + W] = 1; stack[sp++] = k + W; }
+          if (x > 0 && !lab[k - 1] && map[k - 1] > thresh) { lab[k - 1] = id; stack[sp++] = k - 1; }
+          if (x < W - 1 && !lab[k + 1] && map[k + 1] > thresh) { lab[k + 1] = id; stack[sp++] = k + 1; }
+          if (y > 0 && !lab[k - W] && map[k - W] > thresh) { lab[k - W] = id; stack[sp++] = k - W; }
+          if (y < H - 1 && !lab[k + W] && map[k + W] > thresh) { lab[k + W] = id; stack[sp++] = k + W; }
         }
-        const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-        if (Math.min(bw, bh) < 3) continue;
+        comps.push({ id, x0, y0, x1, y1, csum, ccnt });
+      }
+      const push = c => {
+        const bw = c.x1 - c.x0 + 1, bh = c.y1 - c.y0 + 1;
+        if (Math.min(bw, bh) < 3) return;
         // 可信度＝文字區塊本身的平均機率（手寫字歪斜、碰到鄰行時，外框會變大，用外框平均會被誤刪）
-        const score = csum / ccnt; if (score < boxThresh || ccnt < 12) continue;
+        const score = c.csum / c.ccnt; if (score < boxThresh || c.ccnt < 12) return;
         const d = bw * bh * unclip / (2 * (bw + bh));
-        const X0 = Math.max(0, (x0 - d) * fx), Y0 = Math.max(0, (y0 - d) * fy);
-        const X1 = Math.min(sw, (x1 + 1 + d) * fx), Y1 = Math.min(sh, (y1 + 1 + d) * fy);
-        boxes.push({ x: X0, y: Y0, w: X1 - X0, h: Y1 - Y0, score });
+        const X0 = Math.max(0, (c.x0 - d) * fx), Y0 = Math.max(0, (c.y0 - d) * fy);
+        const X1 = Math.min(sw, (c.x1 + 1 + d) * fx), Y1 = Math.min(sh, (c.y1 + 1 + d) * fy);
+        // cx、cw：外擴前的左右範圍（排行時判斷兩框是否真的重疊）
+        boxes.push({ x: X0, y: Y0, w: X1 - X0, h: Y1 - Y0, cx: c.x0 * fx, cw: (c.x1 + 1 - c.x0) * fx, score, ...(c.split ? { split: true } : {}) });
+      };
+      const tallLimit = opt.splitRows ? rowLimit(comps, boxThresh) : 0;
+      const band = tallLimit ? rowBands(comps, H, tallLimit, boxThresh) : null;
+      for (const c of comps) {
+        if (tallLimit && c.y1 - c.y0 + 1 > tallLimit) splitRows(c, map, lab, W, tallLimit / ROW_SPLIT, band).forEach(push);
+        else push(c);
       }
       boxes.sort((a, b) => (Math.abs(a.y - b.y) < Math.min(a.h, b.h) * 0.5 ? a.x - b.x : a.y - b.y));
       return boxes;
